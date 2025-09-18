@@ -5,7 +5,6 @@ class AppBottomNav extends StatelessWidget {
   const AppBottomNav({super.key, required this.current});
 
   void _go(BuildContext context, String route) {
-    // Remplaza la pantalla actual para no crecer el stack
     Navigator.of(context).pushReplacementNamed(route);
   }
 
