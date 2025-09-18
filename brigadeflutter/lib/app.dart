@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/emergency_report/emergency_report_cubit.dart';
 import 'app_view.dart';
+import 'screens/notifications_screen.dart';
 
 class BrigadeApp extends StatelessWidget {
   const BrigadeApp({super.key});
@@ -36,7 +37,12 @@ class BrigadeApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
-        home: const AppView(),   // AppView ya no crea otro MaterialApp
+        feature/notification-view
+        initialRoute: '/report',
+        routes: {
+          '/report': (context) => const AppView(),
+          '/notification': (context) => const NotificationsScreen(),
+        },
       ),
     );
   }
