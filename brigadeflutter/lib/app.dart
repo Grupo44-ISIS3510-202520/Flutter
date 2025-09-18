@@ -37,7 +37,6 @@ class BrigadeApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
-        feature/notification-view
         initialRoute: '/report',
         routes: {
           '/report': (context) => const AppView(),
