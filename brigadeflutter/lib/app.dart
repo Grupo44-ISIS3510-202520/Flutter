@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/emergency_report/emergency_report_cubit.dart';
 import 'app_view.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/emergency_dashboard_screen.dart';
+import 'screens/protocols_and_manuals_screen.dart';
+
 
 class BrigadeApp extends StatelessWidget {
   const BrigadeApp({super.key});
@@ -37,10 +40,12 @@ class BrigadeApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
-        initialRoute: '/report',
+        initialRoute: '/dashboard',
         routes: {
           '/report': (context) => const AppView(),
           '/notification': (context) => const NotificationsScreen(),
+          '/dashboard': (context) => const EmergencyDashboardScreen(),
+          '/protocols': (context) => const ProtocolsAndManualsScreen(),
         },
       ),
     );
