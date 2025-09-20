@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'blocs/emergency_report/emergency_report_cubit.dart';
+import 'blocs/training/training_repository.dart';
+import 'blocs/profile/profile_repository.dart';
+import 'blocs/training/training_cubit.dart';
+import 'blocs/profile/profile_cubit.dart';
+
 import 'app_view.dart';
 import 'screens/notifications_screen.dart';
 
@@ -32,16 +38,26 @@ class BrigadeApp extends StatelessWidget {
       ),
     );
 
-    return BlocProvider(
-      create: (_) => EmergencyReportCubit(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: theme,
-        initialRoute: '/report',
-        routes: {
-          '/report': (context) => const AppView(),
-          '/notification': (context) => const NotificationsScreen(),
-        },
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<TrainingRepository>(create: (_) => InMemoryTrainingRepository()),
+        RepositoryProvider<ProfileRepository>(create: (_) => InMemoryProfileRepository()),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => EmergencyReportCubit()),
+          BlocProvider(create: (c) => TrainingCubit(c.read<TrainingRepository>())..load()),
+          BlocProvider(create: (c) => ProfileCubit(c.read<ProfileRepository>())..load()),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: theme,
+          initialRoute: '/report',
+          routes: {
+            '/report': (context) => const AppView(),            // BottomNav con tabs
+            '/notification': (context) => const NotificationsScreen(),
+          },
+        ),
       ),
     );
   }
