@@ -6,21 +6,20 @@ abstract class TrainingRepository {
   Future<void> start(String cardId);
 }
 
-// Implementación en memoria (sustituible por Firestore/REST)
 class InMemoryTrainingRepository implements TrainingRepository {
   final _cards = <TrainingCard>[
     const TrainingCard(
       id: 'basic',
       title: 'Basic First Aid',
       subtitle: 'Learn the essentials of first aid, including CPR and basic wound care.',
-      imageUrl: 'https://i.imgur.com/q2w7E5b.png',
+      imageUrl: 'https://m.media-amazon.com/images/I/71KY6V9LLOL._UF894,1000_QL80_.jpg',
       cta: 'Start Course',
     ),
     const TrainingCard(
       id: 'advanced',
       title: 'Advanced First Aid',
       subtitle: 'Get certified in advanced first aid techniques and emergency response.',
-      imageUrl: 'https://i.imgur.com/jUe3sQx.png',
+      imageUrl: 'https://www.shutterstock.com/image-vector/flat-vector-illustration-certified-first-260nw-2624013765.jpg',
       cta: 'Start Certification',
     ),
   ];
