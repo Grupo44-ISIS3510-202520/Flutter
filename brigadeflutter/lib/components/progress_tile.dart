@@ -28,12 +28,21 @@ class ProgressTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     progress.label,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis, // evita overflow
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                    overflow: TextOverflow.ellipsis, // corta si es largo
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('${progress.percent}%'),
+                Text(
+                  '${progress.percent}%',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -42,6 +51,8 @@ class ProgressTile extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: percent,
                 minHeight: 10,
+                backgroundColor: Colors.grey[200],
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
