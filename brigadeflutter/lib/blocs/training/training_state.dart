@@ -21,7 +21,8 @@ class TrainingState extends Equatable {
     List<TrainingCard>? cards,
     List<TrainingProgress>? progress,
     bool? submitting,
-  }) => TrainingState(
+  }) =>
+      TrainingState(
         status: status ?? this.status,
         cards: cards ?? this.cards,
         progress: progress ?? this.progress,
@@ -30,4 +31,12 @@ class TrainingState extends Equatable {
 
   @override
   List<Object?> get props => [status, cards, progress, submitting];
+}
+
+extension TrainingStateX on TrainingState {
+  List<TrainingProgress> get pendingCertificates =>
+      progress.where((p) => p.percent < 100).toList();
+
+  List<TrainingProgress> get completedCertificates =>
+      progress.where((p) => p.percent == 100).toList();
 }

@@ -30,13 +30,16 @@ class TrainingScreen extends StatelessWidget {
 
           return ListView(
             children: [
+              // Cards
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text("First Aid",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    )),
+                child: Text(
+                  "First Aid",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               ...state.cards.map(
                 (c) => TrainingCardTile(
@@ -46,15 +49,39 @@ class TrainingScreen extends StatelessWidget {
                       context.read<TrainingCubit>().onCtaPressed(c.id),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                child: Text("Your Progress",
+
+              //Certificados pendientes 
+              if (state.pendingCertificates.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  child: Text(
+                    "Certificates pending",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                    )),
-              ),
-              ...state.progress.map((p) => ProgressTile(progress: p)),
+                    ),
+                  ),
+                ),
+                ...state.pendingCertificates
+                    .map((p) => ProgressTile(progress: p)),
+              ],
+
+              //Certificados completados
+              if (state.completedCertificates.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  child: Text(
+                    "Certificates completed",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                ...state.completedCertificates
+                    .map((p) => ProgressTile(progress: p)),
+              ],
+
               const SizedBox(height: 24),
             ],
           );
