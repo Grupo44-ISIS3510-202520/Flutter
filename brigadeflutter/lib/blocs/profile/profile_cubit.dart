@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'profile_repository.dart';
-import 'profile_state.dart';
+import 'package:brigadeflutter/blocs/profile/profile_state.dart';
+import 'package:brigadeflutter/blocs/profile/profile_repository.dart';
+
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepository repo;

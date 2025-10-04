@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/profile/profile_cubit.dart';
-import '../blocs/profile/profile_state.dart';
+import 'package:brigadeflutter/blocs/profile/profile_cubit.dart';
+import 'package:brigadeflutter/blocs/profile/profile_state.dart';
 import '../components/labeled_text.dart';
 
 class ProfileScreen extends StatelessWidget {
