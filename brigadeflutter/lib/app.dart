@@ -50,8 +50,8 @@ class BrigadeApp extends StatelessWidget {
           create: (_) => ProfileCubit(InMemoryProfileRepository())..load(),
         ),
         BlocProvider(
-      create: (_) => TrainingCubit(InMemoryTrainingRepository())..load(),
-    ),
+          create: (_) => TrainingCubit(InMemoryTrainingRepository())..load(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
