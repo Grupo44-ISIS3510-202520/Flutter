@@ -8,6 +8,7 @@ class ProgressTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final percent = progress.percent / 100.0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Container(
@@ -16,7 +17,7 @@ class ProgressTile extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
-            BoxShadow(blurRadius: 10, color: Colors.black12),
+            BoxShadow(blurRadius: 6, color: Colors.black12),
           ],
         ),
         child: Column(
@@ -32,27 +33,34 @@ class ProgressTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
                         ),
-                    overflow: TextOverflow.ellipsis, // corta si es largo
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '${progress.percent}%',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
+                Row(
+                  children: [
+                    const Icon(Icons.star,
+                        size: 14, color: Color(0xFF2F6AF6)), 
+                    const SizedBox(width: 4),
+                    Text(
+                      "${progress.percent}%",
+                      style: const TextStyle(
+                        color: Color(0xFF2F6AF6),
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 8),
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
                 value: percent,
-                minHeight: 10,
+                minHeight: 8,
                 backgroundColor: Colors.grey[200],
-                color: Theme.of(context).colorScheme.primary,
+                color: const Color(0xFF2F6AF6), 
               ),
             ),
           ],
