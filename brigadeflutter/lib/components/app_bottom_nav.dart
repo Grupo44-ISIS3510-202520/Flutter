@@ -15,7 +15,7 @@ class AppBottomNav extends StatelessWidget {
       onTap: (i) {
         switch (i) {
           case 0: _go(context, '/report'); break;
-          case 1: ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Training soon'))); break;
+          case 1: _go(context, '/training'); break;
           case 2: _go(context, '/protocols'); break;
           case 3: _go(context, '/notification'); break;
           case 4: _go(context, '/profile'); break;

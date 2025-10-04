@@ -1,4 +1,7 @@
+import 'package:brigadeflutter/blocs/training/training_cubit.dart';
+import 'package:brigadeflutter/blocs/training/training_repository.dart';
 import 'package:brigadeflutter/screens/profile_screen.dart';
+import 'package:brigadeflutter/screens/training_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -46,6 +49,9 @@ class BrigadeApp extends StatelessWidget {
         BlocProvider(
           create: (_) => ProfileCubit(InMemoryProfileRepository())..load(),
         ),
+        BlocProvider(
+      create: (_) => TrainingCubit(InMemoryTrainingRepository())..load(),
+    ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -57,6 +63,8 @@ class BrigadeApp extends StatelessWidget {
           '/dashboard': (context) => const EmergencyDashboardScreen(),
           '/protocols': (context) => const ProtocolsAndManualsScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/training': (context) => const TrainingScreen(),
+
         },
       ),
     );
