@@ -25,8 +25,8 @@ class InMemoryTrainingRepository implements TrainingRepository {
   ];
 
   var _progress = <TrainingProgress>[
-    const TrainingProgress(label: 'First Aid Course', percent: 75),
-    const TrainingProgress(label: 'Advanced Certification', percent: 25),
+    const TrainingProgress(label: 'First Aid Course', percent: 100),
+    const TrainingProgress(label: 'Advanced Certification', percent: 40),
   ];
 
   @override
@@ -46,6 +46,9 @@ class InMemoryTrainingRepository implements TrainingRepository {
       }
       return p;
     }).toList();
+
     await Future<void>.delayed(const Duration(milliseconds: 150));
   }
+
+
 }
