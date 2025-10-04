@@ -5,7 +5,6 @@ import 'package:brigadeflutter/blocs/profile/profile_state.dart';
 import '../components/labeled_text.dart';
 import '../components/app_bottom_nav.dart';
 
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -17,7 +16,9 @@ class ProfileScreen extends StatelessWidget {
           if (state.loading || state.profile == null) {
             return const Center(child: CircularProgressIndicator());
           }
+
           final p = state.profile!;
+
           return SafeArea(
             child: CustomScrollView(
               slivers: [
@@ -134,6 +135,21 @@ class ProfileScreen extends StatelessWidget {
           );
         },
       ),
+
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await context.read<ProfileCubit>().updateAvailabilityBasedOnLocation();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Availability updated based on current location'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        icon: const Icon(Icons.location_on),
+        label: const Text('Auto update'),
+      ),
+
       bottomNavigationBar: const AppBottomNav(current: 4),
     );
   }
