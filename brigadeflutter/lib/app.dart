@@ -14,6 +14,10 @@ import 'screens/notifications_screen.dart';
 import 'screens/emergency_dashboard_screen.dart';
 import 'screens/protocols_and_manuals_screen.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'blocs/auth/auth_cubit.dart';
+import 'screens/login_screen.dart';
+
 
 class BrigadeApp extends StatelessWidget {
   const BrigadeApp({super.key});
@@ -45,6 +49,7 @@ class BrigadeApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => AuthCubit()),
         BlocProvider(create: (_) => EmergencyReportCubit()),
         BlocProvider(
           create: (_) => ProfileCubit(InMemoryProfileRepository())..load(),
@@ -56,6 +61,21 @@ class BrigadeApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
+
+        // autenticación jenn ojalá funcione
+        home: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            }
+            // si no hay usuario se va al login; si hay da al dashboard inicial
+            return snap.data == null
+                ? const LoginScreen()
+                : const EmergencyDashboardScreen();
+          },
+        ),
+
         initialRoute: '/dashboard',
         routes: {
           '/report': (context) => const AppView(),
