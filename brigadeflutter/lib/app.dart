@@ -69,15 +69,16 @@ class BrigadeApp extends StatelessWidget {
             if (snap.connectionState == ConnectionState.waiting) {
               return const Scaffold(body: Center(child: CircularProgressIndicator()));
             }
-            // si no hay usuario se va al login; si hay da al dashboard inicial
+            // si no hay usuario se va al login, si hay da al dashboard inicial
             return snap.data == null
                 ? const LoginScreen()
                 : const EmergencyDashboardScreen();
           },
         ),
 
-        initialRoute: '/dashboard',
+        //initialRoute: '/dashboard',
         routes: {
+          '/login': (context) => const LoginScreen(),
           '/report': (context) => const AppView(),
           '/notification': (context) => const NotificationsScreen(),
           '/dashboard': (context) => const EmergencyDashboardScreen(),
