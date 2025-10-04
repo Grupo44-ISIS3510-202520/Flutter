@@ -15,9 +15,12 @@ class NotificationsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {},
-          ),
+             icon: const Icon(Icons.arrow_back),
+              //onPressed: () => Navigator.of(context).maybePop(),
+              onPressed: () {
+                Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (route) => false);
+                },
+            ),
           title: const Text('Notifications'),
           centerTitle: true,
         ),

@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/components/app_bar_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/emergency_report/emergency_report_cubit.dart';
@@ -23,11 +24,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
+            leading: backToDashboardButton(context),
             title: const Text('Emergency Report'),
+            actions: [signOutAction(context)],
           ),
           bottomNavigationBar: const AppBottomNav(current: 0),
           body: SafeArea(
