@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/Flutter.iml" filepath="$PROJECT_DIR$/.idea/Flutter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_auth/android/android.iml" filepath="$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_auth/android/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/brigadeflutter/android/android2.iml" filepath="$PROJECT_DIR$/brigadeflutter/android/android2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_core/android/android3.iml" filepath="$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_core/android/android3.iml" />
+      <module fileurl="file://$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_auth/example/example.iml" filepath="$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_auth/example/example.iml" />
+      <module fileurl="file://$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_core/example/example2.iml" filepath="$PROJECT_DIR$/brigadeflutter/windows/flutter/ephemeral/.plugin_symlinks/firebase_core/example/example2.iml" />
+    </modules>
+  </component>
+</project>

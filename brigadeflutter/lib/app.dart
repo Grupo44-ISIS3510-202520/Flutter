@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/emergency_report/emergency_report_cubit.dart';
@@ -46,6 +47,7 @@ class BrigadeApp extends StatelessWidget {
           '/notification': (context) => const NotificationsScreen(),
           '/dashboard': (context) => const EmergencyDashboardScreen(),
           '/protocols': (context) => const ProtocolsAndManualsScreen(),
+          '/profile': (context) => const ProfileScreen(),
         },
       ),
     );
