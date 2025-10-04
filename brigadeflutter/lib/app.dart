@@ -1,7 +1,11 @@
 import 'package:brigadeflutter/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'blocs/emergency_report/emergency_report_cubit.dart';
+import 'blocs/profile/profile_cubit.dart';
+import 'blocs/profile/profile_repository.dart';
+
 import 'app_view.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/emergency_dashboard_screen.dart';
@@ -36,8 +40,13 @@ class BrigadeApp extends StatelessWidget {
       ),
     );
 
-    return BlocProvider(
-      create: (_) => EmergencyReportCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => EmergencyReportCubit()),
+        BlocProvider(
+          create: (_) => ProfileCubit(InMemoryProfileRepository())..load(),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: theme,
