@@ -5,7 +5,6 @@ import 'package:brigadeflutter/screens/training_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'blocs/emergency_report/emergency_report_cubit.dart';
 import 'blocs/profile/profile_cubit.dart';
 import 'blocs/profile/profile_repository.dart';
 
@@ -18,6 +17,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'blocs/auth/auth_cubit.dart';
 import 'screens/login_screen.dart';
 
+// GPS + Repo de reportes
+import 'services/location_service.dart';
+import 'domain/repositories/report_repository.dart';
+import 'data/firebase/report_repository_firebase.dart';
+import 'blocs/emergency_report/emergency_report_cubit.dart';
 
 class BrigadeApp extends StatelessWidget {
   const BrigadeApp({super.key});
@@ -47,46 +51,50 @@ class BrigadeApp extends StatelessWidget {
       ),
     );
 
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider(create: (_) => AuthCubit()),
-        BlocProvider(create: (_) => EmergencyReportCubit()),
-        BlocProvider(
-          create: (_) => ProfileCubit(InMemoryProfileRepository())..load(),
-        ),
-        BlocProvider(
-          create: (_) => TrainingCubit(InMemoryTrainingRepository())..load(),
-        ),
+        RepositoryProvider<LocationService>(create: (_) => LocationService()),
+        RepositoryProvider<ReportRepository>(create: (_) => FirebaseReportRepository()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: theme,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => AuthCubit()),
+          BlocProvider(
+            create: (ctx) => EmergencyReportCubit(
+              ctx.read<LocationService>(),
+              ctx.read<ReportRepository>(),
+            ),
+          ),
+          BlocProvider(create: (_) => ProfileCubit(InMemoryProfileRepository())..load()),
+          BlocProvider(create: (_) => TrainingCubit(InMemoryTrainingRepository())..load()),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: theme,
 
-        // autenticación jenn ojalá funcione
-        home: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const Scaffold(body: Center(child: CircularProgressIndicator()));
-            }
-            // si no hay usuario se va al login, si hay da al dashboard inicial
-            return snap.data == null
-                ? const LoginScreen()
-                : const EmergencyDashboardScreen();
+          // Auth Gate
+          home: StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              }
+              return snap.data == null
+                  ? const LoginScreen()
+                  : const EmergencyDashboardScreen();
+            },
+          ),
+
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/report': (context) => const AppView(), // devuelve EmergencyReportScreen
+            '/notification': (context) => const NotificationsScreen(),
+            '/dashboard': (context) => const EmergencyDashboardScreen(),
+            '/protocols': (context) => const ProtocolsAndManualsScreen(),
+            '/profile': (context) => const ProfileScreen(),
+            '/training': (context) => const TrainingScreen(),
           },
         ),
-
-        //initialRoute: '/dashboard',
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/report': (context) => const AppView(),
-          '/notification': (context) => const NotificationsScreen(),
-          '/dashboard': (context) => const EmergencyDashboardScreen(),
-          '/protocols': (context) => const ProtocolsAndManualsScreen(),
-          '/profile': (context) => const ProfileScreen(),
-          '/training': (context) => const TrainingScreen(),
-
-        },
       ),
     );
   }

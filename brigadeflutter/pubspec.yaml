@@ -42,6 +42,7 @@ dependencies:
   sensors_plus: ^5.0.1 # notifications jenn
   geolocator: ^13.0.1
   http: ^1.2.2
+  cloud_firestore: 6.0.2
   
 
 dev_dependencies:

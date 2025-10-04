@@ -8,6 +8,10 @@ class EmergencyReportState extends Equatable {
   final bool isFollowUp;
   final bool submitting;
 
+  // NUEVO:
+  final double? latitude;
+  final double? longitude;
+
   const EmergencyReportState({
     this.protocolQuery = '',
     this.type = '',
@@ -15,9 +19,9 @@ class EmergencyReportState extends Equatable {
     this.description = '',
     this.isFollowUp = false,
     this.submitting = false,
+    this.latitude,
+    this.longitude,
   });
-
-  bool get isValid => type.isNotEmpty && placeTime.isNotEmpty && description.isNotEmpty;
 
   EmergencyReportState copyWith({
     String? protocolQuery,
@@ -26,6 +30,9 @@ class EmergencyReportState extends Equatable {
     String? description,
     bool? isFollowUp,
     bool? submitting,
+    double? latitude,
+    double? longitude,
+    bool setNullLocation = false, // útil para reset
   }) {
     return EmergencyReportState(
       protocolQuery: protocolQuery ?? this.protocolQuery,
@@ -34,9 +41,15 @@ class EmergencyReportState extends Equatable {
       description: description ?? this.description,
       isFollowUp: isFollowUp ?? this.isFollowUp,
       submitting: submitting ?? this.submitting,
+      latitude: setNullLocation ? null : (latitude ?? this.latitude),
+      longitude: setNullLocation ? null : (longitude ?? this.longitude),
     );
   }
 
+  bool get isValid => type.isNotEmpty && placeTime.isNotEmpty && description.isNotEmpty;
+
   @override
-  List<Object?> get props => [protocolQuery, type, placeTime, description, isFollowUp, submitting];
+  List<Object?> get props => [
+    protocolQuery, type, placeTime, description, isFollowUp, submitting, latitude, longitude
+  ];
 }

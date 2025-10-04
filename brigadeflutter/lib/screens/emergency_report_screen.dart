@@ -1,6 +1,7 @@
 import 'package:brigadeflutter/components/app_bar_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../blocs/emergency_report/emergency_report_cubit.dart';
 import '../blocs/emergency_report/emergency_report_state.dart';
 import '../components/app_bottom_nav.dart';
@@ -40,6 +41,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     onChanged: cubit.onProtocolChanged,
                   ),
                   const SizedBox(height: 12),
+
                   TextFormField(
                     initialValue: state.type,
                     onChanged: cubit.onTypeChanged,
@@ -47,13 +49,45 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 12),
+
                   TextFormField(
                     initialValue: state.placeTime,
                     onChanged: cubit.onPlaceTimeChanged,
                     decoration: const InputDecoration(hintText: 'Place & Time'),
                     validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                   ),
+                  const SizedBox(height: 8),
+
+                  // ubicacion gps
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.my_location),
+                    label: const Text('Usar ubicación actual'),
+                    onPressed: state.submitting
+                        ? null
+                        : () async {
+                            await cubit.fillWithCurrentLocation();
+                            if (!mounted) return;
+                            final ok = context.read<EmergencyReportCubit>().state.latitude != null;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(ok
+                                    ? 'Ubicación agregada'
+                                    : 'Activa permisos de ubicación o GPS'),
+                              ),
+                            );
+                          },
+                  ),
+                  if (state.latitude != null && state.longitude != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Ubicación: ${state.latitude!.toStringAsFixed(5)}, '
+                      '${state.longitude!.toStringAsFixed(5)}',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                    ),
+                  ],
+
                   const SizedBox(height: 12),
+
                   TextFormField(
                     initialValue: state.description,
                     onChanged: cubit.onDescriptionChanged,
@@ -63,6 +97,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 12),
+
                   Row(
                     children: [
                       Switch(value: state.isFollowUp, onChanged: cubit.onFollowChanged),
@@ -70,20 +105,30 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                       const Text('Follow-up report'),
                     ],
                   ),
+
                   const SizedBox(height: 16),
+
                   ElevatedButton(
                     onPressed: state.submitting
                         ? null
                         : () async {
                             if (!_formKey.currentState!.validate()) return;
-                            await cubit.submit();
+                            final ok = await cubit.submit();
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Report submitted')),
+                              SnackBar(
+                                content: Text(ok ? 'Report submitted' : 'Error al enviar'),
+                              ),
                             );
+                            // Si quieres limpiar visualmente los campos, navega o
+                            // reconstruye usando los valores por defecto del state.
                           },
                     child: state.submitting
-                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Text('Submit Report'),
                   ),
                 ],
