@@ -59,3 +59,4 @@ web/.dart_tool/
 # Otros
 *.log
 *.tmp
+.env

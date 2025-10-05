@@ -17,7 +17,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'blocs/auth/auth_cubit.dart';
 import 'screens/login_screen.dart';
 
-// GPS + Repo de reportes
 import 'services/location_service.dart';
 import 'domain/repositories/report_repository.dart';
 import 'data/firebase/report_repository_firebase.dart';
