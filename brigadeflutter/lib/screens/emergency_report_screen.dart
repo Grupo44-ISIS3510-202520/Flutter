@@ -91,7 +91,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
                   OutlinedButton.icon(
                     icon: const Icon(Icons.my_location),
-                    label: const Text('Usar ubicación actual'),
+                    label: const Text('Use current location'),
                     onPressed: state.submitting
                         ? null
                         : () async {
@@ -119,8 +119,8 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                               SnackBar(
                                 content: Text(
                                   ok
-                                      ? 'Ubicación agregada'
-                                      : 'Activa permisos de ubicación o GPS',
+                                      ? 'Added location'
+                                      : 'Enable location or GPS permissions',
                                 ),
                               ),
                             );
@@ -163,7 +163,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
                   OutlinedButton.icon(
                     icon: const Icon(Icons.record_voice_over),
-                    label: const Text('Instrucciones (IA)'),
+                    label: const Text('Voice instructions (IA)'),
                     onPressed: () async {
                       final type = (state.type.isEmpty)
                           ? 'Emergencia'

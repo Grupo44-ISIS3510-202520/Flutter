@@ -25,12 +25,12 @@ class OpenAIService {
           {
             'role': 'system',
             'content':
-                'Eres un asistente de seguridad. Da pasos claros y breves. No inventes diagnósticos.'
+                'You are a safety assistant. Take clear, short steps. Do not invent diagnoses.'
           },
           {
             'role': 'user',
             'content':
-                'Dame 4–6 pasos inmediatos para la emergencia: "$emergencyType". Español, frases cortas numeradas.'
+                'Give me 4–6 immediate steps for the emergency: "$emergencyType". English, short numbered sentences.'
           }
         ],
       }),
