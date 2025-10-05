@@ -8,6 +8,10 @@ import '../blocs/emergency_report/emergency_report_state.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/protocol_search_field.dart';
 
+import '../features/ai_voice_instructions.dart';
+import '../services/openai_service.dart';
+import '../services/tts_service.dart';
+
 class EmergencyReportScreen extends StatefulWidget {
   const EmergencyReportScreen({super.key});
 
@@ -37,7 +41,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
         final cubit = context.read<EmergencyReportCubit>();
 
         if (!_placeAlreadyTracked && state.placeTime.isNotEmpty) {
-          final method = (state.latitude != null && state.longitude != null) ? 'gps' : 'manual';
+          final method = (state.latitude != null && state.longitude != null)
+              ? 'gps'
+              : 'manual';
           analytics.AnalyticsService.I.logReportPlaceFilled(
             method: method,
             ms: _swSinceOpen.elapsedMilliseconds,
@@ -67,15 +73,19 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                   TextFormField(
                     initialValue: state.type,
                     onChanged: cubit.onTypeChanged,
-                    decoration: const InputDecoration(hintText: 'Emergency Type'),
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    decoration: const InputDecoration(
+                      hintText: 'Emergency Type',
+                    ),
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     initialValue: state.placeTime,
                     onChanged: cubit.onPlaceTimeChanged,
                     decoration: const InputDecoration(hintText: 'Place & Time'),
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 8),
 
@@ -88,7 +98,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                             await cubit.fillWithCurrentLocation();
                             _usedGps = cubit.state.latitude != null;
 
-                            if (_usedGps && !_placeAlreadyTracked && cubit.state.placeTime.isNotEmpty) {
+                            if (_usedGps &&
+                                !_placeAlreadyTracked &&
+                                cubit.state.placeTime.isNotEmpty) {
                               analytics.AnalyticsService.I.logReportPlaceFilled(
                                 method: 'gps',
                                 ms: _swSinceOpen.elapsedMilliseconds,
@@ -97,10 +109,19 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                             }
 
                             if (!mounted) return;
-                            final ok = context.read<EmergencyReportCubit>().state.latitude != null;
+                            final ok =
+                                context
+                                    .read<EmergencyReportCubit>()
+                                    .state
+                                    .latitude !=
+                                null;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(ok ? 'Ubicación agregada' : 'Activa permisos de ubicación o GPS'),
+                                content: Text(
+                                  ok
+                                      ? 'Ubicación agregada'
+                                      : 'Activa permisos de ubicación o GPS',
+                                ),
                               ),
                             );
                           },
@@ -110,7 +131,10 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     const SizedBox(height: 6),
                     Text(
                       'Ubicación: ${state.latitude!.toStringAsFixed(5)}, ${state.longitude!.toStringAsFixed(5)}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7280),
+                      ),
                     ),
                   ],
 
@@ -121,16 +145,51 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     minLines: 4,
                     maxLines: 6,
                     decoration: const InputDecoration(hintText: 'Description'),
-                    validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
                   ),
                   const SizedBox(height: 12),
 
                   Row(
                     children: [
-                      Switch(value: state.isFollowUp, onChanged: cubit.onFollowChanged),
+                      Switch(
+                        value: state.isFollowUp,
+                        onChanged: cubit.onFollowChanged,
+                      ),
                       const SizedBox(width: 8),
                       const Text('Follow-up report'),
                     ],
+                  ),
+
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.record_voice_over),
+                    label: const Text('Instrucciones (IA)'),
+                    onPressed: () async {
+                      final type = (state.type.isEmpty)
+                          ? 'Emergencia'
+                          : state.type;
+                      final ai = AIVoiceInstructions(
+                        openai: OpenAIService(),
+                        tts: TtsService(),
+                      );
+
+                      try {
+                        final text = await ai.run(type);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Instrucciones listas (${text.length} chars)',
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error IA: $e')));
+                      }
+                    },
                   ),
 
                   const SizedBox(height: 16),
@@ -144,16 +203,21 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                             final ok = await cubit.submit();
                             final msTotal = _swTotal.elapsedMilliseconds;
 
-                            await analytics.AnalyticsService.I.logReportSubmitted(
-                              type: state.type,
-                              followUp: state.isFollowUp,
-                              usedGps: _usedGps,
-                              msTotal: msTotal,
-                            );
+                            await analytics.AnalyticsService.I
+                                .logReportSubmitted(
+                                  type: state.type,
+                                  followUp: state.isFollowUp,
+                                  usedGps: _usedGps,
+                                  msTotal: msTotal,
+                                );
 
                             if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(ok ? 'Report submitted' : 'Error al enviar')),
+                              SnackBar(
+                                content: Text(
+                                  ok ? 'Report submitted' : 'Error al enviar',
+                                ),
+                              ),
                             );
 
                             if (ok) {
@@ -169,7 +233,11 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                             }
                           },
                     child: state.submitting
-                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Text('Submit Report'),
                   ),
                 ],
