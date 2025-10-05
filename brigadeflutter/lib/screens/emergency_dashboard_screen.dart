@@ -110,14 +110,12 @@ class EmergencyDashboardScreen extends StatelessWidget {
                           _DashboardCard(
                             icon: Icons.school,
                             label: "Training",
-                            onTap: () {
-                            },
+                            onTap: () => Navigator.pushNamed(context, '/training'),
                           ),
                           _DashboardCard(
                             icon: Icons.person,
                             label: "Profile",
-                            onTap: () {
-                            },
+                            onTap: () => Navigator.pushNamed(context, '/profile'),
                           ),
                         ],
                       ),
