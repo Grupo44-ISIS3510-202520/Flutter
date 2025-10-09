@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return const SizedBox.shrink();
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Sign in')),
+          appBar: AppBar(title: const Text('Log in or Create Account')),
           body: BlocConsumer<AuthCubit, AuthState>(
             listener: (ctx, state) {
               if (state.error != null) {

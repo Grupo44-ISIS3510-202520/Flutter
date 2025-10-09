@@ -19,6 +19,7 @@ class EmergencyDashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: () {
+              Navigator.pushNamed(context, '/report');
             },
           ),
         ],
