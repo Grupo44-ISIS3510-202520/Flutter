@@ -14,7 +14,7 @@ class AppBottomNav extends StatelessWidget {
       currentIndex: current,
       onTap: (i) {
         switch (i) {
-          case 0: _go(context, '/report'); break;
+          case 0: _go(context, '/dashboard'); break;
           case 1: _go(context, '/training'); break;
           case 2: _go(context, '/protocols'); break;
           case 3: _go(context, '/notification'); break;
@@ -22,7 +22,7 @@ class AppBottomNav extends StatelessWidget {
         }
       },
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.local_hospital_outlined), label: 'Emergency report'),
+        BottomNavigationBarItem(icon: Icon(Icons.local_hospital_outlined), label: 'Dashboard'),
         BottomNavigationBarItem(icon: Icon(Icons.school_outlined), label: 'Training'),
         BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined), label: 'Protocols'),
         BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Notifications'),

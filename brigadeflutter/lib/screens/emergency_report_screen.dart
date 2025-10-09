@@ -6,7 +6,6 @@ import 'package:brigadeflutter/services/analytics_service.dart' as analytics;
 import '../blocs/emergency_report/emergency_report_cubit.dart';
 import '../blocs/emergency_report/emergency_report_state.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/protocol_search_field.dart';
 
 import '../features/ai_voice_instructions.dart';
 import '../services/openai_service.dart';
@@ -65,10 +64,6 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
               key: _formKey,
               child: ListView(
                 children: [
-                  ProtocolSearchField(
-                    value: state.protocolQuery,
-                    onChanged: cubit.onProtocolChanged,
-                  ),
                   const SizedBox(height: 12),
                   TextFormField(
                     initialValue: state.type,
@@ -83,7 +78,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                   TextFormField(
                     initialValue: state.placeTime,
                     onChanged: cubit.onPlaceTimeChanged,
-                    decoration: const InputDecoration(hintText: 'Place & Time'),
+                    decoration: const InputDecoration(hintText: 'Place'),
                     validator: (v) =>
                         (v == null || v.isEmpty) ? 'Required' : null,
                   ),
@@ -91,7 +86,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
                   OutlinedButton.icon(
                     icon: const Icon(Icons.my_location),
-                    label: const Text('Use current location'),
+                    label: const Text('Use coordinates from GPS'),
                     onPressed: state.submitting
                         ? null
                         : () async {
@@ -221,7 +216,6 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                             );
 
                             if (ok) {
-                              // Resetea cronómetros y flags para la siguiente captura
                               _swSinceOpen
                                 ..reset()
                                 ..start();
