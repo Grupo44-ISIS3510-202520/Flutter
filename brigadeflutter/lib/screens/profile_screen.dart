@@ -108,7 +108,7 @@ class ProfileScreen extends StatelessWidget {
                 SliverList.builder(
                   itemCount: p.medals.length,
                   itemBuilder: (_, i) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
