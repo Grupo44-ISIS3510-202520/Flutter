@@ -16,6 +16,9 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
   late SharedPreferences prefs;
   bool isLoadingPrefs = true;
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   @override
   void initState() {
     super.initState();
@@ -34,24 +37,6 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
   bool _isNew(String name, String version) {
     final seenVersion = prefs.getString('last_seen_$name');
     return seenVersion == null || seenVersion != version;
-  }
-
-  IconData _getIconForName(String name) {
-    final n = name.toLowerCase();
-    if (n.contains('fire')) return Icons.local_fire_department;
-    if (n.contains('earthquake')) return Icons.warning;
-    if (n.contains('flood')) return Icons.water_drop;
-    if (n.contains('medical')) return Icons.favorite;
-    return Icons.picture_as_pdf;
-  }
-
-  Color _getColorForName(String name) {
-    final n = name.toLowerCase();
-    if (n.contains('fire')) return Colors.red;
-    if (n.contains('earthquake')) return Colors.orange;
-    if (n.contains('flood')) return Colors.blue;
-    if (n.contains('medical')) return Colors.pink;
-    return Colors.grey;
   }
 
   @override
@@ -78,6 +63,12 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
         child: Column(
           children: [
             TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.trim().toLowerCase();
+                });
+              },
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 hintText: "Search protocols...",
@@ -87,7 +78,6 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: protocolsStream,
@@ -99,7 +89,19 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
                     return const Center(child: Text("No protocols found."));
                   }
 
-                  final docs = snapshot.data!.docs;
+                  final allDocs = snapshot.data!.docs;
+
+                  // 🔍 Filtrar resultados según la búsqueda
+                  final docs = allDocs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final name = (data['name'] ?? '').toString().toLowerCase();
+                    return name.contains(_searchQuery);
+                  }).toList();
+
+                  if (docs.isEmpty) {
+                    return const Center(
+                        child: Text("No matching protocols found."));
+                  }
 
                   return ListView.separated(
                     itemCount: docs.length,
@@ -109,8 +111,6 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
                       final name = (data['name'] ?? 'Unnamed').toString();
                       final url = (data['url'] ?? '').toString();
                       final version = (data['version'] ?? '').toString();
-                      final icon = _getIconForName(name);
-                      final color = _getColorForName(name);
                       final isNew = _isNew(name, version);
 
                       return Container(
@@ -131,10 +131,14 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
                             horizontal: 14,
                             vertical: 6,
                           ),
-                          leading: CircleAvatar(
-                            backgroundColor: color.withOpacity(0.1),
+                          leading: const CircleAvatar(
+                            backgroundColor: Colors.white,
                             radius: 24,
-                            child: Icon(icon, color: color, size: 26),
+                            child: Icon(
+                              Icons.picture_as_pdf,
+                              color: Colors.redAccent,
+                              size: 26,
+                            ),
                           ),
                           title: Row(
                             children: [
@@ -166,7 +170,8 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
                                 ),
                             ],
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing:
+                          const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () async {
                             if (url.isNotEmpty) {
                               await _markAsRead(name, version);
@@ -180,7 +185,7 @@ class _ProtocolsAndManualsScreenState extends State<ProtocolsAndManualsScreen> {
                                     ),
                                   ),
                                 ).then((_) {
-                                  setState(() {}); // refresca el badge
+                                  setState(() {});
                                 });
                               }
                             } else {

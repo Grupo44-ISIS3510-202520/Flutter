@@ -58,7 +58,7 @@ class EmergencyDashboardScreen extends StatelessWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               shape: const CircleBorder(),
-                              padding: EdgeInsets.all(constraints.maxWidth * 0.12), 
+                              padding: EdgeInsets.all(constraints.maxWidth * 0.2),
                               elevation: 0, 
                             ),
                             onPressed: () {
@@ -70,7 +70,7 @@ class EmergencyDashboardScreen extends StatelessWidget {
                                 Icon(
                                   Icons.notifications_active, 
                                   color: Colors.white, 
-                                  size: constraints.maxWidth * 0.08,
+                                  size: constraints.maxWidth * 0.1,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
@@ -78,7 +78,7 @@ class EmergencyDashboardScreen extends StatelessWidget {
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: constraints.maxWidth * 0.032,
+                                    fontSize: constraints.maxWidth * 0.04,
                                   ),
                                 ),
                               ],
@@ -96,7 +96,7 @@ class EmergencyDashboardScreen extends StatelessWidget {
                         crossAxisCount: 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 1.9,
+                        childAspectRatio: 1.4,
                         children: [
                           _DashboardCard(
                             icon: Icons.notifications,
@@ -121,7 +121,7 @@ class EmergencyDashboardScreen extends StatelessWidget {
                         ],
                       ),
                       
-                      SizedBox(height: availableHeight * 0.02), 
+                      SizedBox(height: availableHeight * 0.02),
                       
                       // CPR Guide Button
                       GestureDetector(
@@ -199,14 +199,14 @@ class _DashboardCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: Colors.blue[600]),
+              Icon(icon, size: 42, color: Colors.blue[600]),
               const SizedBox(height: 8),
               Text(
                 label,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontWeight: FontWeight.w500,
-                  fontSize: 13,
+                  fontSize: 16,
                 ),
               ),
             ],
