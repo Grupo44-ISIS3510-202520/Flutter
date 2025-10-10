@@ -21,7 +21,7 @@ class FirebaseReportRepository implements ReportRepository {
     final uid = userId ?? _auth.currentUser?.uid;
     final now = createdAt ?? DateTime.now();
 
-    await _db.collection('reports').add({
+    await _db.collection('reports-emergency').add({
       'uid': uid,
       'type': type,
       'placeTime': placeTime,
