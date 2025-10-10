@@ -4,6 +4,8 @@ import 'package:brigadeflutter/blocs/profile/profile_cubit.dart';
 import 'package:brigadeflutter/blocs/profile/profile_state.dart';
 import '../components/labeled_text.dart';
 import '../components/app_bottom_nav.dart';
+import 'package:brigadeflutter/components/app_bar_actions.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -25,10 +27,7 @@ class ProfileScreen extends StatelessWidget {
                 SliverAppBar(
                   pinned: true,
                   title: const Text('Brigadist Profile'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+                  leading: backToDashboardButton(context),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
