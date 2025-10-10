@@ -205,8 +205,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                   usedGps: _usedGps,
                                   msTotal: msTotal,
                                 );
-
-                            if (!mounted) return;
+                            if (!mounted) {
+                              return; // <-- Guard context usage with mounted
+                            }
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
