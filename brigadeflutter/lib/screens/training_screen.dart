@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/components/app_bar_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/training/training_cubit.dart';
@@ -17,7 +18,7 @@ class TrainingScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text("Training"),
-        leading: BackButton(color: Colors.black),
+        leading: backToDashboardButton(context),
       ),
       body: BlocBuilder<TrainingCubit, TrainingState>(
         builder: (context, state) {

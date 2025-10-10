@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/components/app_bar_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:brigadeflutter/blocs/profile/profile_cubit.dart';
@@ -16,19 +17,14 @@ class ProfileScreen extends StatelessWidget {
           if (state.loading || state.profile == null) {
             return const Center(child: CircularProgressIndicator());
           }
-
           final p = state.profile!;
-
           return SafeArea(
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
                   pinned: true,
                   title: const Text('Brigadist Profile'),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+                  leading: backToDashboardButton(context), 
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
