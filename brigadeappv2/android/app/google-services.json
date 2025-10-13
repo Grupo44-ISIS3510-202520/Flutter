@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "243985958459",
+    "project_id": "g44-moviles",
+    "storage_bucket": "g44-moviles.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243985958459:android:2102d543dc1b6590f53e1e",
+        "android_client_info": {
+          "package_name": "com.example.brigadeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHkDPWUloqH86LTWEg9x7dpllDHf-7tuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243985958459:android:6e0a6dd7df01c25ef53e1e",
+        "android_client_info": {
+          "package_name": "com.example.brigadeappv2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHkDPWUloqH86LTWEg9x7dpllDHf-7tuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243985958459:android:2fef23663079cd01f53e1e",
+        "android_client_info": {
+          "package_name": "com.example.brigadeflutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHkDPWUloqH86LTWEg9x7dpllDHf-7tuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
