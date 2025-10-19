@@ -1,13 +1,10 @@
+import '../entities/report.dart';
+
 abstract class ReportRepository {
-  Future<void> createEmergencyReport({
-    required String type,
-    required String placeTime,
-    required String description,
-    required bool isFollowUp,
-    String protocolQuery = '',
-    double? latitude,
-    double? longitude,
-    String? userId,
-    DateTime? createdAt,
-  });
+  Future<void> create(Report report);
+
+  //sprint 3, strategies
+  Future<void> enqueue(Report report);
+  Future<List<Report>> pending();
+  Future<void> markSent(Report report);
 }

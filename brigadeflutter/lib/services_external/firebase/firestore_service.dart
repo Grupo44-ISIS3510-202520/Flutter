@@ -1,0 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class FirestoreService {
+  final FirebaseFirestore _db;
+  FirestoreService({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
+
+  Future<void> add(String collection, Map<String, dynamic> data) async {
+    await _db.collection(collection).add(data);
+  }
+
+  Future<void> setDoc(String collection, String id, Map<String, dynamic> data) async {
+    await _db.collection(collection).doc(id).set(data);
+  }
+
+  Future<void> setDocMerge(String collection, String id, Map<String, dynamic> data) async {
+    await _db.collection(collection).doc(id).set(data, SetOptions(merge: true));
+  }
+}

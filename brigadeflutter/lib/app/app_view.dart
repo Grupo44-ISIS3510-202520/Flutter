@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/emergency_report_screen.dart';
+import '../presentation/views/emergency_report_view.dart';
 
 class AppView extends StatelessWidget {
   const AppView({super.key});
