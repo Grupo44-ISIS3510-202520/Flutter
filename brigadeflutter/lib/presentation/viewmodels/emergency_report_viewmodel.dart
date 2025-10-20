@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../../domain/app_services/create_emergency_report.dart';
-import '../../domain/app_services/fill_location.dart';
+import '../../domain/use_cases/create_emergency_report.dart';
+import '../../domain/use_cases/fill_location.dart';
 
 class EmergencyReportViewModel extends ChangeNotifier {
   final CreateEmergencyReport createReport;

@@ -1,8 +1,8 @@
-import '../../domain/entities/report.dart';
-import '../../domain/repositories/report_repository.dart';
+import '../entities/report.dart';
+import '../repositories/report_repository.dart';
 import '../datasources/report_firestore_dao.dart';
 import '../datasources/report_local_dao.dart';
-import '../../domain/models/report_model.dart';
+import '../models/report_model.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
   final ReportFirestoreDao remote;

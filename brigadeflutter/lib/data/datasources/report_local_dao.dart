@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import '../../domain/models/report_model.dart';
+import '../models/report_model.dart';
 
 // dao local para cola offline
 class ReportLocalDao {

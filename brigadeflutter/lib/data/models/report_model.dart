@@ -1,4 +1,4 @@
-import '../../domain/entities/report.dart';
+import '../entities/report.dart';
 
 class ReportModel {
   final int id;

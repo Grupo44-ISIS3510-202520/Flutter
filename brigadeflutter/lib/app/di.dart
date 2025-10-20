@@ -1,21 +1,21 @@
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/utils/id_generator.dart';
-import '../../services_external/firebase/firestore_service.dart';
+import '../data/services_external/firebase/firestore_service.dart';
 import '../data/datasources/report_firestore_dao.dart';
 import '../data/datasources/report_local_dao.dart';
 import '../data/repositories_impl/report_repository_impl.dart';
-import '../domain/repositories/report_repository.dart';
-import '../domain/app_services/create_emergency_report.dart';
-import '../services_external/firebase/firestore_service.dart';
-import '../services_external/location/location_service.dart';
+import '../data/repositories/report_repository.dart';
+import '../domain/use_cases/create_emergency_report.dart';
+import '../data/services_external/firebase/firestore_service.dart';
+import '../data/services_external/location/location_service.dart';
 import '../data/datasources/report_local_dao.dart';
 import '../data/datasources/location_dao.dart';
 import '../data/repositories_impl/report_repository_impl.dart';
 import '../data/repositories_impl/location_repository_impl.dart';
-import '../domain/repositories/report_repository.dart';
-import '../domain/repositories/location_repository.dart';
-import '../domain/app_services/fill_location.dart';
+import '../data/repositories/report_repository.dart';
+import '../data/repositories/location_repository.dart';
+import '../domain/use_cases/fill_location.dart';
 
 final sl = GetIt.instance;
 

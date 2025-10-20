@@ -1,4 +1,4 @@
-import '../../domain/repositories/location_repository.dart';
+import '../repositories/location_repository.dart';
 import '../datasources/location_dao.dart';
 
 class LocationRepositoryImpl implements LocationRepository {

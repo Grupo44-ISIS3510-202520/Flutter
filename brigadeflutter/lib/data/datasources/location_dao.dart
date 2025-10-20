@@ -1,4 +1,4 @@
-import 'package:brigadeflutter/services_external/location/location_service.dart';
+import 'package:brigadeflutter/data/services_external/location/location_service.dart';
 
 // dao de ubicación delega al service
 class LocationDao {

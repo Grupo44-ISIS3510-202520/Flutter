@@ -1,8 +1,8 @@
 import '../../core/errors/failures.dart';
 import '../../core/utils/validators.dart';
 import '../../core/utils/id_generator.dart';
-import '../entities/report.dart';
-import '../repositories/report_repository.dart';
+import '../../data/entities/report.dart';
+import '../../data/repositories/report_repository.dart';
 
 class CreateEmergencyReport {
   final ReportRepository repo;

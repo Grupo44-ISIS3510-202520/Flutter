@@ -1,4 +1,4 @@
-import '../repositories/location_repository.dart';
+import '../../data/repositories/location_repository.dart';
 
 class FillLocation {
   final LocationRepository repo;
