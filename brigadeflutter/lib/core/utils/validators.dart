@@ -8,3 +8,25 @@ String? requiredText(String? v, {int max = 500}) {
   if (_emojiRegex.hasMatch(v)) return 'no emojis';
   return null;
 }
+
+String? validateType(String? v) {
+  if (v == null || v.trim().isEmpty) return 'required';
+  if (v.length > 60) return 'max 60 chars';
+  if (_emojiRegex.hasMatch(v)) return 'no emojis';
+  return null;
+}
+
+String? validatePlaceTime(String? v) {
+  if (v == null || v.trim().isEmpty) return 'required';
+  if (v.length > 100) return 'max 100 chars';
+  if (_emojiRegex.hasMatch(v)) return 'no emojis';
+  return null;
+}
+
+String? validateDescription(String? v) {
+  if (v == null || v.trim().isEmpty) return 'required';
+  if (v.length > 500) return 'max 500 chars';
+  if (_emojiRegex.hasMatch(v)) return 'no emojis';
+  return null;
+}
+

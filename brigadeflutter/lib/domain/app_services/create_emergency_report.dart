@@ -6,7 +6,7 @@ import '../repositories/report_repository.dart';
 
 class CreateEmergencyReport {
   final ReportRepository repo;
-  final FirestoreIdGenerator idGen;
+  final FirestoreIdGenerator idGen; // o el contador que uses
   CreateEmergencyReport(this.repo, this.idGen);
 
   Future<int> call({
@@ -19,13 +19,13 @@ class CreateEmergencyReport {
     double? longitude,
     required bool isOnline,
   }) async {
-    // validaciones
-    for (final check in [
-      requiredText(type),
-      requiredText(placeTime),
-      requiredText(description, max: 1000),
-    ]) {
-      if (check != null) throw ValidationFailure(check);
+    final errors = [
+      validateType(type),
+      validatePlaceTime(placeTime),
+      validateDescription(description),
+    ].whereType<String>();
+    if (errors.isNotEmpty) {
+      throw ValidationFailure(errors.first);
     }
 
     final newId = id ?? await idGen.nextReportId();
@@ -45,7 +45,6 @@ class CreateEmergencyReport {
     } else {
       await repo.enqueue(report);
     }
-
     return newId;
   }
 }

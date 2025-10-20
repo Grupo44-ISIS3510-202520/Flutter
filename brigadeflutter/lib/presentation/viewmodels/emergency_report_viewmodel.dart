@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/app_services/create_emergency_report.dart';
 import '../../domain/app_services/fill_location.dart';
@@ -13,17 +14,65 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool isFollowUp = false;
   double? latitude;
   double? longitude;
-  bool submitting = false;
 
-  void onTypeChanged(String v) { type = v; notifyListeners(); }
-  void onPlaceTimeChanged(String v) { placeTime = v; notifyListeners(); }
-  void onDescriptionChanged(String v) { description = v; notifyListeners(); }
+  bool submittingReport = false;
+  bool loadingLocation = false;
+  bool placeFromGps = false;
+
+  void onTypeChanged(String v) { type = v; }
+   void onPlaceTimeChanged(String v) {
+    placeTime = v;
+    placeFromGps = false;
+  }
+  void onDescriptionChanged(String v) { description = v; }
   void onFollowChanged(bool v) { isFollowUp = v; notifyListeners(); }
 
-  Future<int?> submit({required bool isOnline}) async {
-    if (type.isEmpty || placeTime.isEmpty || description.isEmpty) return null;
-    submitting = true; notifyListeners();
+   void clearGpsLocation() {
+    latitude = null;
+    longitude = null;
+    if (placeFromGps) {
+      placeTime = '';
+    }
+    placeFromGps = false;
+    notifyListeners();
+  }
 
+  Future<bool> fillWithCurrentLocation() async {
+    if (loadingLocation) return false;
+    loadingLocation = true; notifyListeners();
+    try {
+      final pos = await Future.any([
+        fillLocation(),
+        Future.delayed(const Duration(seconds: 8), () => null),
+      ]);
+
+      if (pos == null) {
+        if (placeFromGps) {
+          clearGpsLocation();
+        } else {
+          loadingLocation = false; notifyListeners();
+        }
+        return false;
+      }
+
+      final now = DateTime.now();
+      placeTime =
+          'Lat ${pos.lat.toStringAsFixed(5)}, Lon ${pos.lng.toStringAsFixed(5)}'
+          ' • ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      latitude = pos.lat;
+      longitude = pos.lng;
+      placeFromGps = true;
+      notifyListeners();
+      return true;
+    } finally {
+      loadingLocation = false; notifyListeners();
+    }
+  }
+
+  Future<int?> submit({required bool isOnline}) async {
+    if (type.trim().isEmpty || placeTime.trim().isEmpty || description.trim().isEmpty) return null;
+    if (submittingReport) return null;
+    submittingReport = true; notifyListeners();
     try {
       final id = await createReport(
         type: type,
@@ -34,25 +83,21 @@ class EmergencyReportViewModel extends ChangeNotifier {
         longitude: longitude,
         isOnline: isOnline,
       );
-      type=''; placeTime=''; description=''; isFollowUp=false; latitude=null; longitude=null;
-      submitting = false; notifyListeners();
+      _reset();
       return id;
-    } catch (_) {
-      submitting = false; notifyListeners();
-      return null;
+    } finally {
+      submittingReport = false; notifyListeners();
     }
   }
 
-    Future<void> fillWithCurrentLocation() async {
-    submitting = true; notifyListeners();                                // update state
-    final pos = await fillLocation();
-    if (pos != null) {
-      final now = DateTime.now();
-      placeTime = 'Lat ${pos.lat.toStringAsFixed(5)}, '
-                  'Lon ${pos.lng.toStringAsFixed(5)}'
-                  ' • ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}';
-      latitude = pos.lat; longitude = pos.lng;
-    }
-    submitting = false; notifyListeners();                                // update state
+  void _reset() {
+    type = '';
+    placeTime = '';
+    description = '';
+    isFollowUp = false;
+    latitude = null;
+    longitude = null;
+    placeFromGps = false;
+    notifyListeners();
   }
 }

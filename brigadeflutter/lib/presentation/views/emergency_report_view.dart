@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/emergency_report_viewmodel.dart';
 import '../../core/utils/validators.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/app_bar_actions.dart';
+import '../../core/utils/input_formatters.dart';
 
 class EmergencyReportScreen extends StatefulWidget {
   const EmergencyReportScreen({super.key});
@@ -13,12 +15,36 @@ class EmergencyReportScreen extends StatefulWidget {
 
 class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _usedGps = false;
+  // error corregido mario: controllers para limpiar campos tras submit
+  late final TextEditingController _typeCtrl;
+  late final TextEditingController _placeCtrl;
+  late final TextEditingController _descCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _typeCtrl = TextEditingController();
+    _placeCtrl = TextEditingController();
+    _descCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _typeCtrl.dispose();
+    _placeCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<EmergencyReportViewModel>(
       builder: (_, vm, __) {
+        // error corregido de gps apagado mario
+        if (_placeCtrl.text != vm.placeTime && vm.placeTime.isNotEmpty) {
+          _placeCtrl.text = vm.placeTime;
+        }
+
         return Scaffold(
           appBar: AppBar(
             leading: backToDashboardButton(context),
@@ -34,40 +60,57 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                 children: [
                   const SizedBox(height: 12),
                   TextFormField(
-                    initialValue: vm.type,
+                    controller: _typeCtrl,
                     onChanged: vm.onTypeChanged,
-                    decoration: const InputDecoration(
-                      hintText: 'Emergency Type',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Emergency Type',),
+                     inputFormatters: [
+                      SafeTextFormatter(max: 60),
+                    ],
+                    maxLength: 60,
+                    maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) => kNoCounter,
                     validator: (v) => requiredText(v),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
-                    initialValue: vm.placeTime,
+                    controller: _placeCtrl,
                     onChanged: vm.onPlaceTimeChanged,
                     decoration: const InputDecoration(hintText: 'Place'),
-                    validator: (v) => requiredText(v),
+                    inputFormatters: [
+                      SafeTextFormatter(max: 100),
+                    ],
+                    maxLength: 100,
+                    maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) => kNoCounter,
+                    validator: validatePlaceTime,
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     icon: const Icon(Icons.my_location),
-                    label: const Text('Use coordinates from GPS'),
-                    onPressed: vm.submitting
+                    label: vm.loadingLocation
+                        ? const Text('Getting GPS...')
+                        : const Text('Use coordinates from GPS'),
+                    onPressed: vm.loadingLocation
                         ? null
                         : () async {
-                            await vm.fillWithCurrentLocation();
-                            setState(() => _usedGps = vm.latitude != null);
-                            final ok = vm.latitude != null;
+                            final updated = await vm.fillWithCurrentLocation();
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  ok
-                                      ? 'Added location'
-                                      : 'Enable location or GPS permissions',
+                            if (updated) {
+                              _placeCtrl.text =
+                                  vm.placeTime; // refleja nuevo valor
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Added location')),
+                              );
+                            } else {
+                              _placeCtrl.text = vm.placeTime; 
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Enable location or GPS permissions',
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           },
                   ),
                   if (vm.latitude != null && vm.longitude != null) ...[
@@ -82,12 +125,18 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                   ],
                   const SizedBox(height: 12),
                   TextFormField(
-                    initialValue: vm.description,
+                    controller: _descCtrl,
                     onChanged: vm.onDescriptionChanged,
                     minLines: 4,
                     maxLines: 6,
                     decoration: const InputDecoration(hintText: 'Description'),
-                    validator: (v) => requiredText(v, max: 1000),
+                    inputFormatters: [
+                      SafeTextFormatter(max: 500),
+                    ],
+                    maxLength: 500,
+                    maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) => kNoCounter,
+                    validator: validateDescription,
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -102,7 +151,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: vm.submitting
+                    onPressed: vm.submittingReport
                         ? null
                         : () async {
                             if (!_formKey.currentState!.validate()) return;
@@ -112,13 +161,19 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                               SnackBar(
                                 content: Text(
                                   id != null
-                                      ? 'Report submitted successfully. ID: #$id'
-                                      : 'Error submitting report',
+                                      ? 'Report submitted (id: #$id)'
+                                      : 'Error al enviar',
                                 ),
                               ),
                             );
+                            if (id != null) {
+                              // limpia UI tras éxito
+                              _typeCtrl.clear();
+                              _placeCtrl.clear();
+                              _descCtrl.clear();
+                            }
                           },
-                    child: vm.submitting
+                    child: vm.submittingReport
                         ? const SizedBox(
                             height: 22,
                             width: 22,

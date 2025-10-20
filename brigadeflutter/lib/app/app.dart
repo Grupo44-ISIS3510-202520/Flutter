@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF2F6AF6),
       ),
-      initialRoute: routeDashboard,
+      initialRoute: routeReport,
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case routeReport:
@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// pantalla temporal para rutas no migradas
+// pantalla temporal
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
   const _PlaceholderScreen({required this.title});
