@@ -1,11 +1,6 @@
-import 'profile_models.dart';
+import '../repositories/profile_repository.dart';
+import '../models/profile_model.dart';
 
-abstract class ProfileRepository {
-  Future<BrigadistProfile> getProfile();
-  Future<void> setAvailability(bool available);
-}
-
-// Mock en memoria
 class InMemoryProfileRepository implements ProfileRepository {
   BrigadistProfile _p = const BrigadistProfile(
     name: 'Mario',
@@ -17,11 +12,14 @@ class InMemoryProfileRepository implements ProfileRepository {
   );
 
   @override
-  Future<BrigadistProfile> getProfile() async => _p;
+  Future<BrigadistProfile> getProfile() async {
+    await Future.delayed(const Duration(milliseconds: 120));
+    return _p;
+  }
 
   @override
   Future<void> setAvailability(bool available) async {
     _p = _p.copyWith(availableNow: available);
-    await Future<void>.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 120));
   }
 }

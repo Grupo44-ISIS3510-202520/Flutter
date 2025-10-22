@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/data/repositories_impl/profile_repository_impl.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/utils/id_generator.dart';
@@ -14,6 +15,7 @@ import '../data/datasources/location_dao.dart';
 import '../data/repositories_impl/report_repository_impl.dart';
 import '../data/repositories_impl/location_repository_impl.dart';
 import '../data/repositories/report_repository.dart';
+import '../data/repositories/profile_repository.dart';
 import '../data/repositories/location_repository.dart';
 import '../domain/use_cases/fill_location.dart';
 
@@ -32,6 +34,8 @@ Future<void> setupDi() async {
   // repos
   sl.registerLazySingleton<ReportRepository>(() => ReportRepositoryImpl(remote: sl(), local: sl()));
   sl.registerLazySingleton<LocationRepository>(() => LocationRepositoryImpl(sl()));
+  sl.registerLazySingleton<ProfileRepository>(() => InMemoryProfileRepository());
+
 
   // app services
   sl.registerFactory(() => FillLocation(sl()));

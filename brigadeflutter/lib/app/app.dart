@@ -5,6 +5,9 @@ import '../app/di.dart' show sl;
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/views/emergency_report_view.dart';
 
+import '../presentation/viewmodels/profile_viewmodel.dart';
+import '../presentation/views/profile_view.dart';
+
 const routeDashboard     = '/dashboard';
 const routeTraining      = '/training';
 const routeProtocols     = '/protocols';
@@ -25,17 +28,26 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF2F6AF6),
       ),
-      initialRoute: routeReport,
+      initialRoute: routeProfile,
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case routeReport:
             return MaterialPageRoute(
               builder: (_) => ChangeNotifierProvider(
                 create: (_) => EmergencyReportViewModel(
-                  createReport: sl(),// CreateEmergencyReport
-                  fillLocation: sl(),// FillLocation
+                  createReport: sl(),
+                  fillLocation: sl(),
                 ),
                 child: const EmergencyReportScreen(),
+              ),
+              settings: settings,
+            );
+
+          case routeProfile:
+            return MaterialPageRoute(
+              builder: (_) => ChangeNotifierProvider(
+                create: (_) => ProfileViewModel(sl()), 
+                child: const ProfileView(), 
               ),
               settings: settings,
             );
@@ -44,7 +56,6 @@ class MyApp extends StatelessWidget {
           case routeTraining:
           case routeProtocols:
           case routeNotifications:
-          case routeProfile:
           case routeLogin:
             return MaterialPageRoute(
               builder: (_) => _PlaceholderScreen(title: settings.name ?? 'screen'),
@@ -62,7 +73,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// pantalla temporal
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
   const _PlaceholderScreen({required this.title});
@@ -78,8 +88,8 @@ class _PlaceholderScreen extends StatelessWidget {
             Text('ruta: $title'),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pushNamed(routeReport),
-              child: const Text('ir a Emergency Report'),
+              onPressed: () => Navigator.of(context).pushNamed(routeProfile),
+              child: const Text('Ir a Profile'),
             ),
           ],
         ),
