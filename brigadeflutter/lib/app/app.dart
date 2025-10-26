@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../app/di.dart' show sl;
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
+import '../presentation/viewmodels/protocols_viewmodel.dart';
 import '../presentation/views/emergency_report_view.dart';
+import '../presentation/views/protocols_screen.dart';
 
 const routeDashboard     = '/dashboard';
 const routeTraining      = '/training';
@@ -43,6 +45,13 @@ class MyApp extends StatelessWidget {
           case routeDashboard:
           case routeTraining:
           case routeProtocols:
+            return MaterialPageRoute(
+              builder: (_) => ChangeNotifierProvider(
+                create: (_) => sl<ProtocolsViewModel>(),
+                child: const _ProtocolsScreenWithInit(),
+              ),
+              settings: settings,
+            );
           case routeNotifications:
           case routeProfile:
           case routeLogin:
@@ -63,6 +72,28 @@ class MyApp extends StatelessWidget {
 }
 
 // pantalla temporal
+class _ProtocolsScreenWithInit extends StatefulWidget {
+  const _ProtocolsScreenWithInit({Key? key}) : super(key: key);
+
+  @override
+  State<_ProtocolsScreenWithInit> createState() => _ProtocolsScreenWithInitState();
+}
+
+class _ProtocolsScreenWithInitState extends State<_ProtocolsScreenWithInit> {
+  @override
+  void initState() {
+    super.initState();
+    // inicializa el ViewModel correctamente una vez montado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProtocolsViewModel>().init();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const ProtocolsScreen();
+}
+
+
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
   const _PlaceholderScreen({required this.title});
