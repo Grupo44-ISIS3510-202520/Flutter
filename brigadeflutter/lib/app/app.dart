@@ -1,89 +1,27 @@
+import 'package:brigadeflutter/app/app_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../app/di.dart' show sl;
-import '../presentation/viewmodels/emergency_report_viewmodel.dart';
-import '../presentation/views/emergency_report_view.dart';
-
-const routeDashboard     = '/dashboard';
-const routeTraining      = '/training';
-const routeProtocols     = '/protocols';
-const routeNotifications = '/notification';
-const routeProfile       = '/profile';
-const routeLogin         = '/login';
-const routeReport        = '/report';
+import '../presentation/viewmodels/auth_viewmodel.dart';
+import '../presentation/views/login_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Brigade',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF2F6AF6),
-      ),
-      initialRoute: routeReport,
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case routeReport:
-            return MaterialPageRoute(
-              builder: (_) => ChangeNotifierProvider(
-                create: (_) => EmergencyReportViewModel(
-                  createReport: sl(),// CreateEmergencyReport
-                  fillLocation: sl(),// FillLocation
-                ),
-                child: const EmergencyReportScreen(),
-              ),
-              settings: settings,
-            );
-
-          case routeDashboard:
-          case routeTraining:
-          case routeProtocols:
-          case routeNotifications:
-          case routeProfile:
-          case routeLogin:
-            return MaterialPageRoute(
-              builder: (_) => _PlaceholderScreen(title: settings.name ?? 'screen'),
-              settings: settings,
-            );
-
-          default:
-            return MaterialPageRoute(
-              builder: (_) => const _PlaceholderScreen(title: 'Not found'),
-              settings: settings,
-            );
-        }
+    return Consumer<AuthViewModel>(
+      builder: (_, vm, __) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Brigade',
+          theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFF2F6AF6)),
+          // el gate decide qué pantalla mostrar según el estado de auth
+          home: vm.isAuthenticated ? const AppView() : const LoginScreen(),
+          routes: {
+            // deja tus rutas extra (register, profile, etc.)
+          },
+        );
       },
-    );
-  }
-}
-
-// pantalla temporal
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('ruta: $title'),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pushNamed(routeReport),
-              child: const Text('ir a Emergency Report'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -23,6 +24,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => sl<AuthViewModel>(),
+        ),
         ChangeNotifierProvider(
           create: (_) => EmergencyReportViewModel(
             createReport: sl(),

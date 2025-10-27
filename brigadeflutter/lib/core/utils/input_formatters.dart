@@ -8,9 +8,9 @@ final RegExp kSafeChars = RegExp(
 
 /// bloquea secuencias típicas de inyección
 final List<RegExp> kBlockedSequences = [
-  RegExp(r'--'),           // comentario sql
-  RegExp(r'/\*'),          // comentario inicio
-  RegExp(r'\*/'),          // comentario fin
+  RegExp(r'--'), // comentario sql
+  RegExp(r'/\*'), // comentario inicio
+  RegExp(r'\*/'), // comentario fin
 ];
 
 /// formatter que aplica límite y whitelist; elimina secuencias bloqueadas
@@ -52,3 +52,22 @@ class SafeTextFormatter extends TextInputFormatter {
 
 /// helper: oculta el contador nativo
 const kNoCounter = SizedBox.shrink();
+
+class NoEmojiAndLengthFormatter extends TextInputFormatter {
+  NoEmojiAndLengthFormatter(this.max);
+  final int max;
+
+  static final _emoji = RegExp(r'[\u{1F300}-\u{1FAFF}]', unicode: true);
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldV,
+    TextEditingValue newV,
+  ) {
+    var t = newV.text.replaceAll(_emoji, '');
+    if (t.length > max) t = t.substring(0, max);
+    return TextEditingValue(
+      text: t,
+      selection: TextSelection.collapsed(offset: t.length),
+    );
+  }
+}
