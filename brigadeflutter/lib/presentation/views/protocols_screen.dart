@@ -1,8 +1,9 @@
-// lib/presentation/views/protocols_screen.dart
+// protocols_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../features/pdf_viewer.dart';
 import '../viewmodels/protocols_viewmodel.dart';
+import '../components/app_bottom_nav.dart';
 
 class ProtocolsScreen extends StatefulWidget {
   const ProtocolsScreen({super.key});
@@ -32,14 +33,14 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ProtocolsViewModel>(builder: (context, vm, child) {
-      if (vm.isLoading) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      }
-
-      final protocols = vm.filtered;
-
       return Scaffold(
-        appBar: AppBar(title: const Text('Protocols & Manuals')),
+        appBar: AppBar(
+          title: const Text('Protocols & Manuals'),
+          automaticallyImplyLeading: Navigator.canPop(context),
+          backgroundColor: Colors.white,
+          elevation: 0.5,
+        ),
+        bottomNavigationBar: const AppBottomNav(current: 2), // protocolo
         body: SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
@@ -50,18 +51,22 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
                   hintText: "Search protocols...",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: protocols.isEmpty
+                child: vm.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : vm.filtered.isEmpty
                     ? const Center(child: Text('No protocols found.'))
                     : ListView.separated(
-                  itemCount: protocols.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemCount: vm.filtered.length,
+                  separatorBuilder: (_, __) =>
+                  const SizedBox(height: 12),
                   itemBuilder: (context, i) {
-                    final p = protocols[i];
+                    final p = vm.filtered[i];
                     return _ProtocolTile(protocol: p, vm: vm);
                   },
                 ),
@@ -77,8 +82,9 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
 class _ProtocolTile extends StatelessWidget {
   final ProtocolsViewModel vm;
   final protocol;
-  const _ProtocolTile({required this.protocol, required this.vm, Key? key
-  }) : super(key: key);
+
+  const _ProtocolTile({required this.protocol, required this.vm, Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,21 +97,29 @@ class _ProtocolTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         leading: const CircleAvatar(
           backgroundColor: Colors.white,
           radius: 24,
-          child: Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 26),
+          child: Icon(Icons.picture_as_pdf,
+              color: Colors.redAccent, size: 26),
         ),
         title: Row(
           children: [
             Expanded(
               child: Text(
                 name,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: 15.5),
               ),
             ),
             FutureBuilder<bool>(
@@ -114,9 +128,16 @@ class _ProtocolTile extends StatelessWidget {
                 final isNew = snap.data ?? false;
                 if (!isNew) return const SizedBox.shrink();
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: Colors.amber.shade700, borderRadius: BorderRadius.circular(8)),
-                  child: const Text("NEW", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                      color: Colors.amber.shade700,
+                      borderRadius: BorderRadius.circular(8)),
+                  child: const Text("NEW",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11)),
                 );
               },
             ),
@@ -129,11 +150,13 @@ class _ProtocolTile extends StatelessWidget {
             if (context.mounted) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => PdfViewer(pdfUrl: url, title: name)),
+                MaterialPageRoute(
+                    builder: (_) => PdfViewer(pdfUrl: url, title: name)),
               );
             }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No PDF URL found.")));
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("No PDF URL found.")));
           }
         },
       ),

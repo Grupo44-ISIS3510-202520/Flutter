@@ -126,7 +126,6 @@ class DashboardScreen extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    // Botón solo con ícono
                                     SizedBox(
                                       height: 40,
                                       width: 40,
@@ -188,7 +187,6 @@ class DashboardScreen extends StatelessWidget {
                             ),
                           ),
 
-                          // Grid de acciones (Command Pattern)
                           GridView.count(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -203,7 +201,7 @@ class DashboardScreen extends StatelessWidget {
 
                           SizedBox(height: availableHeight * 0.02),
 
-                          // Guía de RCP (CPR Guide)
+                          // Guía de RCP 
                           GestureDetector(
                             onTap: () => vm.cprGuide.execute(context),
                             child: Container(
