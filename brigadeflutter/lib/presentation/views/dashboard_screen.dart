@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/utils/routes.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/dashboard_action_tile.dart';
@@ -12,7 +11,6 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // usa Consumer: requiere ChangeNotifierProvider<DashboardViewModel> arriba
     return Consumer<DashboardViewModel>(
       builder: (_, vm, __) {
         return Scaffold(
@@ -48,7 +46,7 @@ class DashboardScreen extends StatelessWidget {
                         children: [
                           const SizedBox(height: 18),
 
-                          // botón grande de emergencia
+                          // Botón grande de emergencia
                           Center(
                             child: Container(
                               decoration: BoxDecoration(
@@ -93,9 +91,104 @@ class DashboardScreen extends StatelessWidget {
                             ),
                           ),
 
-                          SizedBox(height: availableHeight * 0.04),
+                          const SizedBox(height: 20),
 
-                          // grid de acciones (command pattern)
+                          // Punto de Encuentro (CAS)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Punto de encuentro más cercano',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 18,
+                                        ),
+                                        softWrap: true,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // Botón solo con ícono
+                                    SizedBox(
+                                      height: 40,
+                                      width: 40,
+                                      child: ElevatedButton(
+                                        onPressed: vm.isFinding
+                                            ? null
+                                            : () => vm.updateNearestMeetingPoint(),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blueAccent,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          elevation: 0,
+                                        ),
+                                        child: vm.isFinding
+                                            ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                            : const Icon(Icons.refresh, size: 20),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  vm.nearestLabel,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: vm.isOutsideCampus
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: vm.locationAvailable
+                                        ? (vm.isOutsideCampus
+                                        ? Colors.orange[700]
+                                        : Colors.black)
+                                        : Colors.red,
+                                  ),
+                                  softWrap: true,
+                                ),
+                                if (vm.nearestSubtext.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    vm.nearestSubtext,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey,
+                                    ),
+                                    softWrap: true,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+
+                          // Grid de acciones (Command Pattern)
                           GridView.count(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -110,7 +203,7 @@ class DashboardScreen extends StatelessWidget {
 
                           SizedBox(height: availableHeight * 0.02),
 
-                          // cpr guide
+                          // Guía de RCP (CPR Guide)
                           GestureDetector(
                             onTap: () => vm.cprGuide.execute(context),
                             child: Container(
@@ -128,7 +221,8 @@ class DashboardScreen extends StatelessWidget {
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.favorite, color: Colors.pink, size: 28),
+                                  Icon(Icons.favorite,
+                                      color: Colors.pink, size: 28),
                                   SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
@@ -139,13 +233,14 @@ class DashboardScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+                                  Icon(Icons.arrow_forward_ios,
+                                      color: Colors.grey, size: 16),
                                 ],
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
