@@ -74,8 +74,6 @@ final GetIt sl = GetIt.instance;
 
 Future<void> setupDi() async {
   final prefs = await SharedPreferences.getInstance();
-  //print('GetIt hash in setupDi: ${GetIt.instance.hashCode}');
-
 
   // external services
   sl.registerLazySingleton(() => FirestoreService());
@@ -162,9 +160,9 @@ try {
       sl<ScreenBrightnessService>(),
     ),
   );
-  print('// YYYYEYEYYEYEYE/////////// AdjustBrightnessFromAmbient registered');
+  print('AdjustBrightnessFromAmbient registered');
 } catch (e, s) {
-  print('/////////////////// Error registering AdjustBrightnessFromAmbient: $e');
+  print('Error registering AdjustBrightnessFromAmbient: $e');
   print(s);
 }
 
