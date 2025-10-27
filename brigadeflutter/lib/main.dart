@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -28,6 +29,9 @@ void main() async {
             createReport: sl(),
             fillLocation: sl(),
           ),
+        ),
+        ChangeNotifierProvider(
+        create: (_) => TrainingViewModel(repo: sl()),
         ),
       ],
       child: const MyApp(),

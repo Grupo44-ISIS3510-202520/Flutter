@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +8,7 @@ import '../presentation/views/emergency_report_view.dart';
 
 import '../presentation/viewmodels/profile_viewmodel.dart';
 import '../presentation/views/profile_view.dart';
+import '../presentation/views/training_screen.dart';
 
 const routeDashboard     = '/dashboard';
 const routeTraining      = '/training';
@@ -54,6 +56,13 @@ class MyApp extends StatelessWidget {
 
           case routeDashboard:
           case routeTraining:
+            return MaterialPageRoute(
+              builder: (_) => ChangeNotifierProvider(
+                create: (_) => TrainingViewModel(repo: sl()),
+                child: const TrainingScreen(),
+              ),
+              settings: settings,
+            );
           case routeProtocols:
           case routeNotifications:
           case routeLogin:

@@ -1,10 +1,6 @@
-import 'training_models.dart';
-
-abstract class TrainingRepository {
-  Future<List<TrainingCard>> getCards();
-  Future<List<TrainingProgress>> getProgress();
-  Future<void> start(String cardId);
-}
+import '../entities/training_card.dart';
+import '../entities/training_progress.dart';
+import '../repositories/training_repository.dart';
 
 class InMemoryTrainingRepository implements TrainingRepository {
   final _cards = <TrainingCard>[
@@ -49,6 +45,4 @@ class InMemoryTrainingRepository implements TrainingRepository {
 
     await Future<void>.delayed(const Duration(milliseconds: 150));
   }
-
-
 }
