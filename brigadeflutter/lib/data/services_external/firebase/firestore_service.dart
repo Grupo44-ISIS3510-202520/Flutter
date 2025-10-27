@@ -15,4 +15,9 @@ class FirestoreService {
   Future<void> setDocMerge(String collection, String id, Map<String, dynamic> data) async {
     await _db.collection(collection).doc(id).set(data, SetOptions(merge: true));
   }
+  Future<Map<String, dynamic>?> getDoc(String collection, String id) async {
+    final doc = await _db.collection(collection).doc(id).get();
+    if (!doc.exists) return null;
+    return doc.data();
+  }
 }

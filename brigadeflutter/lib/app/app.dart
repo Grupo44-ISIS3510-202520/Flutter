@@ -2,107 +2,169 @@ import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../app/di.dart' show sl;
+// di
+import 'di.dart' show sl;
+
+// viewmodels
+import '../presentation/viewmodels/auth_viewmodel.dart';
+import '../presentation/viewmodels/register_viewmodel.dart';
+import '../presentation/viewmodels/dashboard_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
+import '../presentation/viewmodels/protocols_viewmodel.dart';
+
+// views
+import '../presentation/views/login_screen.dart';
+import '../presentation/views/register_screen.dart';
+import '../presentation/views/dashboard_screen.dart';
 import '../presentation/views/emergency_report_view.dart';
-
-import '../presentation/viewmodels/profile_viewmodel.dart';
-import '../presentation/views/profile_view.dart';
+import '../presentation/views/protocols_screen.dart';
+// TODO: create real screens for these when ready
+import '../presentation/views/profile_screen.dart';
 import '../presentation/views/training_screen.dart';
+import '../presentation/views/notifications_screen.dart';
 
-const routeDashboard     = '/dashboard';
-const routeTraining      = '/training';
-const routeProtocols     = '/protocols';
+// route names
+const routeDashboard = '/dashboard';
+const routeTraining = '/training';
+const routeProtocols = '/protocols';
 const routeNotifications = '/notification';
-const routeProfile       = '/profile';
-const routeLogin         = '/login';
-const routeReport        = '/report';
+const routeProfile = '/profile';
+const routeLogin = '/login';
+const routeRegister = '/register';
+const routeReport = '/report';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Brigade',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF2F6AF6),
-      ),
-      initialRoute: routeProfile,
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case routeReport:
-            return MaterialPageRoute(
-              builder: (_) => ChangeNotifierProvider(
-                create: (_) => EmergencyReportViewModel(
-                  createReport: sl(),
-                  fillLocation: sl(),
-                ),
-                child: const EmergencyReportScreen(),
-              ),
-              settings: settings,
-            );
+    return Consumer<AuthViewModel>(
+      builder: (_, auth, __) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Brigade',
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: const Color(0xFF2F6AF6),
+          ),
 
-          case routeProfile:
-            return MaterialPageRoute(
-              builder: (_) => ChangeNotifierProvider(
-                create: (_) => ProfileViewModel(sl()), 
-                child: const ProfileView(), 
-              ),
-              settings: settings,
-            );
+          // auth gate: first screen after login is the dashboard
+          home: auth.isAuthenticated
+              ? ChangeNotifierProvider(
+                  create: (_) => sl<DashboardViewModel>(),
+                  child: const DashboardScreen(),
+                )
+              : const LoginScreen(),
 
-          case routeDashboard:
-          case routeTraining:
-            return MaterialPageRoute(
-              builder: (_) => ChangeNotifierProvider(
-                create: (_) => TrainingViewModel(repo: sl()),
-                child: const TrainingScreen(),
-              ),
-              settings: settings,
-            );
-          case routeProtocols:
-          case routeNotifications:
-          case routeLogin:
-            return MaterialPageRoute(
-              builder: (_) => _PlaceholderScreen(title: settings.name ?? 'screen'),
-              settings: settings,
-            );
+          onGenerateRoute: (settings) {
+            switch (settings.name) {
+              case routeLogin:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) => const LoginScreen(),
+                );
 
-          default:
-            return MaterialPageRoute(
-              builder: (_) => const _PlaceholderScreen(title: 'Not found'),
-              settings: settings,
-            );
-        }
+              case routeRegister:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => sl<RegisterViewModel>(),
+                    child: const RegisterScreen(),
+                  ),
+                );
+
+              case routeDashboard:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => sl<DashboardViewModel>(),
+                    child: const DashboardScreen(),
+                  ),
+                );
+
+              case routeReport:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) {
+                      final vm = sl<EmergencyReportViewModel>();
+                      // init post-frame para no notificar durante build
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => vm.initBrightness(),
+                      );
+                      return vm;
+                    },
+                    child: const EmergencyReportScreen(),
+                  ),
+                );
+
+              case routeProtocols:
+                return MaterialPageRoute(
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => sl<ProtocolsViewModel>(),
+                    child: const _ProtocolsScreenWithInit(),
+                  ),
+                  settings: settings,
+                );
+
+              case routeTraining:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) =>
+                      const ProtocolsScreen(), // stub until MVVM added
+                );
+
+              case routeNotifications:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) =>
+                      const ProtocolsScreen(), // stub until MVVM added
+                );
+
+              case routeProfile:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) =>
+                      const ProtocolsScreen(), // stub until MVVM added
+                );
+
+              default:
+                // fallback to the gate
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) => auth.isAuthenticated
+                      ? ChangeNotifierProvider(
+                          create: (_) => sl<DashboardViewModel>(),
+                          child: const DashboardScreen(),
+                        )
+                      : const LoginScreen(),
+                );
+            }
+          },
+        );
       },
     );
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
+class _ProtocolsScreenWithInit extends StatefulWidget {
+  const _ProtocolsScreenWithInit({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('ruta: $title'),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pushNamed(routeProfile),
-              child: const Text('Ir a Profile'),
-            ),
-          ],
-        ),
-      ),
-    );
+  State<_ProtocolsScreenWithInit> createState() =>
+      _ProtocolsScreenWithInitState();
+}
+
+class _ProtocolsScreenWithInitState extends State<_ProtocolsScreenWithInit> {
+  @override
+  void initState() {
+    super.initState();
+    // inicializa el ViewModel correctamente una vez montado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProtocolsViewModel>().init();
+    });
   }
+
+  @override
+  Widget build(BuildContext context) => const ProtocolsScreen();
 }
