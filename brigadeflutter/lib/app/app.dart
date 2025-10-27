@@ -85,10 +85,14 @@ class MyApp extends StatelessWidget {
                 return MaterialPageRoute(
                   settings: settings,
                   builder: (_) => ChangeNotifierProvider(
-                    create: (_) => EmergencyReportViewModel(
-                      createReport: sl(), // CreateEmergencyReport
-                      fillLocation: sl(), // FillLocation
-                    ),
+                    create: (_) {
+                      final vm = sl<EmergencyReportViewModel>();
+                      // init post-frame para no notificar durante build
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => vm.initBrightness(),
+                      );
+                      return vm;
+                    },
                     child: const EmergencyReportScreen(),
                   ),
                 );
@@ -146,7 +150,8 @@ class _ProtocolsScreenWithInit extends StatefulWidget {
   const _ProtocolsScreenWithInit({Key? key}) : super(key: key);
 
   @override
-  State<_ProtocolsScreenWithInit> createState() => _ProtocolsScreenWithInitState();
+  State<_ProtocolsScreenWithInit> createState() =>
+      _ProtocolsScreenWithInitState();
 }
 
 class _ProtocolsScreenWithInitState extends State<_ProtocolsScreenWithInit> {

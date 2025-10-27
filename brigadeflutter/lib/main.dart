@@ -1,41 +1,44 @@
-import 'package:brigadeflutter/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:hive_flutter/adapters.dart';
-import 'presentation/viewmodels/emergency_report_viewmodel.dart';
-import 'app/app.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:async';
 import 'package:brigadeflutter/firebase_options.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'app/di.dart';
+import 'app/app.dart';
+import 'package:provider/provider.dart';
+import 'presentation/viewmodels/auth_viewmodel.dart';
+import 'presentation/viewmodels/emergency_report_viewmodel.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    await dotenv.load(fileName: ".env");
-    await Hive.initFlutter();
-    await setupDi();
-  } catch (e) {
-    debugPrint("Error en inicialización: $e");
-  }
+  await dotenv.load(fileName: '.env'); // optional
+  await Hive.initFlutter();
 
+  // initialize firebase if used
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // IMPORTANT: register services before widgets ask for them
+  await setupDi();
+  print('GetIt hash in main.dart: ${sl.hashCode}');
+
+  // // Better visibility for uncaught errors
+  // FlutterError.onError = (details) {
+  //   FlutterError.dumpErrorToConsole(details);
+  // };
+ 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
+        ChangeNotifierProvider<AuthViewModel>(
           create: (_) => sl<AuthViewModel>(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => EmergencyReportViewModel(
-            createReport: sl(),
-            fillLocation: sl(),
-          ),
+        ChangeNotifierProvider<EmergencyReportViewModel>(
+          create: (_) => sl<EmergencyReportViewModel>(),
         ),
       ],
       child: const MyApp(),
     ),
   );
 }
-

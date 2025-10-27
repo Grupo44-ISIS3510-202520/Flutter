@@ -24,6 +24,7 @@ class RegisterViewModel extends ChangeNotifier {
       notifyListeners(); // update state
     });
   }
+  
 
   // estado
   bool submitting = false;
