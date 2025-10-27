@@ -32,6 +32,8 @@ import '../data/repositories_impl/report_repository_impl.dart';
 import '../data/repositories_impl/protocol_repository_impl.dart';
 import '../data/repositories_impl/user_repository_impl.dart';
 import '../data/repositories_impl/auth_repository_impl.dart';
+import '../data/firebase/training_repository_firebase.dart';
+import '../data/repositories/training_repository.dart';
 
 // domain - use cases
 // import '../domain/use_cases/adjust_screen_light.dart';
@@ -59,6 +61,7 @@ import '../presentation/viewmodels/register_viewmodel.dart';
 import '../presentation/viewmodels/auth_viewmodel.dart';
 import '../presentation/viewmodels/dashboard_viewmodel.dart';
 import '../presentation/navigation/dashboard_actions_factory.dart';
+import '../presentation/viewmodels/training_viewmodel.dart';
 
 import '../data/services_external/openai_service.dart';
 import '../data/services_external/tts_service.dart';
@@ -108,6 +111,7 @@ Future<void> setupDi() async {
   );
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
+  sl.registerLazySingleton<TrainingRepository>(() => FirebaseTrainingRepository());
 
   // App services / helpers
   sl.registerLazySingleton(() => FirestoreIdGenerator());
@@ -198,6 +202,12 @@ sl.registerFactory<EmergencyReportViewModel>(
     openai: sl<OpenAIService>(),
     tts: sl<TtsService>(),
     connectivity: sl<ConnectivityService>(),
+  ),
+);
+
+sl.registerFactory<TrainingViewModel>(
+  () => TrainingViewModel(
+    repo: sl<TrainingRepository>(),
   ),
 );
 

@@ -18,8 +18,7 @@ import '../presentation/views/register_screen.dart';
 import '../presentation/views/dashboard_screen.dart';
 import '../presentation/views/emergency_report_view.dart';
 import '../presentation/views/protocols_screen.dart';
-// TODO: create real screens for these when ready
-import '../presentation/views/profile_screen.dart';
+import '../presentation/views/profile_view.dart';
 import '../presentation/views/training_screen.dart';
 import '../presentation/views/notifications_screen.dart';
 
@@ -108,10 +107,12 @@ class MyApp extends StatelessWidget {
                 );
 
               case routeTraining:
-                return MaterialPageRoute(
+                 return MaterialPageRoute(
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => sl<TrainingViewModel>()..load(),
+                    child: const TrainingScreen(),
+                  ),
                   settings: settings,
-                  builder: (_) =>
-                      const ProtocolsScreen(), // stub until MVVM added
                 );
 
               case routeNotifications:
