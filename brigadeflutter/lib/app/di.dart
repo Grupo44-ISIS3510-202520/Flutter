@@ -28,6 +28,7 @@ import '../data/repositories/protocol_repository.dart';
 import '../data/repositories/user_repository.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories_impl/location_repository_impl.dart';
+import '../data/repositories_impl/meeting_point_repository_impl.dart';
 import '../data/repositories_impl/report_repository_impl.dart';
 import '../data/repositories_impl/protocol_repository_impl.dart';
 import '../data/repositories_impl/user_repository_impl.dart';
@@ -53,6 +54,10 @@ import '../domain/use_cases/observe_auth_state.dart';
 import '../domain/use_cases/get_current_user.dart';
 import '../domain/use_cases/sign_out.dart';
 
+//dashboard
+import '../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
+import '../data/repositories/meeting_point_repository.dart';
+
 // presentation - viewmodels & navigation
 import '../presentation/viewmodels/cas_brightness_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
@@ -72,8 +77,6 @@ final GetIt sl = GetIt.instance;
 
 Future<void> setupDi() async {
   final prefs = await SharedPreferences.getInstance();
-  print('GetIt hash in setupDi: ${GetIt.instance.hashCode}');
-
 
   // external services
   sl.registerLazySingleton(() => FirestoreService());
@@ -112,9 +115,19 @@ Future<void> setupDi() async {
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
   sl.registerLazySingleton<TrainingRepository>(() => FirebaseTrainingRepository());
+  sl.registerLazySingleton<MeetingPointRepository>(
+        () => MeetingPointRepositoryImpl(),
+  );
 
   // App services / helpers
+  // App services / helpers
   sl.registerLazySingleton(() => FirestoreIdGenerator());
+
+  //Use cases - dashboard
+  sl.registerLazySingleton(() => FindNearestMeetingPoint(
+    locationService: sl(),
+    repository: sl(),
+  ));
 
   // Use cases - protocols
   sl.registerFactory(() => GetProtocolsStream(repository: sl()));
@@ -151,9 +164,9 @@ try {
       sl<ScreenBrightnessService>(),
     ),
   );
-  print('// YYYYEYEYYEYEYE/////////// AdjustBrightnessFromAmbient registered');
+  print('AdjustBrightnessFromAmbient registered');
 } catch (e, s) {
-  print('/////////////////// Error registering AdjustBrightnessFromAmbient: $e');
+  print('Error registering AdjustBrightnessFromAmbient: $e');
   print(s);
 }
 
@@ -190,9 +203,13 @@ try {
   );
 
   sl.registerLazySingleton(() => DashboardActionsFactory());
-  sl.registerFactory(() => DashboardViewModel(factory: sl()));
+  sl.registerFactory(() => DashboardViewModel(
+    factory: sl(),
+    findNearestUseCase: sl(),
+  ));
 
-sl.registerFactory<EmergencyReportViewModel>(
+
+  sl.registerFactory<EmergencyReportViewModel>(
   () => EmergencyReportViewModel(
     createReport: sl<CreateEmergencyReport>(),
     fillLocation: sl<FillLocation>(),
@@ -215,4 +232,8 @@ sl.registerFactory<TrainingViewModel>(
   print(
     'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
   );
+  //print('registered: ${sl.allReady()}');
+ // print(
+  //  'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
+  //);
 }
