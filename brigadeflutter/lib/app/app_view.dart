@@ -1,3 +1,6 @@
+import 'package:brigadeflutter/app/di.dart';
+import 'package:brigadeflutter/presentation/viewmodels/dashboard_viewmodel.dart';
+import 'package:brigadeflutter/presentation/views/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import '../presentation/views/emergency_report_view.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +11,18 @@ import '../presentation/views/login_screen.dart';
 class AppView extends StatelessWidget {
   const AppView({super.key});
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (_, vm, __) {
         // router mínimo basado en auth
         if (!vm.isAuthenticated) return const LoginScreen();
-        return const EmergencyReportScreen(); // reemplaza por tu dashboard/home
+        // return const EmergencyReportScreen();
+        ChangeNotifierProvider(
+          create: (_) => sl<DashboardViewModel>(),
+          child: const DashboardScreen(),
+        );
+        return const DashboardScreen();
       },
     );
   }

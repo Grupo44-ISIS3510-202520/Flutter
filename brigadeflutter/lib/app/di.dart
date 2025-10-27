@@ -48,6 +48,9 @@ import '../domain/use_cases/get_current_user.dart';
 import '../domain/use_cases/sign_out.dart';
 import '../presentation/viewmodels/auth_viewmodel.dart';
 
+import '../presentation/navigation/dashboard_actions_factory.dart';
+import '../presentation/viewmodels/dashboard_viewmodel.dart';
+
 final sl = GetIt.instance;
 
 Future<void> setupDi() async {
@@ -64,14 +67,15 @@ Future<void> setupDi() async {
   sl.registerLazySingleton(() => ReportLocalDao()..init());
   sl.registerLazySingleton(() => LocationDao(sl()));
 
-
   // repos
   sl.registerLazySingleton<ReportRepository>(
-          () => ReportRepositoryImpl(remote: sl(), local: sl()));
+    () => ReportRepositoryImpl(remote: sl(), local: sl()),
+  );
   sl.registerLazySingleton<LocationRepository>(
-          () => LocationRepositoryImpl(sl()));
+    () => LocationRepositoryImpl(sl()),
+  );
   sl.registerLazySingleton<ProtocolRepository>(
-        () => ProtocolRepositoryImpl(dao: sl(), prefs: prefs),
+    () => ProtocolRepositoryImpl(dao: sl(), prefs: prefs),
   );
 
   // use cases
@@ -86,12 +90,11 @@ Future<void> setupDi() async {
   sl.registerFactory(() => CreateEmergencyReport(sl(), sl()));
 
   // viewmodels
-  sl.registerFactory(() => EmergencyReportViewModel(
-    createReport: sl(),
-    fillLocation: sl(),
-  ));
   sl.registerFactory(
-        () => ProtocolsViewModel(
+    () => EmergencyReportViewModel(createReport: sl(), fillLocation: sl()),
+  );
+  sl.registerFactory(
+    () => ProtocolsViewModel(
       getProtocolsStream: sl(),
       markProtocolAsRead: sl(),
       isProtocolNew: sl(),
@@ -112,20 +115,25 @@ Future<void> setupDi() async {
   sl.registerFactory(() => GetCurrentUser(sl()));
   sl.registerFactory(() => SignOut(sl()));
 
-  sl.registerFactory(() => RegisterViewModel(
-    registerUC: sl(),
-    sendVerifyUC: sl(),
-    reloadUserUC: sl(),
-  ));
-
+  sl.registerFactory(
+    () => RegisterViewModel(
+      registerUC: sl(),
+      sendVerifyUC: sl(),
+      reloadUserUC: sl(),
+    ),
+  );
 
   sl.registerFactory(() => SendPasswordResetEmail(sl()));
 
-  sl.registerFactory(() => AuthViewModel(
-        signIn: sl(),
-        signOutUC: sl(),
-        observe: sl(),
-        getCurrent: sl(),
-        sendReset: sl(),
-      ));
+  sl.registerFactory(
+    () => AuthViewModel(
+      signIn: sl(),
+      signOutUC: sl(),
+      observe: sl(),
+      getCurrent: sl(),
+      sendReset: sl(),
+    ),
+  );
+  sl.registerLazySingleton(() => DashboardActionsFactory());
+  sl.registerFactory(() => DashboardViewModel(factory: sl()));
 }
