@@ -38,7 +38,7 @@ class ProfileViewModel extends ChangeNotifier {
           email: user.email,
           availableNow: false,
           timeSlots: const ['08:00–12:00', '14:00–18:00'],
-          medals: const ['Bravery', 'Commitment'],
+          medals: const ["First Aid", "Fire Drill", "Leadership", "Evacuation"],
         );
       } else {
         _profile = user;
