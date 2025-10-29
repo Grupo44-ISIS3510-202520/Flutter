@@ -38,6 +38,9 @@ class ProfileView extends StatelessWidget {
               pinned: true,
               title: const Text('User Profile'),
               leading: backToDashboardButton(context),
+              actions: [
+                signOutAction(context), 
+              ],
             ),
 
             SliverToBoxAdapter(
