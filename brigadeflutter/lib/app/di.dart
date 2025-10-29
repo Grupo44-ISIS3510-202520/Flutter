@@ -118,7 +118,6 @@ Future<void> setupDi() async {
   sl.registerLazySingleton<MeetingPointRepository>(
         () => MeetingPointRepositoryImpl(),
   );
-
   // App services / helpers
   // App services / helpers
   sl.registerLazySingleton(() => FirestoreIdGenerator());
