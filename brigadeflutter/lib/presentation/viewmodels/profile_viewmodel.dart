@@ -1,30 +1,50 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import '../../data/repositories/profile_repository.dart';
-import '../../data/models/profile_model.dart';
+import '../../data/repositories/user_repository.dart';
 import '../../data/services_external/location/location_service.dart';
+import '../../data/entities/user_profile.dart';
+import '../../data/entities/brigadist_profile.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  final ProfileRepository _repository;
+  final UserRepository _repository;
   final LocationService _location = LocationService();
 
-  BrigadistProfile? _profile;
+  UserProfile? _profile;
   bool _loading = false;
   bool _updating = false;
 
   ProfileViewModel(this._repository);
 
-  BrigadistProfile? get profile => _profile;
+  UserProfile? get profile => _profile;
   bool get isLoading => _loading;
   bool get isUpdating => _updating;
 
-  Future<void> load() async {
+  Future<void> load(String uid) async {
     _loading = true;
     notifyListeners();
 
     try {
-      _profile = await _repository.getProfile();
+      final user = await _repository.getProfile(uid);
+
+      if (user != null && user.role.toLowerCase() == 'brigadist') {
+        _profile = BrigadistProfile(
+          uid: user.uid,
+          name: user.name,
+          lastName: user.lastName,
+          uniandesCode: user.uniandesCode,
+          bloodGroup: user.bloodGroup,
+          role: user.role,
+          email: user.email,
+          availableNow: false,
+          timeSlots: const ['08:00–12:00', '14:00–18:00'],
+          medals: const ['Bravery', 'Commitment'],
+        );
+      } else {
+        _profile = user;
+      }
+    } catch (e, st) {
+      debugPrint('Error loading profile: $e\n$st');
     } finally {
       _loading = false;
       notifyListeners();
@@ -32,12 +52,20 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> toggleAvailability(bool available) async {
+    if (_profile == null) return;
+    if (_profile is! BrigadistProfile) return;
+
     _updating = true;
     notifyListeners();
 
     try {
-      await _repository.setAvailability(available);
-      _profile = await _repository.getProfile();
+      final brigadist = (_profile as BrigadistProfile)
+          .copyWith(availableNow: available);
+
+      await _repository.saveProfile(brigadist);
+      _profile = brigadist;
+    } catch (e, st) {
+      debugPrint('Error toggling availability: $e\n$st');
     } finally {
       _updating = false;
       notifyListeners();
@@ -45,6 +73,8 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> updateAvailabilityBasedOnLocation() async {
+    if (_profile == null || _profile is! BrigadistProfile) return;
+
     final pos = await _location.current();
     if (pos == null) return;
 
@@ -60,19 +90,14 @@ class ProfileViewModel extends ChangeNotifier {
     );
 
     final insideCampus = distance <= campusRadius;
-    final currentAvailability = _profile?.availableNow ?? false;
 
-    if (insideCampus != currentAvailability) {
-      await toggleAvailability(insideCampus);
-
-      await FirebaseAnalytics.instance.logEvent(
-        name: insideCampus ? 'auto_available_on' : 'auto_available_off',
-        parameters: {
-          'distance_meters': distance,
-          'latitude': pos.latitude,
-          'longitude': pos.longitude,
-        },
-      );
-    }
+    await FirebaseAnalytics.instance.logEvent(
+      name: insideCampus ? 'auto_available_on' : 'auto_available_off',
+      parameters: {
+        'distance_meters': distance,
+        'latitude': pos.latitude,
+        'longitude': pos.longitude,
+      },
+    );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
@@ -226,6 +227,8 @@ sl.registerFactory<TrainingViewModel>(
     repo: sl<TrainingRepository>(),
   ),
 );
+
+sl.registerFactory(() => ProfileViewModel(sl<UserRepository>()));
 
   print('registered: ${sl.allReady()}');
   print(
