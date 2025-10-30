@@ -89,8 +89,8 @@ Future<void> setupDi() async {
     () => ScreenBrightnessServiceImpl(),
   );
   sl.registerLazySingleton(() => TokenService());
-  sl.registerLazySingleton<OpenAIService>(() => OpenAIService());
-  sl.registerLazySingleton<TtsService>(() => TtsService());
+  sl.registerLazySingleton<OpenAIService>(() => OpenAIServiceImpl());
+  sl.registerLazySingleton<TtsService>(() => TtsServiceImpl());
   sl.registerLazySingleton<ConnectivityService>(
     () => ConnectivityServiceImpl(),
   );

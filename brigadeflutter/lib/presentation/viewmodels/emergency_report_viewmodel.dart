@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../domain/use_cases/create_emergency_report.dart';
 import '../../domain/use_cases/fill_location.dart';
 import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
@@ -8,6 +10,7 @@ import '../../data/services_external/screen_brightness_service.dart';
 import '../../data/services_external/connectivity_service.dart';
 import '../../data/services_external/openai_service.dart';
 import '../../data/services_external/tts_service.dart';
+import '../../core/workers/openai_isolate.dart';
 
 class EmergencyReportViewModel extends ChangeNotifier {
   final CreateEmergencyReport createReport;
@@ -27,16 +30,17 @@ class EmergencyReportViewModel extends ChangeNotifier {
     required this.openai,
     required this.tts,
     required this.connectivity,
-   } 
-  );
-
-  
+  });
 
   // estado brillo
   bool autoBrightnessSupported = false;
   bool autoBrightnessOn = false;
   double currentBrightness = 0.0;
   StreamSubscription<double>? _luxSub;
+
+  //voice instructions -> concurrencia
+  bool generatingVoice = false;
+  bool offline = false;
 
   Future<void> initBrightness() async {
     autoBrightnessSupported = ambient.isSupported();
@@ -46,48 +50,62 @@ class EmergencyReportViewModel extends ChangeNotifier {
     notifyListeners(); // update state
   }
 
-  bool generatingVoice = false;
-
   // voice: asegura bloqueo del botón, fallback offline y cleanup al salir
   Future<void> onVoiceInstructions() async {
-    if (generatingVoice) return;
-    generatingVoice = true;
-    notifyListeners(); // update ui
+  if (generatingVoice) return;
+  generatingVoice = true;
+  notifyListeners();
 
-    try {
-      await tts.init(lang: 'en-US');
+  try {
+    await tts.init(lang: 'en-US');
 
-      final online = await connectivity.isOnline();
-      if (!online) {
-        // mensaje offline
-        const offlineMsg =
-            'Keep calm. You are currently offline. Ensure personal safety and reconnect to get updated instructions.';
-        await tts.speak(offlineMsg);
-        return;
+    final isOnline = await connectivity.isOnline();
+    if (!isOnline) {
+      offline = true;
+      notifyListeners();
+
+      // small delay to ensure TTS engine is ready
+      await Future.delayed(const Duration(milliseconds: 300));
+      try {
+        await tts.speak('You have no internet, please remain calm.')
+        .timeout(const Duration(seconds: 5), onTimeout: () async {
+  await tts.stop();
+        }) ;
+      } catch (_) {
+        // if TTS fails silently, just reset state
       }
+      return;
+    }
 
-      final type = (typeValue.isEmpty)
-          ? 'Emergency'
-          : typeValue; // usa tu campo de tipo
-      final text = await openai.getInstructionText(emergencyType: type);
+    final typeName = (type.isEmpty) ? 'Emergency' : type;
+
+    // --- create isolate communication ports ---
+    final receivePort = ReceivePort();
+    final apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
+    await Isolate.spawn(
+      openAIIsolateEntry,
+      OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey),
+    );
+
+    // wait for message from isolate
+    final text = await receivePort.first as String;
+
+    // play result
+    if (text.startsWith('Error:')) {
+      await tts.speak('An error occurred generating the voice instructions.');
+    } else {
       await tts.speak(text);
-    } catch (_) {
-      // opcional: log
-    } finally {
-      generatingVoice = false;
-      notifyListeners(); // update ui
     }
+  } catch (e) {
+    // fallback if TTS or isolate fails
+    try {
+      await tts.speak('An unexpected error occurred.');
+    } catch (_) {}
+  } finally {
+    generatingVoice = false;
+    notifyListeners();
   }
-
-  void toggleAutoBrightness(bool v) {
-    if (!autoBrightnessSupported) return;
-    autoBrightnessOn = v;
-    _luxSub?.cancel();
-    if (autoBrightnessOn) {
-      _luxSub = adjustBrightness.start();
-    }
-    notifyListeners(); // update state
-  }
+}
 
   String type = '';
   String placeTime = '';
@@ -99,6 +117,11 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool submittingReport = false;
   bool loadingLocation = false;
   bool placeFromGps = false;
+
+  void toggleAutoBrightness(bool v) {
+    autoBrightnessOn = v;
+    notifyListeners();
+  }
 
   void onTypeChanged(String v) {
     type = v;
@@ -166,8 +189,9 @@ class EmergencyReportViewModel extends ChangeNotifier {
   Future<int?> submit({required bool isOnline}) async {
     if (type.trim().isEmpty ||
         placeTime.trim().isEmpty ||
-        description.trim().isEmpty)
+        description.trim().isEmpty) {
       return null;
+    }
     if (submittingReport) return null;
     submittingReport = true;
     notifyListeners();
@@ -204,8 +228,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   void dispose() {
     _luxSub?.cancel();
     super.dispose();
-  
   }
 
-   String get typeValue => type;
+  String get typeValue => type;
 }

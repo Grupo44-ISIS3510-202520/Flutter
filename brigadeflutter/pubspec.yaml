@@ -58,6 +58,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   light: ^4.1.0
   screen_brightness: ^2.1.7
+  firebase_messaging: ^16.0.3
   
 
 dev_dependencies:

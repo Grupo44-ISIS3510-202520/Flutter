@@ -54,6 +54,18 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
           _placeCtrl.text = vm.placeTime;
         }
 
+        if (vm.offline) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "Hey Uniandino, you’re offline! Reconnect to get all features back.",
+                ),
+              ),
+            );
+          });
+        }
+
         return Scaffold(
           appBar: AppBar(
             leading: backToDashboardButton(context),

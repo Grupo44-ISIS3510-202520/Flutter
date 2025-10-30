@@ -1,8 +1,15 @@
 import 'package:flutter_tts/flutter_tts.dart';
 
-class TtsService {
+abstract class TtsService {
+  Future<void> init({String lang});
+  Future<void> speak(String text);
+  Future<void> stop();
+}
+
+class TtsServiceImpl implements TtsService {
   final _tts = FlutterTts();
 
+  @override
   Future<void> init({String lang = 'en-US'}) async {
     await _tts.setLanguage(lang);
     await _tts.setSpeechRate(0.75);
@@ -10,18 +17,12 @@ class TtsService {
     await _tts.awaitSpeakCompletion(true);
   }
 
+  @override
   Future<void> speak(String text) async {
     await _tts.stop();
     await _tts.speak(text);
   }
 
+  @override
   Future<void> stop() => _tts.stop();
-
-  Future<void> pause() async {
-    try {
-      await _tts.pause();
-    } catch (_) {
-      await _tts.stop();
-    }
-  }
 }
