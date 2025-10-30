@@ -226,6 +226,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    tts.stop();
     _luxSub?.cancel();
     super.dispose();
   }
