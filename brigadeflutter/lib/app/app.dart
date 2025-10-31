@@ -1,4 +1,7 @@
+import 'package:brigadeflutter/presentation/viewmodels/leaderboard_viewmodel.dart';
 import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
+import 'package:brigadeflutter/presentation/views/leaderboard_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,6 +14,8 @@ import '../presentation/viewmodels/register_viewmodel.dart';
 import '../presentation/viewmodels/dashboard_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/viewmodels/protocols_viewmodel.dart';
+import '../presentation/viewmodels/profile_viewmodel.dart';
+
 
 // views
 import '../presentation/views/login_screen.dart';
@@ -21,6 +26,7 @@ import '../presentation/views/protocols_screen.dart';
 import '../presentation/views/profile_view.dart';
 import '../presentation/views/training_screen.dart';
 import '../presentation/views/notifications_screen.dart';
+import '../presentation/views/leaderboard_screen.dart';
 
 // route names
 const routeDashboard = '/dashboard';
@@ -31,6 +37,7 @@ const routeProfile = '/profile';
 const routeLogin = '/login';
 const routeRegister = '/register';
 const routeReport = '/report';
+const routeLeaderboard = '/leaderboard';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -47,7 +54,6 @@ class MyApp extends StatelessWidget {
             colorSchemeSeed: const Color(0xFF2F6AF6),
           ),
 
-          // auth gate: first screen after login is the dashboard
           home: auth.isAuthenticated
               ? ChangeNotifierProvider(
                   create: (_) => sl<DashboardViewModel>(),
@@ -124,9 +130,27 @@ class MyApp extends StatelessWidget {
 
               case routeProfile:
                 return MaterialPageRoute(
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) {
+                      final vm = sl<ProfileViewModel>();
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user != null) {
+                        vm.load(user.uid);
+                      }
+                      return vm;
+                    },
+                    child: const ProfileView(),
+                  ),
                   settings: settings,
-                  builder: (_) =>
-                      const ProtocolsScreen(), // stub until MVVM added
+                );
+
+              case routeLeaderboard:
+                return MaterialPageRoute(
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => LeaderboardViewModel()..loadLeaderboard(),
+                    child: const LeaderboardScreen(),
+                  ),
+                  settings: settings,
                 );
 
               default:
@@ -160,7 +184,6 @@ class _ProtocolsScreenWithInitState extends State<_ProtocolsScreenWithInit> {
   @override
   void initState() {
     super.initState();
-    // inicializa el ViewModel correctamente una vez montado
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProtocolsViewModel>().init();
     });
