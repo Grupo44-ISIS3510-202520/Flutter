@@ -58,8 +58,8 @@ class _TrainingScreenState extends State<TrainingScreen> {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white, // fondo blanco
-                        side: const BorderSide(color: Color(0xFF2F6AF6), width: 1.5), // borde azul
+                        backgroundColor: Colors.white, 
+                        side: const BorderSide(color: Color(0xFF2F6AF6), width: 1.5), 
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -135,6 +135,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
     );
   }
 
+
   Widget _buildTrainingTile(
     TrainingCard card,
     TrainingProgress progress,
@@ -157,19 +158,28 @@ class _TrainingScreenState extends State<TrainingScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  card.imageUrl,
-                  width: 70,
-                  height: 70,
-                  fit: BoxFit.cover,
+              SizedBox(
+                width: 70,
+                height: 70,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    card.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.error),
+                      );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
                       "Certification",
@@ -212,25 +222,26 @@ class _TrainingScreenState extends State<TrainingScreen> {
                     if (!completed)
                       Row(
                         children: [
-                          ElevatedButton(
-                            onPressed: vm.submitting
-                                ? null
-                                : () => vm.onCtaPressed(card.id),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2F6AF6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: vm.submitting
+                                  ? null
+                                  : () => vm.onCtaPressed(card.id),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2F6AF6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                animationDuration: Duration.zero,
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              animationDuration:
-                                  Duration(milliseconds: 0), 
-                            ),
-                            child: Text(
-                              inProgress ? "Avanzar" : "Iniciar curso",
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white,
+                              child: Text(
+                                inProgress ? "Avanzar" : "Iniciar curso",
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -250,8 +261,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                     else
                       const Row(
                         children: [
-                          Icon(Icons.star,
-                              color: Color(0xFF2F6AF6), size: 18),
+                          Icon(Icons.star, color: Color(0xFF2F6AF6), size: 18),
                           SizedBox(width: 6),
                           Text(
                             "Completado",
@@ -270,5 +280,4 @@ class _TrainingScreenState extends State<TrainingScreen> {
         ),
       ),
     );
-  }
-}
+  }}

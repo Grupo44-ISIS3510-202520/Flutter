@@ -26,6 +26,7 @@ import '../presentation/views/protocols_screen.dart';
 import '../presentation/views/profile_view.dart';
 import '../presentation/views/training_screen.dart';
 import '../presentation/views/notifications_screen.dart';
+import '../presentation/views/leaderboard_screen.dart';
 
 // route names
 const routeDashboard = '/dashboard';
@@ -149,6 +150,7 @@ class MyApp extends StatelessWidget {
                     create: (_) => LeaderboardViewModel()..loadLeaderboard(),
                     child: const LeaderboardScreen(),
                   ),
+                  settings: settings,
                 );
 
               default:

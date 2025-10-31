@@ -2,19 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/leaderboard_viewmodel.dart';
 
-class LeaderboardScreen extends StatefulWidget {
+class LeaderboardScreen extends StatelessWidget {
   const LeaderboardScreen({super.key});
-
-  @override
-  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
-}
-
-class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => context.read<LeaderboardViewModel>().loadLeaderboard());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,39 +13,45 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       appBar: AppBar(
         title: const Text("Weekly Leaderboard"),
         backgroundColor: Colors.white,
-        elevation: 0,
       ),
+      backgroundColor: const Color(0xFFF3F5F8),
       body: vm.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: vm.entries.length,
               itemBuilder: (context, index) {
                 final entry = vm.entries[index];
-                final shortEmail = entry.email.split('@').first;
-                final rank = index + 1;
-
-                IconData? icon;
-                Color? color;
-                if (rank == 1) {
-                  icon = Icons.emoji_events;
-                  color = Colors.amber;
-                } else if (rank == 2) {
-                  icon = Icons.emoji_events;
-                  color = Colors.grey;
-                } else if (rank == 3) {
-                  icon = Icons.emoji_events;
-                  color = Colors.brown;
-                }
+                final emailPrefix = entry.email.split('@').first;
+                final medalIcon = index == 0
+                    ? Icons.emoji_events
+                    : index == 1
+                        ? Icons.emoji_events_outlined
+                        : index == 2
+                            ? Icons.military_tech
+                            : null;
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.blue[100],
-                    child: icon != null
-                        ? Icon(icon, color: color)
-                        : Text("$rank", style: const TextStyle(color: Colors.black)),
+                    backgroundColor: Colors.grey[300],
+                    child: medalIcon != null
+                        ? Icon(
+                            medalIcon,
+                            color: index == 0
+                                ? Colors.amber
+                                : index == 1
+                                    ? Colors.grey
+                                    : Colors.brown,
+                          )
+                        : Text("${index + 1}"),
                   ),
-                  title: Text(shortEmail, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${entry.completedCount} cursos completados"),
+                  title: Text(
+                    emailPrefix,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  trailing: Text(
+                    "${entry.completedCount} cursos",
+                    style: const TextStyle(color: Colors.blueAccent),
+                  ),
                 );
               },
             ),

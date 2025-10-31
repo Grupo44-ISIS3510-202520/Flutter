@@ -22,7 +22,7 @@ class LeaderboardViewModel extends ChangeNotifier {
   DateTime? _lastUpdated;
   List<LeaderboardEntry> _entries = [];
 
-  bool get isLoading => _loading; 
+  bool get isLoading => _loading;
   List<LeaderboardEntry> get entries => _entries;
 
   Future<void> loadLeaderboard() async {
@@ -37,44 +37,47 @@ class LeaderboardViewModel extends ChangeNotifier {
 
     try {
       final usersSnapshot = await _firestore.collection('users').get();
-      final trainingsSnapshot = await _firestore.collection('user_trainings').get();
+      final trainingsSnapshot = await _firestore
+          .collection('user_trainings')
+          .get();
 
       final userTrainings = trainingsSnapshot.docs
           .where((doc) => doc.data().isNotEmpty)
           .map((doc) {
-        final data = doc.data();
-        int completedCount = 0;
-        DateTime? lastCompletedAt;
+            final data = doc.data();
+            int completedCount = 0;
+            DateTime? lastCompletedAt;
 
-        for (final entry in data.entries) {
-          if (entry.value is Map &&
-              entry.value['percent'] == 100) {
-            completedCount++;
-            final ts = entry.value['completedAt'];
-            if (ts is Timestamp) {
-              final completedAt = ts.toDate();
-              if (lastCompletedAt == null ||
-                  completedAt.isAfter(lastCompletedAt)) {
-                lastCompletedAt = completedAt;
+            for (final entry in data.entries) {
+              if (entry.value is Map && entry.value['percent'] == 100) {
+                completedCount++;
+                final ts = entry.value['completedAt'];
+                if (ts is Timestamp) {
+                  final completedAt = ts.toDate();
+                  if (lastCompletedAt == null ||
+                      completedAt.isAfter(lastCompletedAt)) {
+                    lastCompletedAt = completedAt;
+                  }
+                }
               }
             }
-          }
-        }
 
-        final userDoc = usersSnapshot.docs.firstWhere(
-          (u) => u.id == doc.id,
-          orElse: () => usersSnapshot.docs.isNotEmpty
-              ? usersSnapshot.docs.first
-              : throw StateError('No users found'),
-        );
+            final userDoc = usersSnapshot.docs.where((u) => u.id == doc.id).isNotEmpty
+              ? usersSnapshot.docs.firstWhere((u) => u.id == doc.id)
+              : usersSnapshot.docs.isNotEmpty
+                  ? usersSnapshot.docs.first
+                  : throw StateError('No users found');
 
-        return LeaderboardEntry(
-          uid: doc.id,
-          email: (userDoc.data()['email'] as String?) ?? 'unknown',
-          completedCount: completedCount,
-          lastCompletedAt: lastCompletedAt,
-        );
-      }).where((e) => e.completedCount > 0).toList();
+
+            return LeaderboardEntry(
+              uid: doc.id,
+              email: (userDoc.data()['email'] as String?) ?? 'unknown',
+              completedCount: completedCount,
+              lastCompletedAt: lastCompletedAt,
+            );
+          })
+          .where((e) => e.completedCount > 0)
+          .toList();
 
       userTrainings.sort((a, b) {
         if (b.completedCount != a.completedCount) {
@@ -85,6 +88,11 @@ class LeaderboardViewModel extends ChangeNotifier {
         }
         return 0;
       });
+
+      debugPrint('Found ${userTrainings.length} leaderboard entries');
+      for (final e in userTrainings) {
+        debugPrint('${e.email} → ${e.completedCount} completados');
+      }
 
       _entries = userTrainings.take(10).toList();
       _lastUpdated = DateTime.now();
