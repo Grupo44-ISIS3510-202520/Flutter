@@ -24,6 +24,7 @@ Future<void> main() async {
 
   // initialize firebase if used
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //Firebase.instance.setPersistenceEnabled(true);
 
   // IMPORTANT: register services before widgets ask for them
   await setupDi();

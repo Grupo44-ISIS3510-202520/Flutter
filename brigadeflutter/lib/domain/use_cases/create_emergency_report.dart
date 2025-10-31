@@ -6,7 +6,7 @@ import '../../data/repositories/report_repository.dart';
 
 class CreateEmergencyReport {
   final ReportRepository repo;
-  final FirestoreIdGenerator idGen; // o el contador que uses
+  final FirestoreIdGenerator idGen;
   CreateEmergencyReport(this.repo, this.idGen);
 
   Future<int> call({
