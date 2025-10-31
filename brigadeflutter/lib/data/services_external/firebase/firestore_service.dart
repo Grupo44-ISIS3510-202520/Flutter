@@ -2,20 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db;
-  //FirestoreService({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
-
-  FirestoreService({FirebaseFirestore? db, bool enablePersistence = true})
-      : _db = db ?? FirebaseFirestore.instance {
-    if (enablePersistence) {
-      try {
-        // Para Flutter (Android/iOS) se establece en Settings
-        _db.settings = const Settings(persistenceEnabled: true);
-      } catch (e) {
-        // En web o si ya está activada esto puede fallar; ignoramos el error
-        // o loguear si lo necesitas.
-      }
-    }
-  }
+  FirestoreService({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
 
   Future<void> add(String collection, Map<String, dynamic> data) async {
     await _db.collection(collection).add(data);

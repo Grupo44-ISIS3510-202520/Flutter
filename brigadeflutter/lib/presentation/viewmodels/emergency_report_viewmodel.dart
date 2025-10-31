@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../domain/use_cases/create_emergency_report.dart';
@@ -39,7 +38,6 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool autoBrightnessOn = false;
   double currentBrightness = 0.0;
   StreamSubscription<double>? _luxSub;
-  StreamSubscription? _connSub;
 
   // voice instructions
   bool generatingVoice = false;
@@ -96,34 +94,6 @@ class EmergencyReportViewModel extends ChangeNotifier {
     _notify();
   }
 
-//   Future<void> initConnectivityWatcher() async {
-//   // Listen to changes
-//   _connSub = Connectivity().onConnectivityChanged.listen((status) async {
-//     if (status != ConnectivityResult.none) {
-//       await syncPendingReports();
-//     }
-//   });
-// }
-
-// Sync pending reports when back online
-// Future<void> syncPendingReports() async {
-//   try {
-//     final pending = await createReport.repo.local.listPending();
-//     for (final report in pending) {
-//       await createReport.repo.remote.createEmergencyReport(
-//         type: report.type,
-//         placeTime: report.placeTime,
-//         description: report.description,
-//         isFollowUp: report.isFollowUp,
-//         latitude: report.latitude,
-//         longitude: report.longitude,
-//       );
-//       await createReport.repo.local.remove(report.id);
-//     }
-//   } catch (e) {
-//     // log or ignore, will retry next time
-//   }
-// }
   // fill location con GPS
   Future<bool> fillWithCurrentLocation() async {
     if (loadingLocation) return false;
