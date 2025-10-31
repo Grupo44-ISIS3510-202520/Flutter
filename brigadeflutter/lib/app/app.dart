@@ -1,4 +1,6 @@
+import 'package:brigadeflutter/presentation/viewmodels/leaderboard_viewmodel.dart';
 import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
+import 'package:brigadeflutter/presentation/views/leaderboard_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +36,7 @@ const routeProfile = '/profile';
 const routeLogin = '/login';
 const routeRegister = '/register';
 const routeReport = '/report';
+const routeLeaderboard = '/leaderboard';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -138,6 +141,14 @@ class MyApp extends StatelessWidget {
                     child: const ProfileView(),
                   ),
                   settings: settings,
+                );
+
+              case routeLeaderboard:
+                return MaterialPageRoute(
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => LeaderboardViewModel()..loadLeaderboard(),
+                    child: const LeaderboardScreen(),
+                  ),
                 );
 
               default:

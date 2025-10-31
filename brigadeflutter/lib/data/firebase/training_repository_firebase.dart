@@ -65,26 +65,34 @@ class FirebaseTrainingRepository implements TrainingRepository {
   }
 
   @override
-  Future<void> start(String uid, String cardId) async {
-    final docRef = _firestore.collection('user_trainings').doc(uid);
-    final snapshot = await docRef.get();
+Future<void> start(String uid, String cardId) async {
+  final docRef = _firestore.collection('user_trainings').doc(uid);
+  final snapshot = await docRef.get();
 
-    int current = 0;
-    if (snapshot.exists) {
-      current = (snapshot.data()?[cardId]?['percent'] ?? 0) as int;
-    }
-
-    final newPercent = (current + 10).clamp(0, 100);
-
-    await docRef.set({
-      cardId: {'percent': newPercent},
-      'lastUpdated': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    if (newPercent >= 100) {
-      await _addMedal(uid, cardId);
-    }
+  int current = 0;
+  if (snapshot.exists) {
+    current = (snapshot.data()?[cardId]?['percent'] ?? 0) as int;
   }
+
+  final newPercent = (current + 10).clamp(0, 100);
+  final Map<String, dynamic> updateData = {
+    cardId: {'percent': newPercent},
+    'lastUpdated': FieldValue.serverTimestamp(),
+  };
+
+  if (newPercent >= 100) {
+    updateData[cardId] = {
+      'percent': newPercent,
+      'completedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  await docRef.set(updateData, SetOptions(merge: true));
+
+  if (newPercent >= 100) {
+    await _addMedal(uid, cardId);
+  }
+}
 
   Future<void> _addMedal(String uid, String cardId) async {
     final userDoc = _firestore.collection('users').doc(uid);

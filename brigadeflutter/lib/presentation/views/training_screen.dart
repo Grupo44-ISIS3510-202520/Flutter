@@ -43,6 +43,31 @@ class _TrainingScreenState extends State<TrainingScreen> {
               return ListView(
                 padding: const EdgeInsets.only(bottom: 24),
                 children: [
+                   Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(
+                        Icons.emoji_events_outlined,
+                        color: Color(0xFF2F6AF6),
+                      ),
+                      label: const Text(
+                        "Weekly Leaderboard",
+                        style: TextStyle(
+                          color: Color(0xFF2F6AF6),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white, // fondo blanco
+                        side: const BorderSide(color: Color(0xFF2F6AF6), width: 1.5), // borde azul
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      ),
+                      onPressed: () => Navigator.pushNamed(context, '/leaderboard'),
+                    ),
+                  ),
                   _buildSection(
                     "Cursos en progreso",
                     vm.progress
@@ -199,7 +224,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 6),
                               animationDuration:
-                                  Duration(milliseconds: 0), // ✅ sin parpadeo
+                                  Duration(milliseconds: 0), 
                             ),
                             child: Text(
                               inProgress ? "Avanzar" : "Iniciar curso",
