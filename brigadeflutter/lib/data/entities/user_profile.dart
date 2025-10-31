@@ -6,6 +6,8 @@ class UserProfile {
   final String bloodGroup;  // O+, A+, ...
   final String role; // student|professor|administrative
   final String email; 
+  final List<String> medals;
+
   const UserProfile({
     required this.uid,
     required this.name,
@@ -14,5 +16,6 @@ class UserProfile {
     required this.bloodGroup,
     required this.role,
     required this.email,
+    this.medals = const [],
   });
 }
