@@ -17,16 +17,11 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
-      case TargetPlatform.iOS:
-        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -50,19 +45,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDHkDPWUloqH86LTWEg9x7dpllDHf-7tuM',
-    appId: '1:243985958459:android:2fef23663079cd01f53e1e',
-    messagingSenderId: '243985958459',
-    projectId: 'g44-moviles',
-    storageBucket: 'g44-moviles.firebasestorage.app',
+    apiKey: 'AIzaSyBb6JktCkZgRHhvBGLCfiRKDsix2mKwIuY',
+    appId: '1:504061241739:android:0d61bb74c0d2206241678e',
+    messagingSenderId: '504061241739',
+    projectId: 'g44-moviles-new',
+    storageBucket: 'g44-moviles-new.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAzaxV_PtNf-ATH7dJnkg2c32aIdSVxyZo',
-    appId: '1:243985958459:ios:757c92dbcc323bf5f53e1e',
-    messagingSenderId: '243985958459',
-    projectId: 'g44-moviles',
-    storageBucket: 'g44-moviles.firebasestorage.app',
-    iosBundleId: 'com.example.brigadeflutter',
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyC0ZiW36bBtJTOtswcpiQr9Nu_NrHyFPjc',
+    appId: '1:504061241739:web:ba0dafae4125c5d541678e',
+    messagingSenderId: '504061241739',
+    projectId: 'g44-moviles-new',
+    authDomain: 'g44-moviles-new.firebaseapp.com',
+    storageBucket: 'g44-moviles-new.firebasestorage.app',
+    measurementId: 'G-WSS4P6GS4P',
   );
+
 }
