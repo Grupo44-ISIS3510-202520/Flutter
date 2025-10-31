@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/presentation/components/banner_offline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -47,25 +48,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: ListView(
                 children: [
                   if (!vm.isOnline)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 12),
-                      child: MaterialBanner(
-                        backgroundColor: Color(0xFFFFF3CD),
-                        content: Text(
-                          "Hey Uniandino, you’re offline! Reconnect to get all features back.",
-                          style: TextStyle(color: Color(0xFF856404)),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: null,
-                            child: Text(
-                              'OK',
-                              style: TextStyle(color: Color(0xFF856404)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // const Padding(
+                    //   padding: EdgeInsets.only(bottom: 12),
+                    //   child: Card(
+                    //     color: Color(0xFFFFF3CD),
+                    //     elevation: 0,
+                    //     margin: EdgeInsets.zero,
+                    //     child: Padding(
+                    //       padding: EdgeInsets.all(16),
+                    //       child: Text(
+                    //         "Hey Uniandino, you’re offline! Reconnect to get all features back.",
+                    //         style: TextStyle(color: Color(0xFF856404)),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    const OfflineBanner(),
                   TextFormField(
                     controller: _name,
                     decoration: const InputDecoration(hintText: 'name'),
