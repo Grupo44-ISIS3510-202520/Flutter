@@ -9,9 +9,19 @@ import '../../core/utils/validators.dart';
 import '../../core/utils/constants.dart';
 
 class RegisterViewModel extends ChangeNotifier {
+  // Use cases
   final RegisterWithEmail registerUC;
   final SendEmailVerification sendVerifyUC;
   final ReloadUser reloadUserUC;
+
+  // state
+  bool submitting = false;
+  bool isOnline = true;
+  String? error;
+  bool verificationSent = false;
+
+  // Subscriptions
+  StreamSubscription? _connSub;
 
   RegisterViewModel({
     required this.registerUC,
@@ -25,14 +35,6 @@ class RegisterViewModel extends ChangeNotifier {
     });
   }
   
-
-  // estado
-  bool submitting = false;
-  bool isOnline = true;
-  String? error;
-  bool verificationSent = false;
-
-  StreamSubscription? _connSub;
 
  Future<bool> submit({
     required String email,

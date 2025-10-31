@@ -12,13 +12,24 @@ import '../../data/entities/auth_user.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  // Use cases
   final SignInWithEmail signIn;
   final SignOut signOutUC;
   final ObserveAuthState observe;
   final GetCurrentUser getCurrent;
   final SendPasswordResetEmail sendReset;
+
+  // State
   bool isOnline = true;
+  bool isAuthenticated = false;
+  bool signingIn = false;
+  bool resetting = false;
+  AuthUser? user;
+  String? error;
+
+  // Subscriptions
   StreamSubscription? _connSub;
+  StreamSubscription<AuthUser?>? _sub;
 
   AuthViewModel({
     required this.signIn,
@@ -42,12 +53,6 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners(); // update state
     });
   }
-
-  AuthUser? user;
-  bool isAuthenticated = false;
-  bool signingIn = false;
-  bool resetting = false;
-  String? error;
 
   Future<bool> forgotPassword(String email) async {
     if (resetting) return false;
@@ -80,8 +85,6 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners(); // update state
     }
   }
-
-  StreamSubscription<AuthUser?>? _sub;
 
   Future<void> login(String email, String password) async {
     if (signingIn) return;
@@ -125,7 +128,7 @@ class AuthViewModel extends ChangeNotifier {
           error = "Too many attempts. Please wait a few minutes.";
           break;
         default:
-          error = e.message ?? "Login failed. Please try again.";
+          error = e.message ?? "Login failed. Please try again uniandino :( ).";
       }
     } catch (e) {
       error = e.toString();

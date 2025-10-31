@@ -21,6 +21,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   final OpenAIService openai;
   final TtsService tts;
   final ConnectivityService connectivity;
+
   EmergencyReportViewModel({
     required this.createReport,
     required this.fillLocation,
@@ -32,129 +33,73 @@ class EmergencyReportViewModel extends ChangeNotifier {
     required this.connectivity,
   });
 
-  // estado brillo
+  // state
   bool autoBrightnessSupported = false;
   bool autoBrightnessOn = false;
   double currentBrightness = 0.0;
   StreamSubscription<double>? _luxSub;
 
-  //voice instructions -> concurrencia
+  // voice instructions
   bool generatingVoice = false;
   bool offline = false;
 
-  Future<void> initBrightness() async {
-    autoBrightnessSupported = ambient.isSupported();
-    try {
-      currentBrightness = await screen.getBrightness();
-    } catch (_) {}
-    notifyListeners(); // update state
-  }
-
-  // voice: asegura bloqueo del botón, fallback offline y cleanup al salir
-  Future<void> onVoiceInstructions() async {
-  if (generatingVoice) return;
-  generatingVoice = true;
-  notifyListeners();
-
-  try {
-    await tts.init(lang: 'en-US');
-
-    final isOnline = await connectivity.isOnline();
-    if (!isOnline) {
-      offline = true;
-      notifyListeners();
-
-      // small delay to ensure TTS engine is ready
-      await Future.delayed(const Duration(milliseconds: 300));
-      try {
-        await tts.speak('You have no internet, please remain calm.')
-        .timeout(const Duration(seconds: 5), onTimeout: () async {
-  await tts.stop();
-        }) ;
-      } catch (_) {
-        // if TTS fails silently, just reset state
-      }
-      return;
-    }
-
-    final typeName = (type.isEmpty) ? 'Emergency' : type;
-
-    // --- create isolate communication ports ---
-    final receivePort = ReceivePort();
-    final apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
-    await Isolate.spawn(
-      openAIIsolateEntry,
-      OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey),
-    );
-
-    // wait for message from isolate
-    final text = await receivePort.first as String;
-
-    // play result
-    if (text.startsWith('Error:')) {
-      await tts.speak('An error occurred generating the voice instructions.');
-    } else {
-      await tts.speak(text);
-    }
-  } catch (e) {
-    // fallback if TTS or isolate fails
-    try {
-      await tts.speak('An unexpected error occurred.');
-    } catch (_) {}
-  } finally {
-    generatingVoice = false;
-    notifyListeners();
-  }
-}
-
+  // state forms
   String type = '';
   String placeTime = '';
   String description = '';
   bool isFollowUp = false;
   double? latitude;
   double? longitude;
-
   bool submittingReport = false;
   bool loadingLocation = false;
   bool placeFromGps = false;
+  bool _isDisposed = false;
 
-  void toggleAutoBrightness(bool v) {
-    autoBrightnessOn = v;
-    notifyListeners();
+  void _notify() {
+       if (!_isDisposed) notifyListeners();
+  }
+  // brightness initialization
+  Future<void> initBrightness() async {
+    autoBrightnessSupported = ambient.isSupported();
+    try {
+      currentBrightness = await screen.getBrightness();
+    } catch (_) {}
+    _notify();
   }
 
-  void onTypeChanged(String v) {
-    type = v;
+  // auto brightness toggle
+  void toggleAutoBrightness(bool value) {
+    autoBrightnessOn = value;
+    _notify();
   }
 
-  void onPlaceTimeChanged(String v) {
-    placeTime = v;
+  // changes in form fields
+  void onTypeChanged(String value) => type = value;
+  void onPlaceTimeChanged(String value) {
+    placeTime = value;
     placeFromGps = false;
   }
-
-  void onDescriptionChanged(String v) {
-    description = v;
+  void onDescriptionChanged(String value) => description = value;
+  void onFollowChanged(bool value) {
+    isFollowUp = value;
+    _notify();
   }
 
-  void onFollowChanged(bool v) {
-    isFollowUp = v;
-    notifyListeners();
-  }
-
+  // clears ubicación GPS
   void clearGpsLocation() {
     latitude = null;
     longitude = null;
-    if (placeFromGps) {
-      placeTime = '';
-    }
+    if (placeFromGps) placeTime = '';
     placeFromGps = false;
-    notifyListeners();
+    _notify();
   }
 
+  // fill location con GPS
   Future<bool> fillWithCurrentLocation() async {
     if (loadingLocation) return false;
     loadingLocation = true;
-    notifyListeners();
+    _notify();
+
     try {
       final pos = await Future.any([
         fillLocation(),
@@ -166,7 +111,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
           clearGpsLocation();
         } else {
           loadingLocation = false;
-          notifyListeners();
+          _notify();
         }
         return false;
       }
@@ -178,23 +123,89 @@ class EmergencyReportViewModel extends ChangeNotifier {
       latitude = pos.lat;
       longitude = pos.lng;
       placeFromGps = true;
-      notifyListeners();
       return true;
     } finally {
       loadingLocation = false;
-      notifyListeners();
+      _notify();
     }
   }
 
+  // generates voice instructions
+  Future<void> onVoiceInstructions() async {
+    if (generatingVoice) return;
+
+    generatingVoice = true;
+    _notify();
+
+    try {
+      await tts.init(lang: 'en-US');
+
+      final isOnline = await connectivity.isOnline();
+      if (!isOnline) {
+        await _handleOfflineVoice();
+        return;
+      }
+
+      final receivePort = ReceivePort();
+      final apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
+      final typeName = type.isEmpty ? 'Emergency' : type;
+
+      await Isolate.spawn(
+        openAIIsolateEntry,
+        OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey),
+      );
+
+      final result = await receivePort.first as String;
+      final text = result.startsWith('Error:')
+          ? 'Remain calm. At the moment, we’re unable to generate voice instructions.'
+          : result;
+      //bool _isDisposed = false;
+      _speakVoiceInstructions(text);
+      // await tts.speak(text);
+
+    } catch (_) {
+      await _safeSpeak('An unexpected error occurred.');
+    } finally {
+      generatingVoice = false;
+      _notify();
+    }
+  }
+
+
+Future<void> _speakVoiceInstructions(String text) async {
+  await tts.speak(text);
+  if (_isDisposed) return; // prevenir notifyListeners() luego del dispose
+  _notify();
+}
+  // handles offline voice scenario
+  Future<void> _handleOfflineVoice() async {
+    offline = true;
+    _notify();
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    await _safeSpeak('You have no internet, please remain calm.');
+  }
+
+  // safe speak with timeout
+  Future<void> _safeSpeak(String text) async {
+    try {
+      await tts.speak(text).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () async => tts.stop(),
+      );
+    } catch (_) {}
+  }
+
+  // submits emergency report
   Future<int?> submit({required bool isOnline}) async {
-    if (type.trim().isEmpty ||
-        placeTime.trim().isEmpty ||
-        description.trim().isEmpty) {
+    if (type.trim().isEmpty || placeTime.trim().isEmpty || description.trim().isEmpty) {
       return null;
     }
+
     if (submittingReport) return null;
     submittingReport = true;
-    notifyListeners();
+    _notify();
+
     try {
       final id = await createReport(
         type: type,
@@ -205,15 +216,16 @@ class EmergencyReportViewModel extends ChangeNotifier {
         longitude: longitude,
         isOnline: isOnline,
       );
-      _reset();
+      _resetForm();
       return id;
     } finally {
       submittingReport = false;
-      notifyListeners();
+      _notify();
     }
   }
 
-  void _reset() {
+  // form reset
+  void _resetForm() {
     type = '';
     placeTime = '';
     description = '';
@@ -221,12 +233,16 @@ class EmergencyReportViewModel extends ChangeNotifier {
     latitude = null;
     longitude = null;
     placeFromGps = false;
-    notifyListeners();
+    _notify();
   }
 
   @override
   void dispose() {
-    tts.stop();
+    _isDisposed = true; 
+    try{
+      tts.stop();
+    }
+    catch(_){}
     _luxSub?.cancel();
     super.dispose();
   }
