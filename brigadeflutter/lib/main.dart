@@ -21,6 +21,7 @@ Future<void> main() async {
 
   await dotenv.load(fileName: '.env'); // optional
   await Hive.initFlutter();
+  await Hive.openBox('trainingsBox');
 
   // initialize firebase if used
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
