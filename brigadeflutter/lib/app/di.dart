@@ -106,7 +106,7 @@ Future<void> setupDi() async {
 
   // Repositories
   sl.registerLazySingleton<ReportRepository>(
-    () => ReportRepositoryImpl(remote: sl(), local: sl()),
+    () => ReportRepositoryImpl(remoteDao: sl(), localDao: sl()),
   );
   sl.registerLazySingleton<LocationRepository>(
     () => LocationRepositoryImpl(sl()),
