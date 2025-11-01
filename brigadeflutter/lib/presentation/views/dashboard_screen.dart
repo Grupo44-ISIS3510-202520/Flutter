@@ -201,7 +201,7 @@ class DashboardScreen extends StatelessWidget {
 
                           SizedBox(height: availableHeight * 0.02),
 
-                          // Guía de RCP 
+                          // Guía de RCP
                           GestureDetector(
                             onTap: () => vm.cprGuide.execute(context),
                             child: Container(

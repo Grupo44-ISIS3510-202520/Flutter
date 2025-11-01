@@ -5,6 +5,7 @@ import '../../domain/use_cases/protocols/get_protocols_stream.dart';
 import '../../domain/use_cases/protocols/is_protocol_new.dart';
 import '../../domain/use_cases/protocols/mark_protocol_as_read.dart';
 
+
 class ProtocolsViewModel extends ChangeNotifier {
   final GetProtocolsStream getProtocolsStream;
   final IsProtocolNew isProtocolNew;
@@ -25,20 +26,22 @@ class ProtocolsViewModel extends ChangeNotifier {
   void init() {
     _subscription?.cancel();
     isLoading = true;
-    notifyListeners();
 
-    _subscription = getProtocolsStream().listen((list) {
-      _all = list;
-      isLoading = false;
-      notifyListeners();
-    }, onError: (err) {
-
-      isLoading = false;
-      notifyListeners();
-    });
+    _subscription = getProtocolsStream().listen(
+          (list) {
+        _all = list;
+        isLoading = false;
+        notifyListeners();
+      },
+      onError: (_) {
+        isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
-  void disposeViewModel() {
+  @override
+  void dispose() {
     _subscription?.cancel();
     _subscription = null;
     super.dispose();

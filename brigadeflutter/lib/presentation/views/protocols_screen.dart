@@ -1,4 +1,3 @@
-// protocols_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../features/pdf_viewer.dart';
@@ -21,13 +20,6 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
     super.initState();
     vm = Provider.of<ProtocolsViewModel>(context, listen: false);
     vm.init();
-  }
-
-  @override
-  void dispose() {
-    vm.disposeViewModel();
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
