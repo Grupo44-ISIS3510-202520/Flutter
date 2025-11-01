@@ -1,17 +1,23 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../presentation/components/banner_offline.dart';
+import '../data/repositories/pdf_repository.dart';
+import '../data/repositories_impl/pdf_repository_impl.dart';
 
 class PdfViewer extends StatefulWidget {
   final String pdfUrl;
   final String title;
+  final String? version;
 
   const PdfViewer({
     super.key,
     required this.pdfUrl,
     required this.title,
+    this.version,
   });
 
   @override
@@ -19,45 +25,105 @@ class PdfViewer extends StatefulWidget {
 }
 
 class _PdfViewerState extends State<PdfViewer> {
-  bool isReady = false;
-  String? localPath;
-  String? errorMessage;
+  final PdfRepository _repo = PdfRepositoryImpl();
+
+  bool _loading = true;
+  bool _isOffline = false;
+  String? _localPath;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadPdf();
+    _preparePdf();
   }
 
-  Future<void> _loadPdf() async {
-    try {
-      final response = await http.get(Uri.parse(widget.pdfUrl));
-      final bytes = response.bodyBytes;
+  Future<void> _preparePdf() async {
+    setState(() {
+      _loading = true;
+      _isOffline = false;
+      _localPath = null;
+      _error = null;
+    });
 
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File("${dir.path}/temp.pdf");
-      await file.writeAsBytes(bytes, flush: true);
+    final hasNetwork = await _checkNetwork();
 
+    final file = await _repo.getPdfFile(
+      id: widget.title,
+      url: widget.pdfUrl,
+      forceDownload: hasNetwork,
+    );
+
+    if (file != null && await file.exists()) {
       setState(() {
-        localPath = file.path;
-        isReady = true;
+        _localPath = file.path;
+        _loading = false;
       });
-    } catch (e) {
-      setState(() {
-        errorMessage = e.toString();
-      });
+      await _saveVersion();
+      return;
     }
+
+    if (!hasNetwork) {
+      setState(() {
+        _loading = false;
+        _isOffline = true;
+      });
+      return;
+    }
+
+    setState(() {
+      _error = "No se pudo descargar el documento.";
+      _loading = false;
+    });
+  }
+
+  Future<bool> _checkNetwork() async {
+    final conn = await Connectivity().checkConnectivity();
+    return conn != ConnectivityResult.none;
+  }
+
+  Future<void> _saveVersion() async {
+    if (widget.version == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("last_seen_${widget.title}", widget.version!);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: errorMessage != null
-          ? Center(child: Text("Error: $errorMessage"))
-          : isReady
-          ? PDFView(filePath: localPath!)
-          : const Center(child: CircularProgressIndicator()),
+      body: _body(),
+    );
+  }
+
+  Widget _body() {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+
+    if (_localPath != null) {
+      return PDFView(filePath: _localPath!);
+    }
+
+    if (_isOffline) {
+      return const Column(
+        children: [
+          OfflineBanner(),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(_error!),
+          ),
+        ElevatedButton.icon(
+          onPressed: _preparePdf,
+          icon: const Icon(Icons.refresh),
+          label: const Text("Reintentar"),
+        )
+      ],
     );
   }
 }
