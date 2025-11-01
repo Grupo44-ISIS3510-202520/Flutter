@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import '../data/repositories_impl/pdf_repository_impl.dart';
+import 'package:http/http.dart' as http;
 import '../presentation/components/banner_offline.dart';
-
-
 
 class PdfViewer extends StatefulWidget {
   final String pdfUrl;
@@ -23,7 +21,6 @@ class PdfViewer extends StatefulWidget {
 }
 
 class _PdfViewerState extends State<PdfViewer> {
-  final PdfRepositoryImpl _pdfRepository = PdfRepositoryImpl();
   final Connectivity _connectivity = Connectivity();
 
   bool _isLoading = true;
@@ -43,11 +40,15 @@ class _PdfViewerState extends State<PdfViewer> {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
+        _hasCachedFile = false;
       });
 
       // Verificar conectividad
       final connectivityResult = await _connectivity.checkConnectivity();
       _isOffline = connectivityResult == ConnectivityResult.none;
+
+      print('📱 Estado: ${_isOffline ? 'Offline' : 'Online'}');
+      print('📄 PDF: ${widget.title}');
 
       if (_isOffline) {
         // Modo offline: intentar cargar desde cache
@@ -56,11 +57,11 @@ class _PdfViewerState extends State<PdfViewer> {
         // Modo online: cargar desde URL como antes
         await _loadFromUrl();
 
-        // Descargar en cache en segundo plano para futuro uso offline
+        // INMEDIATAMENTE descargar en cache para offline (sin isolate)
         _downloadToCache();
       }
     } catch (e) {
-      print('Error loading PDF: $e');
+      print('❌ Error loading PDF: $e');
       setState(() {
         _errorMessage = 'No se pudo cargar el documento';
         _isLoading = false;
@@ -70,22 +71,24 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _loadFromUrl() async {
     try {
+      print('🔄 Cargando desde URL...');
+
       // Cargar directamente desde la URL como en el código original
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(widget.pdfUrl));
-      final response = await request.close();
-      final bytes = await response.expand((chunk) => chunk).toList();
+      final response = await http.get(Uri.parse(widget.pdfUrl));
+      final bytes = response.bodyBytes;
 
       final dir = await getApplicationDocumentsDirectory();
       final file = File("${dir.path}/temp_${_generatePdfId(widget.title)}.pdf");
       await file.writeAsBytes(bytes, flush: true);
+
+      print('✅ PDF cargado desde URL: ${file.path}');
 
       setState(() {
         _localPath = file.path;
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading from URL: $e');
+      print('❌ Error loading from URL: $e');
       // Si falla la URL, intentar desde cache
       await _loadFromCache();
     }
@@ -93,26 +96,32 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _loadFromCache() async {
     try {
-      final file = await _pdfRepository.getPdfFile(
-        id: _generatePdfId(widget.title),
-        url: widget.pdfUrl,
-        forceDownload: false,
-      );
+      final pdfId = _generatePdfId(widget.title);
+      final cachePath = await _getCachedPath(pdfId);
+      final cacheFile = File(cachePath);
 
-      if (file != null && await file.exists()) {
+      print('🔍 Buscando en cache: $pdfId');
+      print('📁 Ruta de cache: $cachePath');
+
+      final cacheExists = await cacheFile.exists();
+      print('📄 Existe en cache: $cacheExists');
+
+      if (cacheExists) {
+        print('✅ PDF encontrado en cache: ${cacheFile.path}');
         setState(() {
-          _localPath = file.path;
+          _localPath = cacheFile.path;
           _hasCachedFile = true;
           _isLoading = false;
         });
       } else {
+        print('❌ PDF NO encontrado en cache');
         setState(() {
           _errorMessage = 'No hay versión descargada disponible';
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('Error loading from cache: $e');
+      print('❌ Error loading from cache: $e');
       setState(() {
         _errorMessage = 'Error cargando documento offline';
         _isLoading = false;
@@ -122,16 +131,36 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _downloadToCache() async {
     try {
-      // Descargar en cache en segundo plano para futuro uso offline
-      await _pdfRepository.getPdfFile(
-        id: _generatePdfId(widget.title),
-        url: widget.pdfUrl,
-        forceDownload: true,
-      );
+      final pdfId = _generatePdfId(widget.title);
+      print('💾 Iniciando descarga background para cache: $pdfId');
+
+      // Descargar directamente sin isolate
+      final response = await http.get(Uri.parse(widget.pdfUrl));
+      final bytes = response.bodyBytes;
+
+      final cachePath = await _getCachedPath(pdfId);
+      final cacheFile = File(cachePath);
+
+      // Crear directorio si no existe
+      final cacheDir = cacheFile.parent;
+      if (!await cacheDir.exists()) {
+        await cacheDir.create(recursive: true);
+      }
+
+      await cacheFile.writeAsBytes(bytes, flush: true);
+
+      print('✅ PDF guardado en cache: ${cacheFile.path}');
+      print('📏 Tamaño del archivo: ${bytes.length} bytes');
+
     } catch (e) {
-      print('Background cache download failed: $e');
+      print('⚠️ Background cache download failed: $e');
       // No mostramos error porque es en segundo plano
     }
+  }
+
+  Future<String> _getCachedPath(String id) async {
+    final dir = await getApplicationDocumentsDirectory();
+    return '${dir.path}/cached_pdfs/$id.pdf';
   }
 
   String _generatePdfId(String title) {
@@ -213,14 +242,19 @@ class _PdfViewerState extends State<PdfViewer> {
       autoSpacing: true,
       pageFling: true,
       onError: (error) {
+        print('❌ Error en PDFView: $error');
         setState(() {
           _errorMessage = 'Error mostrando el documento';
         });
       },
       onPageError: (page, error) {
+        print('❌ Error en página $page: $error');
         setState(() {
           _errorMessage = 'Error en página $page: $error';
         });
+      },
+      onRender: (pages) {
+        print('✅ PDF renderizado con $pages páginas');
       },
     );
   }
