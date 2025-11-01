@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'package:brigadeflutter/data/models/report_model.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../domain/use_cases/create_emergency_report.dart';
 import '../../domain/use_cases/fill_location.dart';
 import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
@@ -38,10 +41,12 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool autoBrightnessOn = false;
   double currentBrightness = 0.0;
   StreamSubscription<double>? _luxSub;
+  StreamSubscription? _connSub;
 
   // voice instructions
   bool generatingVoice = false;
   bool offline = false;
+  bool isOnline = true;
 
   // state forms
   String type = '';
@@ -56,8 +61,9 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool _isDisposed = false;
 
   void _notify() {
-       if (!_isDisposed) notifyListeners();
+    if (!_isDisposed) notifyListeners();
   }
+
   // brightness initialization
   Future<void> initBrightness() async {
     autoBrightnessSupported = ambient.isSupported();
@@ -66,6 +72,21 @@ class EmergencyReportViewModel extends ChangeNotifier {
     } catch (_) {}
     _notify();
   }
+  Future<void> initConnectivityWatcher() async {
+    // initialize state at startup
+    offline = !(await connectivity.isOnline());
+    _notify();
+
+    // start listening for changes
+    _connSub = Connectivity().onConnectivityChanged.listen((status) {
+      final newOffline = (status == ConnectivityResult.none);
+      if (newOffline != offline) {
+        offline = newOffline;
+        _notify();
+      }
+    });
+  }
+
 
   // auto brightness toggle
   void toggleAutoBrightness(bool value) {
@@ -79,6 +100,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     placeTime = value;
     placeFromGps = false;
   }
+
   void onDescriptionChanged(String value) => description = value;
   void onFollowChanged(bool value) {
     isFollowUp = value;
@@ -103,7 +125,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     try {
       final pos = await Future.any([
         fillLocation(),
-        Future.delayed(const Duration(seconds: 8), () => null),
+        Future.delayed(const Duration(seconds: 3), () => null),
       ]);
 
       if (pos == null) {
@@ -149,10 +171,13 @@ class EmergencyReportViewModel extends ChangeNotifier {
       final receivePort = ReceivePort();
       final apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
       final typeName = type.isEmpty ? 'Emergency' : type;
+      final dir = await getApplicationDocumentsDirectory();
+      final appPath = dir.path;
+
 
       await Isolate.spawn(
         openAIIsolateEntry,
-        OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey),
+        OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey, appPath),
       );
 
       final result = await receivePort.first as String;
@@ -162,7 +187,6 @@ class EmergencyReportViewModel extends ChangeNotifier {
       //bool _isDisposed = false;
       _speakVoiceInstructions(text);
       // await tts.speak(text);
-
     } catch (_) {
       await _safeSpeak('An unexpected error occurred.');
     } finally {
@@ -171,12 +195,12 @@ class EmergencyReportViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> _speakVoiceInstructions(String text) async {
+    await tts.speak(text);
+    if (_isDisposed) return; // prevenir notifyListeners() luego del dispose
+    _notify();
+  }
 
-Future<void> _speakVoiceInstructions(String text) async {
-  await tts.speak(text);
-  if (_isDisposed) return; // prevenir notifyListeners() luego del dispose
-  _notify();
-}
   // handles offline voice scenario
   Future<void> _handleOfflineVoice() async {
     offline = true;
@@ -189,16 +213,20 @@ Future<void> _speakVoiceInstructions(String text) async {
   // safe speak with timeout
   Future<void> _safeSpeak(String text) async {
     try {
-      await tts.speak(text).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () async => tts.stop(),
-      );
+      await tts
+          .speak(text)
+          .timeout(
+            const Duration(seconds: 2),
+            onTimeout: () async => tts.stop(),
+          );
     } catch (_) {}
   }
 
   // submits emergency report
   Future<int?> submit({required bool isOnline}) async {
-    if (type.trim().isEmpty || placeTime.trim().isEmpty || description.trim().isEmpty) {
+    if (type.trim().isEmpty ||
+        placeTime.trim().isEmpty ||
+        description.trim().isEmpty) {
       return null;
     }
 
@@ -206,18 +234,68 @@ Future<void> _speakVoiceInstructions(String text) async {
     submittingReport = true;
     _notify();
 
+    // check connectivity live (ignore passed param to avoid stale value)
+    final online = await connectivity.isOnline();
+    isOnline = online;
+    offline = !online;
+    _notify();
+
     try {
-      final id = await createReport(
-        type: type,
-        placeTime: placeTime,
-        description: description,
-        isFollowUp: isFollowUp,
-        latitude: latitude,
-        longitude: longitude,
-        isOnline: isOnline,
-      );
-      _resetForm();
-      return id;
+      // When online try remote call with timeout, otherwise enqueue locally
+      if (online) {
+        try {
+          // adjust timeout as needed
+          const timeoutDuration = Duration(seconds: 2);
+          final id = await createReport(
+            type: type,
+            placeTime: placeTime,
+            description: description,
+            isFollowUp: isFollowUp,
+            latitude: latitude,
+            longitude: longitude,
+            isOnline: true,
+          ).timeout(timeoutDuration);
+          _resetForm();
+          return id;
+        } on TimeoutException {
+          // remote timed out — fallback to saving locally
+          await createReport(
+            type: type,
+            placeTime: placeTime,
+            description: description,
+            isFollowUp: isFollowUp,
+            latitude: latitude,
+            longitude: longitude,
+            isOnline: false,
+          );
+          return null;
+        } catch (e) {
+          // other remote error — fallback local
+          await createReport(
+            type: type,
+            placeTime: placeTime,
+            description: description,
+            isFollowUp: isFollowUp,
+            latitude: latitude,
+            longitude: longitude,
+            isOnline: false,
+          );
+          return null;
+        }
+      } else {
+        // offline: save locally
+        await createReport(
+          type: type,
+          placeTime: placeTime,
+          description: description,
+          isFollowUp: isFollowUp,
+          latitude: latitude,
+          longitude: longitude,
+          isOnline: false,
+        );
+        _resetForm();
+        return null;
+      }
     } finally {
       submittingReport = false;
       _notify();
@@ -238,11 +316,11 @@ Future<void> _speakVoiceInstructions(String text) async {
 
   @override
   void dispose() {
-    _isDisposed = true; 
-    try{
+    _connSub?.cancel();
+    _isDisposed = true;
+    try {
       tts.stop();
-    }
-    catch(_){}
+    } catch (_) {}
     _luxSub?.cancel();
     super.dispose();
   }
