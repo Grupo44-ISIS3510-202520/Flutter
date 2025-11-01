@@ -14,7 +14,7 @@ class DashboardActionTile extends StatelessWidget {
       shadowColor: Colors.black.withOpacity(0.1),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => command.execute(context), // ejecuta el comando
+        onTap: () => command.execute(context),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(

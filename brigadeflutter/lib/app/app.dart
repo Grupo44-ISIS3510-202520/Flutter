@@ -16,7 +16,6 @@ import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/viewmodels/protocols_viewmodel.dart';
 import '../presentation/viewmodels/profile_viewmodel.dart';
 
-
 // views
 import '../presentation/views/login_screen.dart';
 import '../presentation/views/register_screen.dart';
@@ -54,12 +53,10 @@ class MyApp extends StatelessWidget {
             colorSchemeSeed: const Color(0xFF2F6AF6),
           ),
 
-          home: auth.isAuthenticated
-              ? ChangeNotifierProvider(
-                  create: (_) => sl<DashboardViewModel>(),
-                  child: const DashboardScreen(),
-                )
-              : const LoginScreen(),
+          // IMPORTANT: don't recreate or re-wrap the DashboardViewModel here.
+          // The singleton instance is provided at the app root (main.dart) with
+          // ChangeNotifierProvider.value(value: sl<DashboardViewModel>()).
+          home: auth.isAuthenticated ? const DashboardScreen() : const LoginScreen(),
 
           onGenerateRoute: (settings) {
             switch (settings.name) {
@@ -79,12 +76,10 @@ class MyApp extends StatelessWidget {
                 );
 
               case routeDashboard:
+              // Do not re-wrap the dashboard with another provider that calls create.
                 return MaterialPageRoute(
                   settings: settings,
-                  builder: (_) => ChangeNotifierProvider(
-                    create: (_) => sl<DashboardViewModel>(),
-                    child: const DashboardScreen(),
-                  ),
+                  builder: (_) => const DashboardScreen(),
                 );
 
               case routeReport:
@@ -95,7 +90,7 @@ class MyApp extends StatelessWidget {
                       final vm = sl<EmergencyReportViewModel>();
                       // init post-frame para no notificar durante build
                       WidgetsBinding.instance.addPostFrameCallback(
-                        (_) => vm.initBrightness(),
+                            (_) => vm.initBrightness(),
                       );
                       return vm;
                     },
@@ -113,7 +108,7 @@ class MyApp extends StatelessWidget {
                 );
 
               case routeTraining:
-                 return MaterialPageRoute(
+                return MaterialPageRoute(
                   builder: (_) => ChangeNotifierProvider(
                     create: (_) => sl<TrainingViewModel>()..load(),
                     child: const TrainingScreen(),
@@ -124,8 +119,7 @@ class MyApp extends StatelessWidget {
               case routeNotifications:
                 return MaterialPageRoute(
                   settings: settings,
-                  builder: (_) =>
-                      const ProtocolsScreen(), // stub until MVVM added
+                  builder: (_) => const NotificationsScreen(),
                 );
 
               case routeProfile:
@@ -154,15 +148,10 @@ class MyApp extends StatelessWidget {
                 );
 
               default:
-                // fallback to the gate
+              // fallback to the gate; do not re-wrap DashboardViewModel here
                 return MaterialPageRoute(
                   settings: settings,
-                  builder: (_) => auth.isAuthenticated
-                      ? ChangeNotifierProvider(
-                          create: (_) => sl<DashboardViewModel>(),
-                          child: const DashboardScreen(),
-                        )
-                      : const LoginScreen(),
+                  builder: (_) => auth.isAuthenticated ? const DashboardScreen() : const LoginScreen(),
                 );
             }
           },

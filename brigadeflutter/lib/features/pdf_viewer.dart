@@ -43,25 +43,17 @@ class _PdfViewerState extends State<PdfViewer> {
         _hasCachedFile = false;
       });
 
-      // Verificar conectividad
       final connectivityResult = await _connectivity.checkConnectivity();
       _isOffline = connectivityResult == ConnectivityResult.none;
 
-      print('📱 Estado: ${_isOffline ? 'Offline' : 'Online'}');
-      print('📄 PDF: ${widget.title}');
-
       if (_isOffline) {
-        // Modo offline: intentar cargar desde cache
         await _loadFromCache();
       } else {
-        // Modo online: cargar desde URL como antes
         await _loadFromUrl();
-
-        // INMEDIATAMENTE descargar en cache para offline (sin isolate)
         _downloadToCache();
       }
     } catch (e) {
-      print('❌ Error loading PDF: $e');
+      print('Error loading PDF: $e');
       setState(() {
         _errorMessage = 'No se pudo cargar el documento';
         _isLoading = false;
@@ -71,9 +63,6 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _loadFromUrl() async {
     try {
-      print('🔄 Cargando desde URL...');
-
-      // Cargar directamente desde la URL como en el código original
       final response = await http.get(Uri.parse(widget.pdfUrl));
       final bytes = response.bodyBytes;
 
@@ -81,15 +70,12 @@ class _PdfViewerState extends State<PdfViewer> {
       final file = File("${dir.path}/temp_${_generatePdfId(widget.title)}.pdf");
       await file.writeAsBytes(bytes, flush: true);
 
-      print('✅ PDF cargado desde URL: ${file.path}');
-
       setState(() {
         _localPath = file.path;
         _isLoading = false;
       });
     } catch (e) {
-      print('❌ Error loading from URL: $e');
-      // Si falla la URL, intentar desde cache
+      print('Error loading from URL: $e');
       await _loadFromCache();
     }
   }
@@ -100,28 +86,23 @@ class _PdfViewerState extends State<PdfViewer> {
       final cachePath = await _getCachedPath(pdfId);
       final cacheFile = File(cachePath);
 
-      print('🔍 Buscando en cache: $pdfId');
-      print('📁 Ruta de cache: $cachePath');
-
       final cacheExists = await cacheFile.exists();
-      print('📄 Existe en cache: $cacheExists');
 
       if (cacheExists) {
-        print('✅ PDF encontrado en cache: ${cacheFile.path}');
         setState(() {
           _localPath = cacheFile.path;
           _hasCachedFile = true;
           _isLoading = false;
         });
       } else {
-        print('❌ PDF NO encontrado en cache');
+        print('PDF no encontrado en cache');
         setState(() {
           _errorMessage = 'No hay versión descargada disponible';
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('❌ Error loading from cache: $e');
+      print('Error loading from cache: $e');
       setState(() {
         _errorMessage = 'Error cargando documento offline';
         _isLoading = false;
@@ -132,16 +113,13 @@ class _PdfViewerState extends State<PdfViewer> {
   Future<void> _downloadToCache() async {
     try {
       final pdfId = _generatePdfId(widget.title);
-      print('💾 Iniciando descarga background para cache: $pdfId');
 
-      // Descargar directamente sin isolate
       final response = await http.get(Uri.parse(widget.pdfUrl));
       final bytes = response.bodyBytes;
 
       final cachePath = await _getCachedPath(pdfId);
       final cacheFile = File(cachePath);
 
-      // Crear directorio si no existe
       final cacheDir = cacheFile.parent;
       if (!await cacheDir.exists()) {
         await cacheDir.create(recursive: true);
@@ -149,12 +127,11 @@ class _PdfViewerState extends State<PdfViewer> {
 
       await cacheFile.writeAsBytes(bytes, flush: true);
 
-      print('✅ PDF guardado en cache: ${cacheFile.path}');
-      print('📏 Tamaño del archivo: ${bytes.length} bytes');
+      print('PDF guardado en cache: ${cacheFile.path}');
+      print('Tamaño: ${bytes.length} bytes');
 
     } catch (e) {
-      print('⚠️ Background cache download failed: $e');
-      // No mostramos error porque es en segundo plano
+      print('Background cache download failed: $e');
     }
   }
 
@@ -177,11 +154,11 @@ class _PdfViewerState extends State<PdfViewer> {
       appBar: AppBar(title: Text(widget.title)),
       body: Column(
         children: [
-          // Banner offline solo cuando estamos offline y no tenemos archivo en cache
+
           if (_isOffline && !_hasCachedFile)
             const OfflineBanner(),
 
-          // Contenido principal
+
           Expanded(
             child: _buildContent(),
           ),
@@ -224,7 +201,7 @@ class _PdfViewerState extends State<PdfViewer> {
               style: const TextStyle(fontSize: 16, color: Colors.red),
             ),
             const SizedBox(height: 16),
-            if (!_isOffline) // Solo mostrar reintentar si estamos online
+            if (!_isOffline)
               ElevatedButton(
                 onPressed: _retryLoad,
                 child: const Text('Reintentar'),
@@ -234,7 +211,6 @@ class _PdfViewerState extends State<PdfViewer> {
       );
     }
 
-    // Mostrar el PDF
     return PDFView(
       filePath: _localPath!,
       enableSwipe: true,
@@ -242,19 +218,16 @@ class _PdfViewerState extends State<PdfViewer> {
       autoSpacing: true,
       pageFling: true,
       onError: (error) {
-        print('❌ Error en PDFView: $error');
         setState(() {
           _errorMessage = 'Error mostrando el documento';
         });
       },
       onPageError: (page, error) {
-        print('❌ Error en página $page: $error');
         setState(() {
           _errorMessage = 'Error en página $page: $error';
         });
       },
       onRender: (pages) {
-        print('✅ PDF renderizado con $pages páginas');
       },
     );
   }

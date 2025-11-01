@@ -32,7 +32,7 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
           backgroundColor: Colors.white,
           elevation: 0.5,
         ),
-        bottomNavigationBar: const AppBottomNav(current: 2), // protocolo
+        bottomNavigationBar: const AppBottomNav(current: 2),
         body: SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(

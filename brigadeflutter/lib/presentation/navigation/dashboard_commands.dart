@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 abstract class DashboardActionCommand {
   String get label;
   IconData get icon;
-  void execute(BuildContext context); // navega o muestra diálogos
+  void execute(BuildContext context);
 }
 
 // notificaciones
