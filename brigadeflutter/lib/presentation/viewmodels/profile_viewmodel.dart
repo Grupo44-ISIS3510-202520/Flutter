@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 import '../../data/repositories/user_repository.dart';
 import '../../data/services_external/location/location_service.dart';
@@ -27,6 +29,49 @@ class ProfileViewModel extends ChangeNotifier {
     _loading = true;
     notifyListeners();
 
+    final prefs = await SharedPreferences.getInstance();
+    final cachedProfile = prefs.getString('cached_profile');
+    final lastUpdatedStr = prefs.getString('cached_profile_last_updated');
+
+    // intentar cargar desde cache local
+    if (cachedProfile != null && lastUpdatedStr != null) {
+      final lastUpdated = DateTime.tryParse(lastUpdatedStr);
+      final now = DateTime.now();
+      if (lastUpdated != null &&
+          now.difference(lastUpdated).inHours < 24) {
+        final data = jsonDecode(cachedProfile);
+
+        _profile = data['role'] == 'brigadist'
+            ? BrigadistProfile(
+                uid: data['uid'],
+                name: data['name'],
+                lastName: data['lastName'],
+                uniandesCode: data['uniandesCode'],
+                bloodGroup: data['bloodGroup'],
+                role: data['role'],
+                email: data['email'],
+                availableNow: data['availableNow'] ?? false,
+                timeSlots: List<String>.from(data['timeSlots'] ?? []),
+                medals: List<String>.from(data['medals'] ?? []),
+              )
+            : UserProfile(
+                uid: data['uid'],
+                name: data['name'],
+                lastName: data['lastName'],
+                uniandesCode: data['uniandesCode'],
+                bloodGroup: data['bloodGroup'],
+                role: data['role'],
+                email: data['email'],
+                medals: List<String>.from(data['medals'] ?? []),
+              );
+
+        debugPrint('Loaded profile from cache ');
+        _loading = false;
+        notifyListeners();
+      }
+    }
+
+    // cargar datos actualizados de firestore
     try {
       final user = await _repository.getProfile(uid);
       if (user == null) return;
@@ -40,7 +85,7 @@ class ProfileViewModel extends ChangeNotifier {
         final data = trainingsSnap.data()!;
         data.forEach((key, value) {
           if (value is Map && (value['percent'] ?? 0) == 100) {
-            completedMedals.add(key); 
+            completedMedals.add(key);
           }
         });
       }
@@ -70,6 +115,32 @@ class ProfileViewModel extends ChangeNotifier {
           medals: completedMedals,
         );
       }
+
+      // Guardar en shared preferences
+      await prefs.setString(
+        'cached_profile',
+        jsonEncode({
+          'uid': _profile!.uid,
+          'name': _profile!.name,
+          'lastName': _profile!.lastName,
+          'uniandesCode': _profile!.uniandesCode,
+          'bloodGroup': _profile!.bloodGroup,
+          'role': _profile!.role,
+          'email': _profile!.email,
+          'availableNow': (_profile is BrigadistProfile)
+              ? (_profile as BrigadistProfile).availableNow
+              : false,
+          'timeSlots': (_profile is BrigadistProfile)
+              ? (_profile as BrigadistProfile).timeSlots
+              : [],
+          'medals': _profile!.medals,
+        }),
+      );
+
+      await prefs.setString(
+          'cached_profile_last_updated', DateTime.now().toIso8601String());
+
+      debugPrint('Profile cached locally 🔄');
     } catch (e, st) {
       debugPrint('Error loading profile: $e\n$st');
     } finally {
@@ -86,11 +157,20 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final brigadist = (_profile as BrigadistProfile)
-          .copyWith(availableNow: available);
+      final brigadist =
+          (_profile as BrigadistProfile).copyWith(availableNow: available);
 
       await _repository.saveProfile(brigadist);
       _profile = brigadist;
+
+      // actualizar cache
+      final prefs = await SharedPreferences.getInstance();
+      final cachedProfile = prefs.getString('cached_profile');
+      if (cachedProfile != null) {
+        final data = jsonDecode(cachedProfile);
+        data['availableNow'] = available;
+        await prefs.setString('cached_profile', jsonEncode(data));
+      }
     } catch (e, st) {
       debugPrint('Error toggling availability: $e\n$st');
     } finally {
