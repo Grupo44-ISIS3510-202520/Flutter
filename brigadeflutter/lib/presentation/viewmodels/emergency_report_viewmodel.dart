@@ -4,6 +4,7 @@ import 'package:brigadeflutter/data/models/report_model.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../domain/use_cases/create_emergency_report.dart';
 import '../../domain/use_cases/fill_location.dart';
 import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
@@ -170,10 +171,13 @@ class EmergencyReportViewModel extends ChangeNotifier {
       final receivePort = ReceivePort();
       final apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
       final typeName = type.isEmpty ? 'Emergency' : type;
+      final dir = await getApplicationDocumentsDirectory();
+      final appPath = dir.path;
+
 
       await Isolate.spawn(
         openAIIsolateEntry,
-        OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey),
+        OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey, appPath),
       );
 
       final result = await receivePort.first as String;

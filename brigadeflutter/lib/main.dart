@@ -22,6 +22,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env'); // optional
   await Hive.initFlutter();
   await Hive.openBox('trainingsBox');
+  await Hive.openBox<String>('ai_cache'); //register box for openai cache
 
   // initialize firebase if used
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
