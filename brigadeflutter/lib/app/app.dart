@@ -53,9 +53,6 @@ class MyApp extends StatelessWidget {
             colorSchemeSeed: const Color(0xFF2F6AF6),
           ),
 
-          // IMPORTANT: don't recreate or re-wrap the DashboardViewModel here.
-          // The singleton instance is provided at the app root (main.dart) with
-          // ChangeNotifierProvider.value(value: sl<DashboardViewModel>()).
           home: auth.isAuthenticated ? const DashboardScreen() : const LoginScreen(),
 
           onGenerateRoute: (settings) {
@@ -76,7 +73,6 @@ class MyApp extends StatelessWidget {
                 );
 
               case routeDashboard:
-              // Do not re-wrap the dashboard with another provider that calls create.
                 return MaterialPageRoute(
                   settings: settings,
                   builder: (_) => const DashboardScreen(),
@@ -88,7 +84,6 @@ class MyApp extends StatelessWidget {
                   builder: (_) => ChangeNotifierProvider(
                     create: (_) {
                       final vm = sl<EmergencyReportViewModel>();
-                      // init post-frame para no notificar durante build
                       WidgetsBinding.instance.addPostFrameCallback(
                             (_) => vm.initBrightness(),
                       );
@@ -148,7 +143,6 @@ class MyApp extends StatelessWidget {
                 );
 
               default:
-              // fallback to the gate; do not re-wrap DashboardViewModel here
                 return MaterialPageRoute(
                   settings: settings,
                   builder: (_) => auth.isAuthenticated ? const DashboardScreen() : const LoginScreen(),

@@ -15,13 +15,11 @@ class PdfRepositoryImpl implements PdfRepository {
     try {
       print('Getting PDF file - ID: $id, URL: $url, forceDownload: $forceDownload');
 
-      // Verificar conectividad primero
       final connectivityResult = await _connectivity.checkConnectivity();
       final bool isOnline = connectivityResult != ConnectivityResult.none;
 
       print('Connectivity: $connectivityResult, IsOnline: $isOnline');
 
-      // Si estamos offline y no forzamos descarga, verificar si existe en cache
       if (!isOnline && !forceDownload) {
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);
@@ -31,10 +29,9 @@ class PdfRepositoryImpl implements PdfRepository {
         if (cacheExists) {
           return cachedFile;
         }
-        return null; // No hay conexión y no existe en cache
+        return null; 
       }
 
-      // Usar el isolate worker para descargar/manejar el PDF
       final pathOrMessage = await PdfIsolateWorker.downloadPdf(
         url: url,
         id: id,
@@ -45,7 +42,6 @@ class PdfRepositoryImpl implements PdfRepository {
       print('Isolate result: $pathOrMessage');
 
       if (pathOrMessage == "OFFLINE") {
-        // Intentar retornar cache existente si está disponible
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);
         final cacheExists = await cachedFile.exists();
@@ -61,7 +57,6 @@ class PdfRepositoryImpl implements PdfRepository {
       return fileExists ? file : null;
     } catch (e) {
       print('Error in PdfRepositoryImpl.getPdfFile: $e');
-      // En caso de error, intentar retornar cache existente
       try {
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);

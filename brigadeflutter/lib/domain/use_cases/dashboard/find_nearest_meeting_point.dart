@@ -121,7 +121,7 @@ class FindNearestMeetingPoint {
   }
 
   double _distanceMeters(double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371000; // Earth radius in meters
+    const R = 6371000;  
     final phi1 = _toRad(lat1);
     final phi2 = _toRad(lat2);
     final dPhi = _toRad(lat2 - lat1);

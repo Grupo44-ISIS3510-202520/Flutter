@@ -22,9 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_initialized) {
-        // Usar context.read para obtener la instancia expuesta en main.dart
         final vm = context.read<DashboardViewModel>();
-        // Lanzar la carga inicial del punto de encuentro
         vm.updateNearestMeetingPoint();
         _initialized = true;
       }
