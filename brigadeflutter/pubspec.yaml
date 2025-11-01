@@ -43,6 +43,7 @@ dependencies:
   geolocator: ^13.0.1
   geocoding: ^3.0.0
   http: ^1.2.2
+  pdfx: ^2.9.0
   dio: ^5.7.0
   cloud_firestore: 6.0.2
   flutter_tts: ^4.0.2

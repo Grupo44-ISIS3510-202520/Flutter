@@ -1,34 +1,95 @@
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../core/workers/pdf_isolate_worker.dart';
 import '../repositories/pdf_repository.dart';
-import 'package:path_provider/path_provider.dart';
-
 
 class PdfRepositoryImpl implements PdfRepository {
+  final Connectivity _connectivity = Connectivity();
+
   @override
   Future<File?> getPdfFile({
     required String id,
     required String url,
     bool forceDownload = false,
   }) async {
-    final pathOrMessage = await PdfIsolateWorker.downloadPdf(
-      url: url,
-      id: id,
-      forceDownload: forceDownload,
-      offlineMessage: "OFFLINE",
-    );
+    try {
+      print('Getting PDF file - ID: $id, URL: $url, forceDownload: $forceDownload');
 
-    if (pathOrMessage == "OFFLINE") return null;
+      // Verificar conectividad primero
+      final connectivityResult = await _connectivity.checkConnectivity();
+      final bool isOnline = connectivityResult != ConnectivityResult.none;
 
-    final file = File(pathOrMessage);
-    return await file.exists() ? file : null;
+      print('Connectivity: $connectivityResult, IsOnline: $isOnline');
+
+      // Si estamos offline y no forzamos descarga, verificar si existe en cache
+      if (!isOnline && !forceDownload) {
+        final cachedPath = await PdfIsolateWorker.getCachedPath(id);
+        final cachedFile = File(cachedPath);
+        final cacheExists = await cachedFile.exists();
+        print('Offline mode - Cache exists: $cacheExists at $cachedPath');
+
+        if (cacheExists) {
+          return cachedFile;
+        }
+        return null; // No hay conexión y no existe en cache
+      }
+
+      // Usar el isolate worker para descargar/manejar el PDF
+      final pathOrMessage = await PdfIsolateWorker.downloadPdf(
+        url: url,
+        id: id,
+        forceDownload: forceDownload,
+        offlineMessage: "OFFLINE",
+      );
+
+      print('Isolate result: $pathOrMessage');
+
+      if (pathOrMessage == "OFFLINE") {
+        // Intentar retornar cache existente si está disponible
+        final cachedPath = await PdfIsolateWorker.getCachedPath(id);
+        final cachedFile = File(cachedPath);
+        final cacheExists = await cachedFile.exists();
+        print('Offline message received - Cache exists: $cacheExists');
+
+        return cacheExists ? cachedFile : null;
+      }
+
+      final file = File(pathOrMessage);
+      final fileExists = await file.exists();
+      print('File exists at path: $fileExists - $pathOrMessage');
+
+      return fileExists ? file : null;
+    } catch (e) {
+      print('Error in PdfRepositoryImpl.getPdfFile: $e');
+      // En caso de error, intentar retornar cache existente
+      try {
+        final cachedPath = await PdfIsolateWorker.getCachedPath(id);
+        final cachedFile = File(cachedPath);
+        final cacheExists = await cachedFile.exists();
+        print('Error fallback - Cache exists: $cacheExists');
+
+        return cacheExists ? cachedFile : null;
+      } catch (cacheError) {
+        print('Cache fallback error: $cacheError');
+        return null;
+      }
+    }
   }
 
   @override
   Future<void> removePdfFromCache(String id) async {
-    final sanitizedName = id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), "_");
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File("${dir.path}/$sanitizedName.pdf");
-    if (file.existsSync()) await file.delete();
+    try {
+      final path = await PdfIsolateWorker.getCachedPath(id);
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        print('Removed PDF from cache: $id');
+      } else {
+        print('PDF not found in cache: $id');
+      }
+    } catch (e) {
+      print('Error removing PDF from cache: $e');
+      rethrow;
+    }
   }
 }

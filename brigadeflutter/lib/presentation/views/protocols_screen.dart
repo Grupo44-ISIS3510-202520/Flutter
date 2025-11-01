@@ -23,13 +23,6 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
   }
 
   @override
-  void dispose() {
-    vm.disposeViewModel();
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Consumer<ProtocolsViewModel>(builder: (context, vm, child) {
       return Scaffold(
