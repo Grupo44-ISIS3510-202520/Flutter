@@ -28,7 +28,7 @@ class CreateEmergencyReport {
       throw ValidationFailure(errors.first);
     }
 
-    final newId = id ?? await idGen.nextReportId();
+    final newId = id ?? (isOnline ? await idGen.nextReportId() : DateTime.now().millisecondsSinceEpoch);
     final report = Report(
       id: newId,
       type: type.trim(),
