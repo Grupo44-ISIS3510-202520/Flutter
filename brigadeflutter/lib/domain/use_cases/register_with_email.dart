@@ -30,7 +30,7 @@ class RegisterWithEmail {
       validateRole(role),
     ].whereType<String>().toList();
     if (problems.isNotEmpty) {
-      throw ArgumentError(problems.first!);
+      throw ArgumentError(problems.first);
     }
 
     final user = await authRepo.registerWithEmail(email: email.trim(), password: password);

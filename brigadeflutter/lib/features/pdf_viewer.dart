@@ -53,7 +53,7 @@ class _PdfViewerState extends State<PdfViewer> {
         _downloadToCache();
       }
     } catch (e) {
-      print('Error loading PDF: $e');
+      //print('Error loading PDF: $e');
       setState(() {
         _errorMessage = 'No se pudo cargar el documento';
         _isLoading = false;
@@ -75,7 +75,7 @@ class _PdfViewerState extends State<PdfViewer> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading from URL: $e');
+      //print('Error loading from URL: $e');
       await _loadFromCache();
     }
   }
@@ -102,7 +102,7 @@ class _PdfViewerState extends State<PdfViewer> {
         });
       }
     } catch (e) {
-      print('Error loading from cache: $e');
+      //print('Error loading from cache: $e');
       setState(() {
         _errorMessage = 'Error cargando documento offline';
         _isLoading = false;
@@ -127,11 +127,11 @@ class _PdfViewerState extends State<PdfViewer> {
 
       await cacheFile.writeAsBytes(bytes, flush: true);
 
-      print('PDF guardado en cache: ${cacheFile.path}');
-      print('Tamaño: ${bytes.length} bytes');
+      // print('PDF guardado en cache: ${cacheFile.path}');
+      // print('Tamaño: ${bytes.length} bytes');
 
     } catch (e) {
-      print('Background cache download failed: $e');
+      // print('Background cache download failed: $e');
     }
   }
 

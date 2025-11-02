@@ -51,7 +51,7 @@ class ReportLocalDao {
     final data = box.get(tempId.toString());
     if (data == null) return;
     data['id'] = finalId;
-    await box
+    box
       ..delete(tempId.toString())
       ..put(finalId.toString(), data);
   }

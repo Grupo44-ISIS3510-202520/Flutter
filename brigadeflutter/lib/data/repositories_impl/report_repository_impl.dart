@@ -54,7 +54,7 @@ class ReportRepositoryImpl implements ReportRepository {
 
    @override
   Future<void> saveLocal(ReportModel model) async {
-    await localDao.savePending(model as ReportModel);
+    await localDao.savePending(model);
   }
 
   @override

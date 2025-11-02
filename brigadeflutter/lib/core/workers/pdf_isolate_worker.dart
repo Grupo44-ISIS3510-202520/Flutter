@@ -59,7 +59,7 @@ class PdfIsolateWorker {
     final result = await completer.future.timeout(
       const Duration(seconds: 30),
       onTimeout: () {
-        print('PDF download timeout');
+        //print('PDF download timeout');
         return offlineMessage;
       },
     );
@@ -69,7 +69,7 @@ class PdfIsolateWorker {
 
   static Future<void> _downloadPdfEntryPoint(dynamic message) async {
     final SendPort sendPort = message["port"] as SendPort;
-    final SendPort errorPort = message["errorPort"] as SendPort;
+    //final SendPort errorPort = message["errorPort"] as SendPort;
     final String url = message["url"] as String;
     final String id = message["id"] as String;
     final bool forceDownload = message["forceDownload"] as bool;
@@ -127,7 +127,7 @@ class PdfIsolateWorker {
           sendPort.send(offlineMessage);
         }
       }
-    } on DioException catch (e) {
+    } on DioException {
       try {
         final path = await getCachedPath(id);
         final file = File(path);

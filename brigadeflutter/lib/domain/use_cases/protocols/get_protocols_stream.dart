@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import '../../../data/models/protocol_model.dart';
 import '../../../data/repositories/protocol_repository.dart';
 

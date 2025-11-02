@@ -6,7 +6,6 @@ import '../../domain/use_cases/register_with_email.dart';
 import '../../domain/use_cases/send_email_verification.dart';
 import '../../domain/use_cases/reload_user.dart';
 import '../../core/utils/validators.dart';
-import '../../core/utils/constants.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   // Use cases

@@ -1,11 +1,8 @@
 import 'package:flutter/foundation.dart';
-import '../../core/utils/constants.dart';
 import '../navigation/dashboard_actions_factory.dart';
 import '../navigation/dashboard_commands.dart';
 import '../../data/models/meeting_point_model.dart';
-import '../../data/repositories/meeting_point_repository.dart';
 import '../../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
-import '../../data/services_external/location/location_service.dart';
 
 class DashboardViewModel extends ChangeNotifier {
   final DashboardActionsFactory factory;

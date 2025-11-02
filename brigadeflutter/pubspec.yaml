@@ -62,6 +62,8 @@ dependencies:
   light: ^4.1.0
   screen_brightness: ^2.1.7
   firebase_messaging: ^16.0.3
+  path: ^1.9.1
+  meta: ^1.16.0
   
 
 dev_dependencies:

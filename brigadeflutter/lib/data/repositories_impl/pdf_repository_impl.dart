@@ -13,18 +13,18 @@ class PdfRepositoryImpl implements PdfRepository {
     bool forceDownload = false,
   }) async {
     try {
-      print('Getting PDF file - ID: $id, URL: $url, forceDownload: $forceDownload');
+      //print('Getting PDF file - ID: $id, URL: $url, forceDownload: $forceDownload');
 
       final connectivityResult = await _connectivity.checkConnectivity();
       final bool isOnline = connectivityResult != ConnectivityResult.none;
 
-      print('Connectivity: $connectivityResult, IsOnline: $isOnline');
+      //print('Connectivity: $connectivityResult, IsOnline: $isOnline');
 
       if (!isOnline && !forceDownload) {
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);
         final cacheExists = await cachedFile.exists();
-        print('Offline mode - Cache exists: $cacheExists at $cachedPath');
+        //print('Offline mode - Cache exists: $cacheExists at $cachedPath');
 
         if (cacheExists) {
           return cachedFile;
@@ -39,33 +39,33 @@ class PdfRepositoryImpl implements PdfRepository {
         offlineMessage: "OFFLINE",
       );
 
-      print('Isolate result: $pathOrMessage');
+      //print('Isolate result: $pathOrMessage');
 
       if (pathOrMessage == "OFFLINE") {
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);
         final cacheExists = await cachedFile.exists();
-        print('Offline message received - Cache exists: $cacheExists');
+        //print('Offline message received - Cache exists: $cacheExists');
 
         return cacheExists ? cachedFile : null;
       }
 
       final file = File(pathOrMessage);
       final fileExists = await file.exists();
-      print('File exists at path: $fileExists - $pathOrMessage');
+      //print('File exists at path: $fileExists - $pathOrMessage');
 
       return fileExists ? file : null;
     } catch (e) {
-      print('Error in PdfRepositoryImpl.getPdfFile: $e');
+      //print('Error in PdfRepositoryImpl.getPdfFile: $e');
       try {
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);
         final cacheExists = await cachedFile.exists();
-        print('Error fallback - Cache exists: $cacheExists');
+        //print('Error fallback - Cache exists: $cacheExists');
 
         return cacheExists ? cachedFile : null;
       } catch (cacheError) {
-        print('Cache fallback error: $cacheError');
+        //print('Cache fallback error: $cacheError');
         return null;
       }
     }
@@ -78,7 +78,7 @@ class PdfRepositoryImpl implements PdfRepository {
       final file = File(path);
       if (await file.exists()) {
         await file.delete();
-        print('Removed PDF from cache: $id');
+        //print('Removed PDF from cache: $id');
       } else {
         print('PDF not found in cache: $id');
       }

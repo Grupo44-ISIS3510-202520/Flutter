@@ -64,7 +64,7 @@ class EmergencyIsolateWorker {
 
   static void _findNearestMeetingPointEntry(Map<String, dynamic> message) {
     final SendPort sendPort = message['port'];
-    final SendPort errorPort = message['errorPort'];
+    //final SendPort errorPort = message['errorPort'];
     final double userLat = message['userLat'];
     final double userLng = message['userLng'];
     final List<Map<String, dynamic>> meetingPoints = message['meetingPoints'];

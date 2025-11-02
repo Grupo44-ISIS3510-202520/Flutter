@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:brigadeflutter/data/models/report_model.dart';
 
 import '../entities/report.dart';
