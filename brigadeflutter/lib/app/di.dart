@@ -121,14 +121,17 @@ Future<void> setupDi() async {
         () => MeetingPointRepositoryImpl(),
   );
   // App services / helpers
-  // App services / helpers
   sl.registerLazySingleton(() => FirestoreIdGenerator());
 
   //Use cases - dashboard
-  sl.registerLazySingleton(() => FindNearestMeetingPoint(
+  sl.registerFactory(() => FindNearestMeetingPoint(
     locationService: sl(),
     repository: sl(),
   ));
+
+
+
+
 
   // Use cases - protocols
   sl.registerFactory(() => GetProtocolsStream(repository: sl()));
@@ -204,7 +207,7 @@ try {
   );
 
   sl.registerLazySingleton(() => DashboardActionsFactory());
-  sl.registerFactory(() => DashboardViewModel(
+  sl.registerLazySingleton(() => DashboardViewModel(
     factory: sl(),
     findNearestUseCase: sl(),
   ));

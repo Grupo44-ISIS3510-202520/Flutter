@@ -140,7 +140,6 @@ class ProfileViewModel extends ChangeNotifier {
       await prefs.setString(
           'cached_profile_last_updated', DateTime.now().toIso8601String());
 
-      debugPrint('Profile cached locally 🔄');
     } catch (e, st) {
       debugPrint('Error loading profile: $e\n$st');
     } finally {

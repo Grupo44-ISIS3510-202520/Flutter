@@ -11,7 +11,7 @@ import 'app/app.dart';
 import 'package:provider/provider.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/viewmodels/emergency_report_viewmodel.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'presentation/viewmodels/dashboard_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,23 +19,16 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  await dotenv.load(fileName: '.env'); // optional
+  await dotenv.load(fileName: '.env');
   await Hive.initFlutter();
   await Hive.openBox('trainingsBox');
-  await Hive.openBox<String>('ai_cache'); //register box for openai cache
+  await Hive.openBox<String>('ai_cache');
 
-  // initialize firebase if used
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  //Firebase.instance.setPersistenceEnabled(true);
 
-  // IMPORTANT: register services before widgets ask for them
   await setupDi();
   print('GetIt hash in main.dart: ${sl.hashCode}');
 
-  // // Better visibility for uncaught errors
-  // FlutterError.onError = (details) {
-  //   FlutterError.dumpErrorToConsole(details);
-  // };
   runApp(
     MultiProvider(
       providers: [
@@ -46,6 +39,11 @@ Future<void> main() async {
           create: (_) => sl<EmergencyReportViewModel>(),
         ),
         ChangeNotifierProvider(create: (_) => TrainingViewModel(repo: sl())),
+
+
+        ChangeNotifierProvider<DashboardViewModel>.value(
+          value: sl<DashboardViewModel>(),
+        ),
       ],
       child: const MyApp(),
     ),

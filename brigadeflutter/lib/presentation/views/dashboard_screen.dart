@@ -6,8 +6,28 @@ import '../components/dashboard_action_tile.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
 import '../navigation/dashboard_commands.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_initialized) {
+        final vm = context.read<DashboardViewModel>();
+        vm.updateNearestMeetingPoint();
+        _initialized = true;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +137,7 @@ class DashboardScreen extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'Punto de encuentro más cercano',
+                                        'Closest meeting point',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 18,
@@ -132,7 +152,7 @@ class DashboardScreen extends StatelessWidget {
                                       child: ElevatedButton(
                                         onPressed: vm.isFinding
                                             ? null
-                                            : () => vm.updateNearestMeetingPoint(),
+                                            : () => vm.forceRecalculate(),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.blueAccent,
                                           foregroundColor: Colors.white,
@@ -219,8 +239,7 @@ class DashboardScreen extends StatelessWidget {
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.favorite,
-                                      color: Colors.pink, size: 28),
+                                  Icon(Icons.favorite, color: Colors.pink, size: 28),
                                   SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
@@ -231,8 +250,7 @@ class DashboardScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Icon(Icons.arrow_forward_ios,
-                                      color: Colors.grey, size: 16),
+                                  Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
                                 ],
                               ),
                             ),
