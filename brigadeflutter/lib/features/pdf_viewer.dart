@@ -7,14 +7,9 @@ import 'package:http/http.dart' as http;
 import '../presentation/components/banner_offline.dart';
 
 class PdfViewer extends StatefulWidget {
+  const PdfViewer({super.key, required this.pdfUrl, required this.title});
   final String pdfUrl;
   final String title;
-
-  const PdfViewer({
-    super.key,
-    required this.pdfUrl,
-    required this.title,
-  });
 
   @override
   State<PdfViewer> createState() => _PdfViewerState();
@@ -95,7 +90,7 @@ class _PdfViewerState extends State<PdfViewer> {
           _isLoading = false;
         });
       } else {
-        print('PDF no encontrado en cache');
+        // print('PDF no encontrado en cache');
         setState(() {
           _errorMessage = 'No hay versión descargada disponible';
           _isLoading = false;
@@ -129,7 +124,6 @@ class _PdfViewerState extends State<PdfViewer> {
 
       // print('PDF guardado en cache: ${cacheFile.path}');
       // print('Tamaño: ${bytes.length} bytes');
-
     } catch (e) {
       // print('Background cache download failed: $e');
     }
@@ -154,22 +148,17 @@ class _PdfViewerState extends State<PdfViewer> {
       appBar: AppBar(title: Text(widget.title)),
       body: Column(
         children: [
+          if (_isOffline && !_hasCachedFile) const OfflineBanner(),
 
-          if (_isOffline && !_hasCachedFile)
-            const OfflineBanner(),
-
-
-          Expanded(
-            child: _buildContent(),
-          ),
+          Expanded(child: _buildContent()),
         ],
       ),
       floatingActionButton: _errorMessage != null
           ? FloatingActionButton(
-        onPressed: _retryLoad,
-        tooltip: 'Reintentar',
-        child: const Icon(Icons.refresh),
-      )
+              onPressed: _retryLoad,
+              tooltip: 'Reintentar',
+              child: const Icon(Icons.refresh),
+            )
           : null,
     );
   }
@@ -227,8 +216,7 @@ class _PdfViewerState extends State<PdfViewer> {
           _errorMessage = 'Error en página $page: $error';
         });
       },
-      onRender: (pages) {
-      },
+      onRender: (pages) {},
     );
   }
 }

@@ -1,9 +1,4 @@
 class Protocol {
-  final String id;
-  final String name;
-  final String url;
-  final String version;
-  final DateTime? lastUpdate;
 
   Protocol({
     required this.id,
@@ -12,4 +7,9 @@ class Protocol {
     required this.version,
     this.lastUpdate,
   });
+  final String id;
+  final String name;
+  final String url;
+  final String version;
+  final DateTime? lastUpdate;
 }

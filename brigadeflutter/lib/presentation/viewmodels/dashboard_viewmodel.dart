@@ -5,18 +5,16 @@ import '../../data/models/meeting_point_model.dart';
 import '../../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
 
 class DashboardViewModel extends ChangeNotifier {
-  final DashboardActionsFactory factory;
-  final FindNearestMeetingPoint findNearestUseCase;
-
   DashboardViewModel({
     required this.factory,
     required this.findNearestUseCase,
   }) {
-
     actions = factory.mainGrid();
     emergency = factory.emergency();
     cprGuide = factory.cprGuide();
   }
+  final DashboardActionsFactory factory;
+  final FindNearestMeetingPoint findNearestUseCase;
 
   bool isOnline = true;
   List<DashboardActionCommand> actions = const [];
@@ -68,7 +66,8 @@ class DashboardViewModel extends ChangeNotifier {
         if (result.distanceMeters > maxDistance) {
           isOutsideCampus = true;
           nearestLabel = result.point.name;
-          nearestSubtext = 'Out of campus • ${result.distanceMeters.toStringAsFixed(0)} m';
+          nearestSubtext =
+              'Out of campus • ${result.distanceMeters.toStringAsFixed(0)} m';
         } else {
           isOutsideCampus = false;
           nearestLabel = result.point.name;
@@ -100,7 +99,8 @@ class DashboardViewModel extends ChangeNotifier {
       if (lastDistanceMeters! > maxDistance) {
         isOutsideCampus = true;
         nearestLabel = lastMeetingPoint!.name;
-        nearestSubtext = 'Out of campus • ${lastDistanceMeters!.toStringAsFixed(0)} m';
+        nearestSubtext =
+            'Out of campus • ${lastDistanceMeters!.toStringAsFixed(0)} m';
       } else {
         isOutsideCampus = false;
         nearestLabel = lastMeetingPoint!.name;
@@ -117,12 +117,9 @@ class DashboardViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    debugPrint('DashboardViewModel disposed — stacktrace:\n${StackTrace.current}');
+    debugPrint(
+      'DashboardViewModel disposed — stacktrace:\n${StackTrace.current}',
+    );
     super.dispose();
   }
-
-
-
-
-
 }

@@ -28,11 +28,11 @@ import '../../data/services_external/openai_service.dart';
 
 // Include the key as argument instead of reading dotenv again
 class OpenAIIsolateMessage {
+  OpenAIIsolateMessage(this.sendPort, this.emergencyType, this.apiKey, this.appDocPath);
   final SendPort sendPort;
   final String emergencyType;
   final String apiKey;
   final String appDocPath;
-  OpenAIIsolateMessage(this.sendPort, this.emergencyType, this.apiKey, this.appDocPath);
 }
 
 Future<void> openAIIsolateEntry(OpenAIIsolateMessage message) async {

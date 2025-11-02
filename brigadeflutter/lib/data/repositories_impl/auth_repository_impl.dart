@@ -4,12 +4,13 @@ import '../repositories/auth_repository.dart';
 import '../services_external/firebase/auth_service.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthService _auth;
   AuthRepositoryImpl(this._auth);
+  final AuthService _auth;
 
   @override
-  Stream<AuthUser?> observe() =>
-      _auth.authStateChanges().map((u) => u == null ? null : AuthUserModel.fromFirebaseUser(u).toEntity());
+  Stream<AuthUser?> observe() => _auth.authStateChanges().map(
+    (u) => u == null ? null : AuthUserModel.fromFirebaseUser(u).toEntity(),
+  );
 
   @override
   AuthUser? current() {
@@ -18,14 +19,23 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthUser> signInWithEmail({required String email, required String password}) async {
+  Future<AuthUser> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     final cred = await _auth.signInWithEmail(email: email, password: password);
     return AuthUserModel.fromFirebaseUser(cred.user!).toEntity();
   }
 
   @override
-  Future<AuthUser> registerWithEmail({required String email, required String password}) async {
-    final cred = await _auth.registerWithEmail(email: email, password: password);
+  Future<AuthUser> registerWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    final cred = await _auth.registerWithEmail(
+      email: email,
+      password: password,
+    );
     return AuthUserModel.fromFirebaseUser(cred.user!).toEntity();
   }
 

@@ -5,9 +5,9 @@ import '../../data/repositories/user_repository.dart';
 import '../../data/entities/user_profile.dart';
 
 class RegisterWithEmail {
+  RegisterWithEmail(this.authRepo, this.userRepo);
   final AuthRepository authRepo;
   final UserRepository userRepo;
-  RegisterWithEmail(this.authRepo, this.userRepo);
 
   Future<void> call({
     required String email,
@@ -18,7 +18,7 @@ class RegisterWithEmail {
     required String uniandesCode,
     required String bloodGroup,
     required String role,
-  })async {
+  }) async {
     final problems = <String?>[
       validateEmailDomain(email),
       validatePassword(password),
@@ -33,7 +33,10 @@ class RegisterWithEmail {
       throw ArgumentError(problems.first);
     }
 
-    final user = await authRepo.registerWithEmail(email: email.trim(), password: password);
+    final user = await authRepo.registerWithEmail(
+      email: email.trim(),
+      password: password,
+    );
 
     final profile = UserProfile(
       uid: user.uid,

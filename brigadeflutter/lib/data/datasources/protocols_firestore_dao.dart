@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/protocol_model.dart';
 
 class ProtocolsFirestoreDao {
-  final FirebaseFirestore firestore;
   ProtocolsFirestoreDao({FirebaseFirestore? firestore})
       : firestore = firestore ?? FirebaseFirestore.instance;
+  final FirebaseFirestore firestore;
 
   Stream<List<ProtocolModel>> watchProtocols() {
     final col = firestore.collection('protocols-and-manuals').orderBy('lastUpdate', descending: true);

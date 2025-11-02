@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../data/entities/training_progress.dart';
 
 class ProgressTile extends StatelessWidget {
-  final TrainingProgress progress;
   const ProgressTile({super.key, required this.progress});
+  final TrainingProgress progress;
 
   @override
   Widget build(BuildContext context) {

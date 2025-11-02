@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'app_bar_actions.dart';
 
 class AppScaffold extends StatelessWidget {
-  final String title;
-  final Widget body;
-  final bool backToDashboard;
-  final bool showSignOut;
-  final List<Widget>? extraActions;
-  final Widget? bottomNavigationBar;
-
   const AppScaffold({
     super.key,
     required this.title,
@@ -18,6 +11,12 @@ class AppScaffold extends StatelessWidget {
     this.extraActions,
     this.bottomNavigationBar,
   });
+  final String title;
+  final Widget body;
+  final bool backToDashboard;
+  final bool showSignOut;
+  final List<Widget>? extraActions;
+  final Widget? bottomNavigationBar;
 
   @override
   Widget build(BuildContext context) {

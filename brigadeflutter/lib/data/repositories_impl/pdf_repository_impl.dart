@@ -80,10 +80,10 @@ class PdfRepositoryImpl implements PdfRepository {
         await file.delete();
         //print('Removed PDF from cache: $id');
       } else {
-        print('PDF not found in cache: $id');
+        //print('PDF not found in cache: $id');
       }
     } catch (e) {
-      print('Error removing PDF from cache: $e');
+      //print('Error removing PDF from cache: $e');
       rethrow;
     }
   }

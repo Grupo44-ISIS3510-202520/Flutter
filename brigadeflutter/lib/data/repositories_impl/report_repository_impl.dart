@@ -5,16 +5,16 @@ import '../datasources/report_local_dao.dart';
 import '../models/report_model.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
+  ReportRepositoryImpl({required this.remoteDao, required this.localDao});
   final ReportFirestoreDao remoteDao;
   final ReportLocalDao localDao;
-  ReportRepositoryImpl({required this.remoteDao, required this.localDao});
 
   @override
   Future<void> create(Report report) async {
     await remoteDao.set(ReportModel.fromEntity(report));
   }
 
-   @override
+  @override
   Future<void> createEmergencyReport({
     required String type,
     required String placeTime,
@@ -43,7 +43,8 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<void> enqueue(Report report) => localDao.savePending(ReportModel.fromEntity(report));
+  Future<void> enqueue(Report report) =>
+      localDao.savePending(ReportModel.fromEntity(report));
 
   @override
   Future<List<Report>> pending() async =>
@@ -52,7 +53,7 @@ class ReportRepositoryImpl implements ReportRepository {
   @override
   Future<void> markSent(Report report) => localDao.remove(report.id);
 
-   @override
+  @override
   Future<void> saveLocal(ReportModel model) async {
     await localDao.savePending(model);
   }
@@ -84,6 +85,4 @@ class ReportRepositoryImpl implements ReportRepository {
       await localDao.remove(report.id.toInt());
     }
   }
-
-  
 }

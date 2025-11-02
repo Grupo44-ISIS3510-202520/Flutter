@@ -4,13 +4,9 @@ import '../models/protocol_model.dart';
 import '../repositories/protocol_repository.dart';
 
 class ProtocolRepositoryImpl implements ProtocolRepository {
+  ProtocolRepositoryImpl({required this.dao, required this.prefs});
   final ProtocolsFirestoreDao dao;
   final SharedPreferences prefs;
-
-  ProtocolRepositoryImpl({
-    required this.dao,
-    required this.prefs,
-  });
 
   @override
   Stream<List<ProtocolModel>> getProtocolsStream() {

@@ -2,9 +2,9 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/services_external/secure/token_service.dart';
 
 class GetIdTokenCached {
+  GetIdTokenCached(this.authRepo, this.tokenStore);
   final AuthRepository authRepo;
   final TokenService tokenStore;
-  GetIdTokenCached(this.authRepo, this.tokenStore);
 
   Future<String?> call() async {
     // intenta cache

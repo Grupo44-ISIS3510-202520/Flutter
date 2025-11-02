@@ -5,9 +5,9 @@ import '../../data/entities/report.dart';
 import '../../data/repositories/report_repository.dart';
 
 class CreateEmergencyReport {
+  CreateEmergencyReport(this.repo, this.idGen);
   final ReportRepository repo;
   final FirestoreIdGenerator idGen;
-  CreateEmergencyReport(this.repo, this.idGen);
 
   Future<int> call({
     int? id,
@@ -28,7 +28,11 @@ class CreateEmergencyReport {
       throw ValidationFailure(errors.first);
     }
 
-    final newId = id ?? (isOnline ? await idGen.nextReportId() : DateTime.now().millisecondsSinceEpoch);
+    final newId =
+        id ??
+        (isOnline
+            ? await idGen.nextReportId()
+            : DateTime.now().millisecondsSinceEpoch);
     final report = Report(
       id: newId,
       type: type.trim(),

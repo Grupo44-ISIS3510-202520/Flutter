@@ -5,8 +5,12 @@ import '../../domain/use_cases/protocols/get_protocols_stream.dart';
 import '../../domain/use_cases/protocols/is_protocol_new.dart';
 import '../../domain/use_cases/protocols/mark_protocol_as_read.dart';
 
-
 class ProtocolsViewModel extends ChangeNotifier {
+  ProtocolsViewModel({
+    required this.getProtocolsStream,
+    required this.isProtocolNew,
+    required this.markProtocolAsRead,
+  });
   final GetProtocolsStream getProtocolsStream;
   final IsProtocolNew isProtocolNew;
   final MarkProtocolAsRead markProtocolAsRead;
@@ -17,18 +21,12 @@ class ProtocolsViewModel extends ChangeNotifier {
 
   StreamSubscription<List<ProtocolModel>>? _subscription;
 
-  ProtocolsViewModel({
-    required this.getProtocolsStream,
-    required this.isProtocolNew,
-    required this.markProtocolAsRead,
-  });
-
   void init() {
     _subscription?.cancel();
     isLoading = true;
 
     _subscription = getProtocolsStream().listen(
-          (list) {
+      (list) {
         _all = list;
         isLoading = false;
         notifyListeners();

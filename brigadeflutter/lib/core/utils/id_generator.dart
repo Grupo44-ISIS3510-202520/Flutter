@@ -23,8 +23,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreIdGenerator {
-  final FirebaseFirestore _db;
   FirestoreIdGenerator({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
 
   Future<int> nextReportId({
     int maxAttempts = 5,

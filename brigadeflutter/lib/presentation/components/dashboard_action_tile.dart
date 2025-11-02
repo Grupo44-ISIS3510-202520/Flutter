@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../navigation/dashboard_commands.dart';
 
 class DashboardActionTile extends StatelessWidget {
-  final DashboardActionCommand command;
   const DashboardActionTile({super.key, required this.command});
+  final DashboardActionCommand command;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,10 @@ class DashboardActionTile extends StatelessWidget {
               Text(
                 command.label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),

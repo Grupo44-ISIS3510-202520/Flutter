@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               if (!mounted) return;
                                               Navigator.pop(context);
                                               if (!ok) {
-                                                showDialog(
+                                                await showDialog(
                                                   context: context,
                                                   builder: (_) => AlertDialog(
                                                     title: const Text('Error'),
@@ -174,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   ),
                                                 );
                                               } else {
-                                                showDialog(
+                                                await showDialog(
                                                   context: context,
                                                   builder: (_) => AlertDialog(
                                                     title: const Text(

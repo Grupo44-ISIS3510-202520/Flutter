@@ -155,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             );
                             if (!mounted) return;
                             if (!ok) {
-                              showDialog(
+                              await showDialog(
                                 context: context,
                                 builder: (_) => AlertDialog(
                                   title: const Text('Error'),
@@ -169,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               );
                             } else {
-                              showDialog(
+                              await showDialog(
                                 context: context,
                                 builder: (_) => AlertDialog(
                                   title: const Text('Verify your email'),
