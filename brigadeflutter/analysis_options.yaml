@@ -21,6 +21,14 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
+    empty_catches: true  # Uncomment to disable the `empty_catches` rule
+    sort_child_properties_last: true  # Uncomment to disable the `sort_child_properties_last` rule
+    sort_pub_dependencies: true  # Uncomment to disable the `sort_pub_dependencies` rule
+    unawaited_futures: true # Uncomment to disable the `unawaited_futures` rule
+    sort_constructors_first: true  # Uncomment to disable the `sort_constructors_first` rule
+    file_names: true  # Uncomment to disable the `file_names` rule
+    unnecessary_async: true  # Uncomment to disable the `unnecessary_async` rule
+    
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
