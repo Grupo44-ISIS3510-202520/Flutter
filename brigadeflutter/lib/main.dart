@@ -12,6 +12,13 @@ import 'package:provider/provider.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/viewmodels/emergency_report_viewmodel.dart';
 import 'presentation/viewmodels/dashboard_viewmodel.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'app/fcm.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print('Handling a background message: ${message.messageId}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +34,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await setupDi();
+  await setupFCM();
   // print('GetIt hash in main.dart: ${sl.hashCode}');
 
   runApp(
