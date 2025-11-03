@@ -70,10 +70,10 @@ class AppBottomNav extends StatelessWidget {
               icon: Icon(Icons.menu_book_outlined),
               label: 'Protocols',
             ),
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.notifications_none),
-            //   label: 'Notifications',
-            // ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_none),
+              label: 'Notifications',
+            ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               label: 'Profile',
