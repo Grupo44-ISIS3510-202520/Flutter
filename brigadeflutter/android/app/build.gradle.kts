@@ -11,7 +11,7 @@ plugins {
 android {
     namespace = "com.example.brigadeflutter"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "31"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -45,4 +45,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation("com.google.firebase:firebase-bom:33.1.1")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 }
