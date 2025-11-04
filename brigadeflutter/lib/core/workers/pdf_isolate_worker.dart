@@ -127,7 +127,7 @@ class PdfIsolateWorker {
           sendPort.send(offlineMessage);
         }
       }
-    } on DioException {
+    } on DioException catch (e) {
       try {
         final path = await getCachedPath(id);
         final file = File(path);

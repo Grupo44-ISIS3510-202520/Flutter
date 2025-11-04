@@ -19,6 +19,11 @@ class NearestMeetingResult {
   final MeetingPoint point;
   final double distanceMeters;
   final bool usedIsolate;
+  NearestMeetingResult({
+    required this.point,
+    required this.distanceMeters,
+    this.usedIsolate = true
+  });
 }
 
 class FindNearestMeetingPoint {
@@ -43,17 +48,19 @@ class FindNearestMeetingPoint {
     final points = repository.getMeetingPoints();
     if (points.isEmpty) return null;
 
-    final pointsData = points
-        .map((p) => {'id': p.id, 'name': p.name, 'lat': p.lat, 'lng': p.lng})
-        .toList();
+    final pointsData = points.map((p) => {
+      'id': p.id,
+      'name': p.name,
+      'lat': p.lat,
+      'lng': p.lng,
+    }).toList();
 
     try {
-      final isolateResult =
-          await EmergencyIsolateWorker.findNearestMeetingPoint(
-            userLat: userLat,
-            userLng: userLng,
-            meetingPoints: pointsData,
-          );
+      final isolateResult = await EmergencyIsolateWorker.findNearestMeetingPoint(
+        userLat: userLat,
+        userLng: userLng,
+        meetingPoints: pointsData,
+      );
 
       if (!isolateResult['success']) {
         final error = isolateResult['error'];
@@ -79,9 +86,9 @@ class FindNearestMeetingPoint {
       final distanceMeters = resultData['distanceMeters'] as double;
 
       return NearestMeetingResult(
-        point: nearestPoint,
-        distanceMeters: distanceMeters,
-        usedIsolate: !usedFallback,
+          point: nearestPoint,
+          distanceMeters: distanceMeters,
+          usedIsolate: !usedFallback
       );
     } catch (e) {
       return _calculateInMainThread(userLat, userLng, points);
@@ -89,10 +96,10 @@ class FindNearestMeetingPoint {
   }
 
   NearestMeetingResult? _calculateInMainThread(
-    double userLat,
-    double userLng,
-    List<MeetingPoint> points,
-  ) {
+      double userLat,
+      double userLng,
+      List<MeetingPoint> points
+      ) {
     try {
       MeetingPoint? nearest;
       double nearestDist = double.infinity;
@@ -108,9 +115,9 @@ class FindNearestMeetingPoint {
       if (nearest == null) return null;
 
       return NearestMeetingResult(
-        point: nearest,
-        distanceMeters: nearestDist,
-        usedIsolate: false,
+          point: nearest,
+          distanceMeters: nearestDist,
+          usedIsolate: false
       );
     } catch (e) {
       rethrow;
@@ -118,7 +125,7 @@ class FindNearestMeetingPoint {
   }
 
   double _distanceMeters(double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371000;
+    const R = 6371000;  
     final phi1 = _toRad(lat1);
     final phi2 = _toRad(lat2);
     final dPhi = _toRad(lat2 - lat1);

@@ -24,30 +24,27 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProtocolsViewModel>(
-      builder: (context, vm, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Protocols & Manuals'),
-            automaticallyImplyLeading: Navigator.canPop(context),
-            backgroundColor: Colors.white,
-            elevation: 0.5,
-          ),
-          bottomNavigationBar: const AppBottomNav(current: 2),
-          body: SafeArea(
-            minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: vm.onSearchChanged,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: "Search protocols...",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+    return Consumer<ProtocolsViewModel>(builder: (context, vm, child) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Protocols & Manuals'),
+          automaticallyImplyLeading: Navigator.canPop(context),
+          backgroundColor: Colors.white,
+          elevation: 0.5,
+        ),
+        bottomNavigationBar: const AppBottomNav(current: 2),
+        body: SafeArea(
+          minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              TextField(
+                controller: _searchController,
+                onChanged: vm.onSearchChanged,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: "Search protocols...",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 const SizedBox(height: 16),
                 Expanded(

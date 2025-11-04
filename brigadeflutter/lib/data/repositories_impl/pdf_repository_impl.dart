@@ -56,7 +56,7 @@ class PdfRepositoryImpl implements PdfRepository {
 
       return fileExists ? file : null;
     } catch (e) {
-      //print('Error in PdfRepositoryImpl.getPdfFile: $e');
+      print('Error in PdfRepositoryImpl.getPdfFile: $e');
       try {
         final cachedPath = await PdfIsolateWorker.getCachedPath(id);
         final cachedFile = File(cachedPath);
