@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'package:brigadeflutter/data/models/report_model.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,15 +15,6 @@ import '../../data/services_external/tts_service.dart';
 import '../../core/workers/openai_isolate.dart';
 
 class EmergencyReportViewModel extends ChangeNotifier {
-  final CreateEmergencyReport createReport;
-  final FillLocation fillLocation;
-  final AdjustBrightnessFromAmbient adjustBrightness;
-  final AmbientLightService ambient;
-  final ScreenBrightnessService screen;
-  final OpenAIService openai;
-  final TtsService tts;
-  final ConnectivityService connectivity;
-
   EmergencyReportViewModel({
     required this.createReport,
     required this.fillLocation,
@@ -35,6 +25,14 @@ class EmergencyReportViewModel extends ChangeNotifier {
     required this.tts,
     required this.connectivity,
   });
+  final CreateEmergencyReport createReport;
+  final FillLocation fillLocation;
+  final AdjustBrightnessFromAmbient adjustBrightness;
+  final AmbientLightService ambient;
+  final ScreenBrightnessService screen;
+  final OpenAIService openai;
+  final TtsService tts;
+  final ConnectivityService connectivity;
 
   // state
   bool autoBrightnessSupported = false;
@@ -72,6 +70,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     } catch (_) {}
     _notify();
   }
+
   Future<void> initConnectivityWatcher() async {
     // initialize state at startup
     offline = !(await connectivity.isOnline());
@@ -86,7 +85,6 @@ class EmergencyReportViewModel extends ChangeNotifier {
       }
     });
   }
-
 
   // auto brightness toggle
   void toggleAutoBrightness(bool value) {
@@ -173,7 +171,6 @@ class EmergencyReportViewModel extends ChangeNotifier {
       final typeName = type.isEmpty ? 'Emergency' : type;
       final dir = await getApplicationDocumentsDirectory();
       final appPath = dir.path;
-
 
       await Isolate.spawn(
         openAIIsolateEntry,

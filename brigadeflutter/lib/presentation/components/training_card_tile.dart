@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import '../../data/entities/training_card.dart';
 
 class TrainingCardTile extends StatelessWidget {
-  final TrainingCard card;
-  final VoidCallback onPressed;
-  final bool loading;
   const TrainingCardTile({
     super.key,
     required this.card,
     required this.onPressed,
     this.loading = false,
   });
+  final TrainingCard card;
+  final VoidCallback onPressed;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {

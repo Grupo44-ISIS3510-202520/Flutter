@@ -7,14 +7,9 @@ import 'package:http/http.dart' as http;
 import '../presentation/components/banner_offline.dart';
 
 class PdfViewer extends StatefulWidget {
+  const PdfViewer({super.key, required this.pdfUrl, required this.title});
   final String pdfUrl;
   final String title;
-
-  const PdfViewer({
-    super.key,
-    required this.pdfUrl,
-    required this.title,
-  });
 
   @override
   State<PdfViewer> createState() => _PdfViewerState();
@@ -166,10 +161,10 @@ class _PdfViewerState extends State<PdfViewer> {
       ),
       floatingActionButton: _errorMessage != null
           ? FloatingActionButton(
-        onPressed: _retryLoad,
-        tooltip: 'Reintentar',
-        child: const Icon(Icons.refresh),
-      )
+              onPressed: _retryLoad,
+              tooltip: 'Reintentar',
+              child: const Icon(Icons.refresh),
+            )
           : null,
     );
   }

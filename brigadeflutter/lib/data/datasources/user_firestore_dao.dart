@@ -2,8 +2,8 @@ import '../services_external/firebase/firestore_service.dart';
 import '../models/user_profile_model.dart';
 
 class UserFirestoreDao {
-  final FirestoreService _fs;
   UserFirestoreDao(this._fs);
+  final FirestoreService _fs;
 
   Future<void> upsert(UserProfileModel m) async {
     await _fs.setDoc('users', m.uid, m.toJson()); // upsert

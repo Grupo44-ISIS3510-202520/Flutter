@@ -8,9 +8,8 @@ import '../../data/repositories/training_repository.dart';
 enum UiStatus { initial, loading, ready, error }
 
 class TrainingViewModel extends ChangeNotifier {
-  final TrainingRepository _repo;
-
   TrainingViewModel({required TrainingRepository repo}) : _repo = repo;
+  final TrainingRepository _repo;
 
   UiStatus _status = UiStatus.initial;
   List<TrainingCard> _cards = [];
@@ -34,21 +33,25 @@ class TrainingViewModel extends ChangeNotifier {
 
       if (cachedCards != null && cachedProgress != null) {
         _cards = (cachedCards as List)
-            .map((c) => TrainingCard(
-                  id: c['id'] as String,
-                  title: c['title'] as String,
-                  subtitle: c['subtitle'] as String,
-                  imageUrl: c['imageUrl'] as String,
-                  cta: c['cta'] as String,
-                ))
+            .map(
+              (c) => TrainingCard(
+                id: c['id'] as String,
+                title: c['title'] as String,
+                subtitle: c['subtitle'] as String,
+                imageUrl: c['imageUrl'] as String,
+                cta: c['cta'] as String,
+              ),
+            )
             .toList();
 
         _progress = (cachedProgress as List)
-            .map((p) => TrainingProgress(
-                  id: p['id'] as String,
-                  label: p['label'] as String,
-                  percent: p['percent'] as int,
-                ))
+            .map(
+              (p) => TrainingProgress(
+                id: p['id'] as String,
+                label: p['label'] as String,
+                percent: p['percent'] as int,
+              ),
+            )
             .toList();
 
         _status = UiStatus.ready;
@@ -71,24 +74,22 @@ class TrainingViewModel extends ChangeNotifier {
       await box.put(
         'cards',
         cards
-            .map((c) => {
-                  'id': c.id,
-                  'title': c.title,
-                  'subtitle': c.subtitle,
-                  'imageUrl': c.imageUrl,
-                  'cta': c.cta,
-                })
+            .map(
+              (c) => {
+                'id': c.id,
+                'title': c.title,
+                'subtitle': c.subtitle,
+                'imageUrl': c.imageUrl,
+                'cta': c.cta,
+              },
+            )
             .toList(),
       );
 
       await box.put(
         'progress',
         progress
-            .map((p) => {
-                  'id': p.id,
-                  'label': p.label,
-                  'percent': p.percent,
-                })
+            .map((p) => {'id': p.id, 'label': p.label, 'percent': p.percent})
             .toList(),
       );
 
@@ -119,11 +120,7 @@ class TrainingViewModel extends ChangeNotifier {
       await box.put(
         'progress',
         _progress
-            .map((p) => {
-                  'id': p.id,
-                  'label': p.label,
-                  'percent': p.percent,
-                })
+            .map((p) => {'id': p.id, 'label': p.label, 'percent': p.percent})
             .toList(),
       );
     } catch (e, st) {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppBottomNav extends StatelessWidget {
-  final int current;
   const AppBottomNav({super.key, required this.current});
+  final int current;
 
   void _go(BuildContext context, String route) {
     // evita recrear la misma ruta
@@ -23,7 +23,7 @@ class AppBottomNav extends StatelessWidget {
             color: Color(0x14000000), // sombra suave
             blurRadius: 12,
             offset: Offset(0, -2),
-          )
+          ),
         ],
         border: const Border(
           top: BorderSide(color: Color(0x1F000000)), // hairline
@@ -40,19 +40,44 @@ class AppBottomNav extends StatelessWidget {
           currentIndex: current,
           onTap: (i) {
             switch (i) {
-              case 0: _go(context, '/dashboard'); break;
-              case 1: _go(context, '/training'); break;
-              case 2: _go(context, '/protocols'); break;      // conectado
-              case 3: _go(context, '/notification'); break;
-              case 4: _go(context, '/profile'); break;
+              case 0:
+                _go(context, '/dashboard');
+                break;
+              case 1:
+                _go(context, '/training');
+                break;
+              case 2:
+                _go(context, '/protocols');
+                break; // conectado
+              case 3:
+                _go(context, '/notification');
+                break;
+              case 4:
+                _go(context, '/profile');
+                break;
             }
           },
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.local_hospital_outlined), label: 'Dashboard'),
-            BottomNavigationBarItem(icon: Icon(Icons.school_outlined),           label: 'Training'),
-            BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined),        label: 'Protocols'),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications_none),        label: 'Notifications'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline),            label: 'Profile'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.local_hospital_outlined),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school_outlined),
+              label: 'Training',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.menu_book_outlined),
+              label: 'Protocols',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_none),
+              label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              label: 'Profile',
+            ),
           ],
         ),
       ),

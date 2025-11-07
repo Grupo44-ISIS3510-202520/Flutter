@@ -11,7 +11,6 @@ import 'di.dart' show sl;
 // viewmodels
 import '../presentation/viewmodels/auth_viewmodel.dart';
 import '../presentation/viewmodels/register_viewmodel.dart';
-import '../presentation/viewmodels/dashboard_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/viewmodels/protocols_viewmodel.dart';
 import '../presentation/viewmodels/profile_viewmodel.dart';
@@ -25,7 +24,6 @@ import '../presentation/views/protocols_screen.dart';
 import '../presentation/views/profile_view.dart';
 import '../presentation/views/training_screen.dart';
 import '../presentation/views/notifications_screen.dart';
-import '../presentation/views/leaderboard_screen.dart';
 
 // route names
 const routeDashboard = '/dashboard';
@@ -156,7 +154,7 @@ class MyApp extends StatelessWidget {
 }
 
 class _ProtocolsScreenWithInit extends StatefulWidget {
-  const _ProtocolsScreenWithInit({Key? key}) : super(key: key);
+  const _ProtocolsScreenWithInit();
 
   @override
   State<_ProtocolsScreenWithInit> createState() =>

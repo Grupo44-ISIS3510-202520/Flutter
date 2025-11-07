@@ -4,13 +4,12 @@ import 'package:brigadeflutter/data/services_external/screen_brightness_service.
 
 // caso de uso: ajuste dinámico del brillo según luz ambiental
 class AdjustBrightnessFromAmbient {
-  final AmbientLightService ambientLightService;
-  final ScreenBrightnessService screenBrightnessService;
-
   AdjustBrightnessFromAmbient(
     this.ambientLightService,
     this.screenBrightnessService,
   );
+  final AmbientLightService ambientLightService;
+  final ScreenBrightnessService screenBrightnessService;
 
   // inicio del monitoreo continuo
   StreamSubscription<double> start() {

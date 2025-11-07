@@ -1,13 +1,4 @@
 class Report {
-  final int id;
-  final String type;
-  final String placeTime;
-  final String description;
-  final bool isFollowUp;
-  final double? latitude;
-  final double? longitude;
-  final DateTime createdAt;
-
   const Report({
     required this.id,
     required this.type,
@@ -18,4 +9,12 @@ class Report {
     this.longitude,
     required this.createdAt,
   });
+  final int id;
+  final String type;
+  final String placeTime;
+  final String description;
+  final bool isFollowUp;
+  final double? latitude;
+  final double? longitude;
+  final DateTime createdAt;
 }

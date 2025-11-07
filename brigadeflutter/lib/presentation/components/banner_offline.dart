@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class OfflineBanner extends StatelessWidget {
-  final String message;
-
   const OfflineBanner({
     super.key,
-    this.message = "Hey Uniandino, you’re offline! Reconnect to get all features back.",
+    this.message =
+        "Hey Uniandino, you’re offline! Reconnect to get all features back.",
   });
+  final String message;
 
   @override
   Widget build(BuildContext context) {

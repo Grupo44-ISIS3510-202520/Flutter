@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 enum NotificationType { critical, medical, security, reminder, general }
 
 class AppNotification {
-  final String title;
-  final String subtitle;
-  final String timeLabel;
-  final NotificationType type;
 
   const AppNotification({
     required this.title,
@@ -14,6 +10,10 @@ class AppNotification {
     required this.timeLabel,
     required this.type,
   });
+  final String title;
+  final String subtitle;
+  final String timeLabel;
+  final NotificationType type;
 
   (IconData, Color) get visual {
     switch (type) {

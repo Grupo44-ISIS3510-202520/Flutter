@@ -245,8 +245,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           onPressed: vm.submittingReport
                               ? null
                               : () async {
-                                  if (!_formKey.currentState!.validate())
+                                  if (!_formKey.currentState!.validate()) {
                                     return;
+                                  }
                                   final id = await vm.submit(isOnline: isOnline);
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(

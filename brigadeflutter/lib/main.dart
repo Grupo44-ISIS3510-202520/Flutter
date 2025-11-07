@@ -27,7 +27,8 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await setupDi();
-  print('GetIt hash in main.dart: ${sl.hashCode}');
+  await setupFCM();
+  // print('GetIt hash in main.dart: ${sl.hashCode}');
 
   runApp(
     MultiProvider(

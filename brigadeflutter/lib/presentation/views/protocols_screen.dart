@@ -46,37 +46,36 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: vm.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : vm.filtered.isEmpty
-                    ? const Center(child: Text('No protocols found.'))
-                    : ListView.separated(
-                  itemCount: vm.filtered.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final p = vm.filtered[i];
-                    return _ProtocolTile(protocol: p, vm: vm);
-                  },
+                const SizedBox(height: 16),
+                Expanded(
+                  child: vm.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : vm.filtered.isEmpty
+                      ? const Center(child: Text('No protocols found.'))
+                      : ListView.separated(
+                          itemCount: vm.filtered.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, i) {
+                            final p = vm.filtered[i];
+                            return _ProtocolTile(protocol: p, vm: vm);
+                          },
+                        ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
 class _ProtocolTile extends StatelessWidget {
+  const _ProtocolTile({required this.protocol, required this.vm, Key? key})
+    : super(key: key);
   final ProtocolsViewModel vm;
   final protocol;
-
-  const _ProtocolTile({required this.protocol, required this.vm, Key? key})
-      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,19 +90,18 @@ class _ProtocolTile extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(0, 2))
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: ListTile(
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         leading: const CircleAvatar(
           backgroundColor: Colors.white,
           radius: 24,
-          child: Icon(Icons.picture_as_pdf,
-              color: Colors.redAccent, size: 26),
+          child: Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 26),
         ),
         title: Row(
           children: [
@@ -111,7 +109,9 @@ class _ProtocolTile extends StatelessWidget {
               child: Text(
                 name,
                 style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 15.5),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15.5,
+                ),
               ),
             ),
             FutureBuilder<bool>(
@@ -120,16 +120,22 @@ class _ProtocolTile extends StatelessWidget {
                 final isNew = snap.data ?? false;
                 if (!isNew) return const SizedBox.shrink();
                 return Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                      color: Colors.amber.shade700,
-                      borderRadius: BorderRadius.circular(8)),
-                  child: const Text("NEW",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11)),
+                    color: Colors.amber.shade700,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    "NEW",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
                 );
               },
             ),
@@ -140,15 +146,17 @@ class _ProtocolTile extends StatelessWidget {
           if (url.isNotEmpty) {
             await vm.markAsRead(name, version);
             if (context.mounted) {
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => PdfViewer(pdfUrl: url, title: name)),
+                  builder: (_) => PdfViewer(pdfUrl: url, title: name),
+                ),
               );
             }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("No PDF URL found.")));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("No PDF URL found.")));
           }
         },
       ),

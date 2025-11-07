@@ -11,6 +11,7 @@ import '../../data/entities/user_profile.dart';
 import '../../data/entities/brigadist_profile.dart';
 
 class ProfileViewModel extends ChangeNotifier {
+  ProfileViewModel(this._repository);
   final UserRepository _repository;
   final LocationService _location = LocationService();
   final _firestore = FirebaseFirestore.instance;
@@ -18,8 +19,6 @@ class ProfileViewModel extends ChangeNotifier {
   UserProfile? _profile;
   bool _loading = false;
   bool _updating = false;
-
-  ProfileViewModel(this._repository);
 
   UserProfile? get profile => _profile;
   bool get isLoading => _loading;
@@ -37,8 +36,7 @@ class ProfileViewModel extends ChangeNotifier {
     if (cachedProfile != null && lastUpdatedStr != null) {
       final lastUpdated = DateTime.tryParse(lastUpdatedStr);
       final now = DateTime.now();
-      if (lastUpdated != null &&
-          now.difference(lastUpdated).inHours < 24) {
+      if (lastUpdated != null && now.difference(lastUpdated).inHours < 24) {
         final data = jsonDecode(cachedProfile);
 
         _profile = data['role'] == 'brigadist'
@@ -76,8 +74,10 @@ class ProfileViewModel extends ChangeNotifier {
       final user = await _repository.getProfile(uid);
       if (user == null) return;
 
-      final trainingsSnap =
-          await _firestore.collection('user_trainings').doc(uid).get();
+      final trainingsSnap = await _firestore
+          .collection('user_trainings')
+          .doc(uid)
+          .get();
 
       List<String> completedMedals = [];
 
@@ -156,8 +156,9 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final brigadist =
-          (_profile as BrigadistProfile).copyWith(availableNow: available);
+      final brigadist = (_profile as BrigadistProfile).copyWith(
+        availableNow: available,
+      );
 
       await _repository.saveProfile(brigadist);
       _profile = brigadist;

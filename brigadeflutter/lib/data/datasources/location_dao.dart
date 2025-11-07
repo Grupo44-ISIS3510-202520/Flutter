@@ -2,8 +2,8 @@ import 'package:brigadeflutter/data/services_external/location/location_service.
 
 // dao de ubicación delega al service
 class LocationDao {
-  final LocationService _svc;
   LocationDao(this._svc);
+  final LocationService _svc;
 
   Future<({double lat, double lng})?> current() async {
     final pos = await _svc.current();

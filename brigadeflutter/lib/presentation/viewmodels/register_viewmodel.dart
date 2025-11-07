@@ -6,9 +6,19 @@ import '../../domain/use_cases/register_with_email.dart';
 import '../../domain/use_cases/send_email_verification.dart';
 import '../../domain/use_cases/reload_user.dart';
 import '../../core/utils/validators.dart';
-import '../../core/utils/constants.dart';
 
 class RegisterViewModel extends ChangeNotifier {
+  RegisterViewModel({
+    required this.registerUC,
+    required this.sendVerifyUC,
+    required this.reloadUserUC,
+  }) {
+    _connSub = Connectivity().onConnectivityChanged.listen((_) async {
+      final res = await Connectivity().checkConnectivity();
+      isOnline = !res.contains(ConnectivityResult.none);
+      notifyListeners(); // update state
+    });
+  }
   // Use cases
   final RegisterWithEmail registerUC;
   final SendEmailVerification sendVerifyUC;
@@ -23,20 +33,7 @@ class RegisterViewModel extends ChangeNotifier {
   // Subscriptions
   StreamSubscription? _connSub;
 
-  RegisterViewModel({
-    required this.registerUC,
-    required this.sendVerifyUC,
-    required this.reloadUserUC,
-  }) {
-    _connSub = Connectivity().onConnectivityChanged.listen((_) async {
-      final res = await Connectivity().checkConnectivity();
-      isOnline = !res.contains(ConnectivityResult.none);
-      notifyListeners(); // update state
-    });
-  }
-  
-
- Future<bool> submit({
+  Future<bool> submit({
     required String email,
     required String password,
     required String confirmPassword,
@@ -47,7 +44,8 @@ class RegisterViewModel extends ChangeNotifier {
     required String role,
   }) async {
     if (!isOnline) {
-      error = "Hey Uniandino, you’re offline! Reconnect to get all features back.";
+      error =
+          "Hey Uniandino, you’re offline! Reconnect to get all features back.";
       notifyListeners();
       return false;
     }
@@ -69,7 +67,9 @@ class RegisterViewModel extends ChangeNotifier {
       return false;
     }
 
-    submitting = true; error = null; notifyListeners(); // update state
+    submitting = true;
+    error = null;
+    notifyListeners(); // update state
     try {
       await registerUC(
         email: email,
@@ -88,7 +88,8 @@ class RegisterViewModel extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       // mensaje personalizado si el email ya existe
       if (e.code == 'email-already-in-use') {
-        error = 'Sorry $name, you already have an account. Try resetting your password.';
+        error =
+            'Sorry $name, you already have an account. Try resetting your password.';
       } else {
         error = e.message ?? e.code;
       }
@@ -99,7 +100,8 @@ class RegisterViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     } finally {
-      submitting = false; notifyListeners(); // update state
+      submitting = false;
+      notifyListeners(); // update state
     }
   }
 

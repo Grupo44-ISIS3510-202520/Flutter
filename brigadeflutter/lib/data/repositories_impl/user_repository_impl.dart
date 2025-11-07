@@ -4,8 +4,8 @@ import '../repositories/user_repository.dart';
 import '../datasources/user_firestore_dao.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  final UserFirestoreDao remote;
   UserRepositoryImpl(this.remote);
+  final UserFirestoreDao remote;
 
   @override
   Future<void> saveProfile(UserProfile profile) =>

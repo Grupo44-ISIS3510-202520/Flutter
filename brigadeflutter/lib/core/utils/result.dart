@@ -1,5 +1,15 @@
 import 'package:brigadeflutter/core/errors/failures.dart';
 
-sealed class Result<T> { const Result(); }
-class Ok<T> extends Result<T> { final T value; const Ok(this.value); }
-class Err<T> extends Result<T> { final Failure failure; const Err(this.failure); }
+sealed class Result<T> {
+  const Result();
+}
+
+class Ok<T> extends Result<T> {
+  const Ok(this.value);
+  final T value;
+}
+
+class Err<T> extends Result<T> {
+  const Err(this.failure);
+  final Failure failure;
+}

@@ -12,24 +12,6 @@ import '../../data/entities/auth_user.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  // Use cases
-  final SignInWithEmail signIn;
-  final SignOut signOutUC;
-  final ObserveAuthState observe;
-  final GetCurrentUser getCurrent;
-  final SendPasswordResetEmail sendReset;
-
-  // State
-  bool isOnline = true;
-  bool isAuthenticated = false;
-  bool signingIn = false;
-  bool resetting = false;
-  AuthUser? user;
-  String? error;
-
-  // Subscriptions
-  StreamSubscription? _connSub;
-  StreamSubscription<AuthUser?>? _sub;
 
   AuthViewModel({
     required this.signIn,
@@ -53,6 +35,24 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners(); // update state
     });
   }
+  // Use cases
+  final SignInWithEmail signIn;
+  final SignOut signOutUC;
+  final ObserveAuthState observe;
+  final GetCurrentUser getCurrent;
+  final SendPasswordResetEmail sendReset;
+
+  // State
+  bool isOnline = true;
+  bool isAuthenticated = false;
+  bool signingIn = false;
+  bool resetting = false;
+  AuthUser? user;
+  String? error;
+
+  // Subscriptions
+  StreamSubscription? _connSub;
+  StreamSubscription<AuthUser?>? _sub;
 
   Future<bool> forgotPassword(String email) async {
     if (resetting) return false;

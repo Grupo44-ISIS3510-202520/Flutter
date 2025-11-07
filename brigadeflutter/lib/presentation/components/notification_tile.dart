@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../blocs/notifications/app_notification.dart';
 
 class NotificationTile extends StatelessWidget {
-  final AppNotification item;
   const NotificationTile({super.key, required this.item});
+  final AppNotification item;
 
   @override
   Widget build(BuildContext context) {

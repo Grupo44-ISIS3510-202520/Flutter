@@ -1,13 +1,4 @@
 class UserProfile {
-  final String uid;
-  final String name;
-  final String lastName;
-  final String uniandesCode;// numérico
-  final String bloodGroup;  // O+, A+, ...
-  final String role; // student|professor|administrative
-  final String email; 
-  final List<String> medals;
-
   const UserProfile({
     required this.uid,
     required this.name,
@@ -18,4 +9,12 @@ class UserProfile {
     required this.email,
     this.medals = const [],
   });
+  final String uid;
+  final String name;
+  final String lastName;
+  final String uniandesCode; // numérico
+  final String bloodGroup; // O+, A+, ...
+  final String role; // student|professor|administrative
+  final String email;
+  final List<String> medals;
 }

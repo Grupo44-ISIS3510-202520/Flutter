@@ -1,15 +1,16 @@
 import 'package:equatable/equatable.dart';
 
 class TrainingProgress extends Equatable {
-  final String id; 
-  final String label;
-  final int percent; // 0..100
+  // 0..100
 
   const TrainingProgress({
     required this.id,
     required this.label,
     required this.percent,
   });
+  final String id;
+  final String label;
+  final int percent;
 
   TrainingProgress copyWith({String? id, String? label, int? percent}) {
     return TrainingProgress(

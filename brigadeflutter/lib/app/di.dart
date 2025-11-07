@@ -1,6 +1,5 @@
 import 'package:brigadeflutter/presentation/viewmodels/leaderboard_viewmodel.dart';
 import 'package:brigadeflutter/presentation/viewmodels/profile_viewmodel.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,7 +60,6 @@ import '../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
 import '../data/repositories/meeting_point_repository.dart';
 
 // presentation - viewmodels & navigation
-import '../presentation/viewmodels/cas_brightness_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/viewmodels/protocols_viewmodel.dart';
 import '../presentation/viewmodels/register_viewmodel.dart';
@@ -73,7 +71,6 @@ import '../presentation/viewmodels/training_viewmodel.dart';
 import '../data/services_external/openai_service.dart';
 import '../data/services_external/tts_service.dart';
 import '../data/services_external/connectivity_service.dart';
-import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -168,10 +165,10 @@ try {
       sl<ScreenBrightnessService>(),
     ),
   );
-  print('AdjustBrightnessFromAmbient registered');
-} catch (e, s) {
-  print('Error registering AdjustBrightnessFromAmbient: $e');
-  print(s);
+  //print('AdjustBrightnessFromAmbient registered');
+} catch (e) {
+  //print('Error registering AdjustBrightnessFromAmbient: $e');
+  //print(s);
 }
 
   assert(
@@ -237,10 +234,10 @@ sl.registerFactory(() => LeaderboardViewModel());
 
 sl.registerFactory(() => ProfileViewModel(sl<UserRepository>()));
 
-  print('registered: ${sl.allReady()}');
-  print(
-    'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
-  );
+  // print('registered: ${sl.allReady()}');
+  // print(
+  //   'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
+  // );
   //print('registered: ${sl.allReady()}');
  // print(
   //  'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',

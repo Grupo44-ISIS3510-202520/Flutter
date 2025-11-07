@@ -5,15 +5,14 @@ import '../../data/services_external/screen_brightness_service.dart';
 import '../../data/services_external/ambient_light_service.dart';
 
 class CasBrightnessViewModel extends ChangeNotifier {
-  final AdjustBrightnessFromAmbient adjustUC;
-  final ScreenBrightnessService screen;
-  final AmbientLightService ambient;
-
   CasBrightnessViewModel({
     required this.adjustUC,
     required this.screen,
     required this.ambient,
   });
+  final AdjustBrightnessFromAmbient adjustUC;
+  final ScreenBrightnessService screen;
+  final AmbientLightService ambient;
 
   bool supported = false;
   bool autoOn = false;

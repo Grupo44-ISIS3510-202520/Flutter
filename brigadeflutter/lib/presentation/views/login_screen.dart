@@ -1,6 +1,5 @@
 import 'package:brigadeflutter/presentation/components/banner_offline.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/utils/validators.dart';
 import '../../core/utils/input_formatters.dart';
@@ -145,8 +144,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ? null
                                           : () async {
                                               if (!dlgFormKey.currentState!
-                                                  .validate())
+                                                  .validate()) {
                                                 return;
+                                              }
                                               final ok = await vm
                                                   .forgotPassword(
                                                     ctrl.text.trim(),
@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               if (!mounted) return;
                                               Navigator.pop(context);
                                               if (!ok) {
-                                                showDialog(
+                                                await showDialog(
                                                   context: context,
                                                   builder: (_) => AlertDialog(
                                                     title: const Text('Error'),
@@ -174,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   ),
                                                 );
                                               } else {
-                                                showDialog(
+                                                await showDialog(
                                                   context: context,
                                                   builder: (_) => AlertDialog(
                                                     title: const Text(

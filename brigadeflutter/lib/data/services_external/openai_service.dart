@@ -8,10 +8,10 @@ abstract class OpenAIService {
 }
 
 class OpenAIServiceImpl implements OpenAIService {
+  OpenAIServiceImpl.withKey(this._apiKey);
+  OpenAIServiceImpl() : _apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
   // final String _apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
   final String _apiKey;
-  OpenAIServiceImpl() : _apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
-  OpenAIServiceImpl.withKey(this._apiKey);
   static const _endpoint = 'https://api.openai.com/v1/chat/completions';
   static const _model = 'gpt-4o-mini';
 

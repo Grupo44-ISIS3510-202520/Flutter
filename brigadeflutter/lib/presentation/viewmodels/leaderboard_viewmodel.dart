@@ -2,17 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 class LeaderboardEntry {
-  final String uid;
-  final String email;
-  final int completedCount;
-  final DateTime? lastCompletedAt;
-
   LeaderboardEntry({
     required this.uid,
     required this.email,
     required this.completedCount,
     this.lastCompletedAt,
   });
+  final String uid;
+  final String email;
+  final int completedCount;
+  final DateTime? lastCompletedAt;
 }
 
 class LeaderboardViewModel extends ChangeNotifier {
@@ -62,12 +61,12 @@ class LeaderboardViewModel extends ChangeNotifier {
               }
             }
 
-            final userDoc = usersSnapshot.docs.where((u) => u.id == doc.id).isNotEmpty
-              ? usersSnapshot.docs.firstWhere((u) => u.id == doc.id)
-              : usersSnapshot.docs.isNotEmpty
-                  ? usersSnapshot.docs.first
-                  : throw StateError('No users found');
-
+            final userDoc =
+                usersSnapshot.docs.where((u) => u.id == doc.id).isNotEmpty
+                ? usersSnapshot.docs.firstWhere((u) => u.id == doc.id)
+                : usersSnapshot.docs.isNotEmpty
+                ? usersSnapshot.docs.first
+                : throw StateError('No users found');
 
             return LeaderboardEntry(
               uid: doc.id,

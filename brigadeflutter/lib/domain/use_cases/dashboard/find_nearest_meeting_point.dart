@@ -6,11 +6,16 @@ import '../../../data/services_external/location/location_service.dart';
 import '../../../core/workers/meeting_point_isolate.dart';
 
 class LocationUnavailableException implements Exception {
-  final String message;
   LocationUnavailableException([this.message = 'Location unavailable']);
+  final String message;
 }
 
 class NearestMeetingResult {
+  NearestMeetingResult({
+    required this.point,
+    required this.distanceMeters,
+    this.usedIsolate = true,
+  });
   final MeetingPoint point;
   final double distanceMeters;
   final bool usedIsolate;
@@ -22,15 +27,14 @@ class NearestMeetingResult {
 }
 
 class FindNearestMeetingPoint {
-  final MeetingPointRepository repository;
-  final LocationService locationService;
-  final double maxDistanceMeters;
-
   FindNearestMeetingPoint({
     required this.repository,
     required this.locationService,
     this.maxDistanceMeters = 500.0,
   });
+  final MeetingPointRepository repository;
+  final LocationService locationService;
+  final double maxDistanceMeters;
 
   Future<NearestMeetingResult?> call() async {
     final Position? pos = await locationService.current();
@@ -127,7 +131,8 @@ class FindNearestMeetingPoint {
     final dPhi = _toRad(lat2 - lat1);
     final dLambda = _toRad(lon2 - lon1);
 
-    final a = sin(dPhi / 2) * sin(dPhi / 2) +
+    final a =
+        sin(dPhi / 2) * sin(dPhi / 2) +
         cos(phi1) * cos(phi2) * sin(dLambda / 2) * sin(dLambda / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return R * c;

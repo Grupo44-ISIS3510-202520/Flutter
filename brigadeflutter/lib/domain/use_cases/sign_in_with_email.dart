@@ -1,8 +1,8 @@
 import '../../data/repositories/auth_repository.dart';
 
 class SignInWithEmail {
-  final AuthRepository repo;
   SignInWithEmail(this.repo);
+  final AuthRepository repo;
 
   Future<void> call({required String email, required String password}) async {
     // validaciones básicas
