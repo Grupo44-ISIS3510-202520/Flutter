@@ -14,19 +14,15 @@ class NearestMeetingResult {
   NearestMeetingResult({
     required this.point,
     required this.distanceMeters,
-    this.usedIsolate = true,
+    this.usedIsolate = true
   });
   final MeetingPoint point;
   final double distanceMeters;
   final bool usedIsolate;
-  NearestMeetingResult({
-    required this.point,
-    required this.distanceMeters,
-    this.usedIsolate = true
-  });
 }
 
 class FindNearestMeetingPoint {
+
   FindNearestMeetingPoint({
     required this.repository,
     required this.locationService,
@@ -131,8 +127,7 @@ class FindNearestMeetingPoint {
     final dPhi = _toRad(lat2 - lat1);
     final dLambda = _toRad(lon2 - lon1);
 
-    final a =
-        sin(dPhi / 2) * sin(dPhi / 2) +
+    final a = sin(dPhi / 2) * sin(dPhi / 2) +
         cos(phi1) * cos(phi2) * sin(dLambda / 2) * sin(dLambda / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return R * c;

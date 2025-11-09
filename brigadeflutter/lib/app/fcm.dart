@@ -1,4 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:brigadeflutter/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 Future<void> setupFCM() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -16,6 +18,7 @@ Future<void> setupFCM() async {
   //print('FCM Token: $token');
 
   // listen for foreground messages
+  await messaging.subscribeToTopic('alerts');
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     //print('Received foreground message: ${message.notification?.title}');
     if (message.notification != null) {
@@ -27,4 +30,12 @@ Future<void> setupFCM() async {
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     //print('Message opened app: ${message.data}');
   });
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 }
+
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print('Handling a background message: ${message.messageId}');
+}
+
