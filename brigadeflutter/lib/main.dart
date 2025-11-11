@@ -1,3 +1,4 @@
+import 'package:brigadeflutter/presentation/viewmodels/notification_viewmodel.dart';
 import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'dart:async';
 import 'package:brigadeflutter/firebase_options.dart';
@@ -12,6 +13,8 @@ import 'package:provider/provider.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/viewmodels/emergency_report_viewmodel.dart';
 import 'presentation/viewmodels/dashboard_viewmodel.dart';
+import 'app/fcm.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +30,8 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await setupDi();
-  await setupFCM();
+  await sl<NotificationViewModel>().init();
+  // await setupFCM();
   // print('GetIt hash in main.dart: ${sl.hashCode}');
 
   runApp(

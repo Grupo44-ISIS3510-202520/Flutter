@@ -72,6 +72,11 @@ import '../data/services_external/openai_service.dart';
 import '../data/services_external/tts_service.dart';
 import '../data/services_external/connectivity_service.dart';
 
+
+// notifications service
+import '../data/services_external/notitication_service.dart';
+import '../presentation/viewmodels/notification_viewmodel.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> setupDi() async {
@@ -242,4 +247,9 @@ sl.registerFactory(() => ProfileViewModel(sl<UserRepository>()));
  // print(
   //  'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
   //);
+  // notifications service
+  sl.registerLazySingleton<NotificationService>(() => NotificationService());
+  sl.registerFactory<NotificationViewModel>(
+    () => NotificationViewModel(sl<NotificationService>()),
+  );
 }

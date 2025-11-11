@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"g44-moviles-new","appId":"1:504061241739:android:0d61bb74c0d2206241678e","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"g44-moviles-new","configurations":{"android":"1:504061241739:android:0d61bb74c0d2206241678e","web":"1:504061241739:web:ba0dafae4125c5d541678e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "g44-moviles-new",
+          "appId": "1:504061241739:android:0d61bb74c0d2206241678e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "g44-moviles-new",
+          "configurations": {
+            "android": "1:504061241739:android:0d61bb74c0d2206241678e",
+            "web": "1:504061241739:web:ba0dafae4125c5d541678e"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ],
+      "source": "functions"
+    }
+  ]
+}
