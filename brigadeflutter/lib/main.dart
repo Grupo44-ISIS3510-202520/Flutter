@@ -1,3 +1,5 @@
+import 'package:brigadeflutter/data/repositories/notification_repository.dart';
+import 'package:brigadeflutter/presentation/viewmodels/notification_screen_viewmodel.dart'; //este es para el screen de notificaciones
 import 'package:brigadeflutter/presentation/viewmodels/notification_viewmodel.dart';
 import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'dart:async';
@@ -14,14 +16,11 @@ import 'package:provider/provider.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/viewmodels/emergency_report_viewmodel.dart';
 import 'presentation/viewmodels/dashboard_viewmodel.dart';
-import 'app/fcm.dart';
-
+//import 'app/fcm.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await dotenv.load(fileName: '.env');
   await Hive.initFlutter();
@@ -46,7 +45,9 @@ Future<void> main() async {
           create: (_) => sl<EmergencyReportViewModel>(),
         ),
         ChangeNotifierProvider(create: (_) => TrainingViewModel(repo: sl())),
-
+        ChangeNotifierProvider(
+          create: (_) => NotificationScreenViewModel(NotificationRepository()),
+        ),
 
         ChangeNotifierProvider<DashboardViewModel>.value(
           value: sl<DashboardViewModel>(),
