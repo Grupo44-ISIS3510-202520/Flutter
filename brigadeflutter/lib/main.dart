@@ -2,6 +2,7 @@ import 'package:brigadeflutter/presentation/viewmodels/notification_viewmodel.da
 import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'dart:async';
 import 'package:brigadeflutter/firebase_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
 
   await setupDi();
   await sl<NotificationViewModel>().init();
+  await FirebaseMessaging.instance.subscribeToTopic('alerts');
   // await setupFCM();
   // print('GetIt hash in main.dart: ${sl.hashCode}');
 
