@@ -23,7 +23,24 @@ class NotificationService {
   Future<void> init() async {
     await Firebase.initializeApp();
 
-    await _messaging.requestPermission();
+    final settings = await _messaging.requestPermission();
+    // debug: print permission and token
+    // ignore: avoid_print
+    print('FCM permission: ${settings.authorizationStatus}');
+
+    final token = await _messaging.getToken();
+    // ignore: avoid_print
+    print('FCM Token: $token');
+
+    // subscribe to topic used by the backend
+    try {
+      await _messaging.subscribeToTopic('alerts');
+      // ignore: avoid_print
+      print('Subscribed to topic: alerts');
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to subscribe to topic: $e');
+    }
 
     // crear canal de Android
     await _flutterLocalNotificationsPlugin
@@ -40,7 +57,15 @@ class NotificationService {
 
     // registrar manejador de background
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessage.listen((msg) {
+      // ignore: avoid_print
+      print('Foreground message received: ${msg.notification?.title} - ${msg.notification?.body}');
+      _handleForegroundMessage(msg);
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+      // ignore: avoid_print
+      print('User opened app from notification: ${msg.data}');
+    });
   }
 
   // handler de mensajes en background
