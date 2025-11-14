@@ -30,7 +30,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return Consumer<AuthViewModel>(
       builder: (_, AuthViewModel vm, __) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Sign in')),
+          appBar: AppBar(
+            title: const Text(
+              'Sign in',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.white,
+          ),
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: Form(
@@ -64,7 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(hintText: 'email'),
                     keyboardType: TextInputType.emailAddress,
                     validator: (String? v) => validateEmailDomain(v),
-                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(30)],
+                    inputFormatters: <TextInputFormatter>[
+                      NoEmojiAndLengthFormatter(30),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -72,7 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(hintText: 'password'),
                     obscureText: true,
                     validator: validatePassword,
-                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(20)],
+                    inputFormatters: <TextInputFormatter>[
+                      NoEmojiAndLengthFormatter(20),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
@@ -113,10 +123,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: vm.resetting
                           ? null
                           : () async {
-                              final TextEditingController ctrl = TextEditingController(
-                                text: _email.text.trim(),
-                              );
-                              final GlobalKey<FormState> dlgFormKey = GlobalKey<FormState>();
+                              final TextEditingController ctrl =
+                                  TextEditingController(
+                                    text: _email.text.trim(),
+                                  );
+                              final GlobalKey<FormState> dlgFormKey =
+                                  GlobalKey<FormState>();
 
                               await showDialog(
                                 context: context,
@@ -130,7 +142,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         hintText: 'email',
                                       ),
                                       keyboardType: TextInputType.emailAddress,
-                                      validator: (String? v) => validateEmailDomain(v),
+                                      validator: (String? v) =>
+                                          validateEmailDomain(v),
                                       inputFormatters: <TextInputFormatter>[
                                         NoEmojiAndLengthFormatter(30),
                                       ],

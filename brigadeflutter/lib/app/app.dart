@@ -35,13 +35,16 @@ const String routeReport = '/report';
 const String routeLeaderboard = '/leaderboard';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.navigatorKey});
+
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (_, AuthViewModel auth, __) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Brigade',
           theme: ThemeData(

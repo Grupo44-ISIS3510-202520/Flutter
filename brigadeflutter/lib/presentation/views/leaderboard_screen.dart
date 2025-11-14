@@ -11,7 +11,7 @@ class LeaderboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Weekly Leaderboard'),
+        title: const Text('Weekly Leaderboard', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
       ),
       backgroundColor: const Color(0xFFF3F5F8),

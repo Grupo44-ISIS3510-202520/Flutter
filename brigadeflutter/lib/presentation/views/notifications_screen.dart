@@ -20,7 +20,7 @@ class NotificationsScreen extends StatelessWidget {
           'Notifications',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface
+        backgroundColor: Colors.white,
       ),
       body: StreamBuilder<List<NotificationModel>>(
         stream: viewModel.notificationsStream,

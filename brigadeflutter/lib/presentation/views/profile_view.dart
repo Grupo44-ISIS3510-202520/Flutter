@@ -35,13 +35,14 @@ class ProfileView extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverAppBar(
+            const SliverAppBar(
               pinned: true,
-              title: const Text('User Profile'),
-              leading: backToDashboardButton(context),
-              actions: <Widget>[
-                signOutAction(context), 
-              ],
+              title: Text('User Profile',style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.white,
+              //leading: backToDashboardButton(context),
+              // actions: <Widget>[
+              //   signOutAction(context), 
+              // ],
             ),
 
             SliverToBoxAdapter(

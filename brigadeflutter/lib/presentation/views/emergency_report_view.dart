@@ -33,7 +33,8 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
     // inicializa el cas de brillo sin notificar durante build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final EmergencyReportViewModel vm = context.read<EmergencyReportViewModel>();
+      final EmergencyReportViewModel vm = context
+          .read<EmergencyReportViewModel>();
       vm.initBrightness();
       vm.initConnectivityWatcher(); // no hace lógica en la vista
     });
@@ -61,7 +62,11 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
         return Scaffold(
           appBar: AppBar(
             leading: backToDashboardButton(context),
-            title: const Text('Emergency Report'),
+            title: const Text(
+              'Emergency Report',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.white,
             actions: <Widget>[signOutAction(context)],
           ),
           bottomNavigationBar: const AppBottomNav(current: 0),
@@ -117,7 +122,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           decoration: const InputDecoration(
                             hintText: 'Emergency Type',
                           ),
-                          inputFormatters: <TextInputFormatter>[SafeTextFormatter(max: 60)],
+                          inputFormatters: <TextInputFormatter>[
+                            SafeTextFormatter(max: 60),
+                          ],
                           maxLength: 60,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           buildCounter:
@@ -135,7 +142,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           controller: _placeCtrl,
                           onChanged: vm.onPlaceTimeChanged,
                           decoration: const InputDecoration(hintText: 'Place'),
-                          inputFormatters: <TextInputFormatter>[SafeTextFormatter(max: 100)],
+                          inputFormatters: <TextInputFormatter>[
+                            SafeTextFormatter(max: 100),
+                          ],
                           maxLength: 100,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           buildCounter:
@@ -180,7 +189,8 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                 },
                         ),
 
-                        if (vm.latitude != null && vm.longitude != null) ...<Widget>[
+                        if (vm.latitude != null &&
+                            vm.longitude != null) ...<Widget>[
                           const SizedBox(height: 6),
                           Text(
                             'Ubicación: ${vm.latitude!.toStringAsFixed(5)}, ${vm.longitude!.toStringAsFixed(5)}',
@@ -201,7 +211,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           decoration: const InputDecoration(
                             hintText: 'Description',
                           ),
-                          inputFormatters: <TextInputFormatter>[SafeTextFormatter(max: 500)],
+                          inputFormatters: <TextInputFormatter>[
+                            SafeTextFormatter(max: 500),
+                          ],
                           maxLength: 500,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           buildCounter:
@@ -248,7 +260,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                   if (!_formKey.currentState!.validate()) {
                                     return;
                                   }
-                                  final int? id = await vm.submit(isOnline: isOnline);
+                                  final int? id = await vm.submit(
+                                    isOnline: isOnline,
+                                  );
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(

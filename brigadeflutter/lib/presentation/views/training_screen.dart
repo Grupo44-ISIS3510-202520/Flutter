@@ -30,8 +30,8 @@ class _TrainingScreenState extends State<TrainingScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Training'),
-        leading: backToDashboardButton(context),
+        title: const Text('Training', style: TextStyle(fontWeight: FontWeight.bold)),
+        //leading: backToDashboardButton(context),
       ),
       body: Builder(
         builder: (_) {

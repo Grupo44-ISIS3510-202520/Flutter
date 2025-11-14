@@ -29,7 +29,7 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
     return Consumer<ProtocolsViewModel>(builder: (BuildContext context, ProtocolsViewModel vm, Widget? child) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Protocols & Manuals'),
+          title: const Text('Protocols & Manuals', style: TextStyle(fontWeight: FontWeight.bold)),
           automaticallyImplyLeading: Navigator.canPop(context),
           backgroundColor: Colors.white,
           elevation: 0.5,
