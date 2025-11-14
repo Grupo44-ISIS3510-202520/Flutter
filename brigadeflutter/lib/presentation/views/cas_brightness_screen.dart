@@ -11,14 +11,14 @@ class CasBrightnessScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<CasBrightnessViewModel>()..init(),
       child: Consumer<CasBrightnessViewModel>(
-        builder: (_, vm, __) {
+        builder: (_, CasBrightnessViewModel vm, __) {
           return Scaffold(
             appBar: AppBar(title: const Text('Context Aware: Brightness')),
             body: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   if (!vm.supported)
                     const Text(
                       'auto-brightness not supported on this platform',
@@ -26,7 +26,7 @@ class CasBrightnessScreen extends StatelessWidget {
                     ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       const Text('Auto brightness'),
                       const Spacer(),
                       Switch(

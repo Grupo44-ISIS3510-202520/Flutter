@@ -1,28 +1,31 @@
-import 'package:brigadeflutter/data/repositories/notification_repository.dart';
-import 'package:brigadeflutter/presentation/viewmodels/notification_screen_viewmodel.dart'; //este es para el screen de notificaciones
-import 'package:brigadeflutter/presentation/viewmodels/notification_viewmodel.dart';
-import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
 import 'dart:async';
-import 'package:brigadeflutter/firebase_options.dart';
+
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'app/di.dart';
-import 'app/app.dart';
+import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
+
+import 'app/app.dart';
+import 'app/di.dart';
+import 'data/repositories/notification_repository.dart';
+import 'firebase_options.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
-import 'presentation/viewmodels/emergency_report_viewmodel.dart';
 import 'presentation/viewmodels/dashboard_viewmodel.dart';
+import 'presentation/viewmodels/emergency_report_viewmodel.dart';
+import 'presentation/viewmodels/notification_screen_viewmodel.dart'; //este es para el screen de notificaciones
+import 'presentation/viewmodels/notification_viewmodel.dart';
+import 'presentation/viewmodels/training_viewmodel.dart';
 //import 'app/fcm.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SystemChrome.setPreferredOrientations(<DeviceOrientation>[DeviceOrientation.portraitUp]);
 
-  await dotenv.load(fileName: '.env');
+  await dotenv.load();
   await Hive.initFlutter();
   await Hive.openBox('trainingsBox');
   await Hive.openBox<String>('ai_cache');
@@ -37,7 +40,7 @@ Future<void> main() async {
 
   runApp(
     MultiProvider(
-      providers: [
+      providers: <SingleChildWidget>[
         ChangeNotifierProvider<AuthViewModel>(
           create: (_) => sl<AuthViewModel>(),
         ),

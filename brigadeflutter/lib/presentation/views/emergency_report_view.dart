@@ -1,13 +1,13 @@
-import 'package:brigadeflutter/presentation/components/banner_report_offline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../viewmodels/emergency_report_viewmodel.dart';
-import '../../core/utils/validators.dart';
-import '../components/app_bottom_nav.dart';
-import '../components/app_bar_actions.dart';
 import '../../core/utils/input_formatters.dart';
+import '../../core/utils/validators.dart';
+import '../components/app_bar_actions.dart';
+import '../components/app_bottom_nav.dart';
+import '../components/banner_report_offline.dart';
+import '../viewmodels/emergency_report_viewmodel.dart';
 
 class EmergencyReportScreen extends StatefulWidget {
   const EmergencyReportScreen({super.key});
@@ -17,7 +17,7 @@ class EmergencyReportScreen extends StatefulWidget {
 }
 
 class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // controllers para limpiar campos tras submit
   late final TextEditingController _typeCtrl;
@@ -33,7 +33,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
     // inicializa el cas de brillo sin notificar durante build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final vm = context.read<EmergencyReportViewModel>();
+      final EmergencyReportViewModel vm = context.read<EmergencyReportViewModel>();
       vm.initBrightness();
       vm.initConnectivityWatcher(); // no hace lógica en la vista
     });
@@ -50,24 +50,24 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<EmergencyReportViewModel>(
-      builder: (_, vm, __) {
+      builder: (_, EmergencyReportViewModel vm, __) {
         // sincroniza place cuando viene del gps
         if (_placeCtrl.text != vm.placeTime && vm.placeTime.isNotEmpty) {
           _placeCtrl.text = vm.placeTime;
         }
 
-        final isOnline = vm.isOnline ?? !vm.offline;
+        final bool isOnline = vm.isOnline ?? !vm.offline;
 
         return Scaffold(
           appBar: AppBar(
             leading: backToDashboardButton(context),
             title: const Text('Emergency Report'),
-            actions: [signOutAction(context)],
+            actions: <Widget>[signOutAction(context)],
           ),
           bottomNavigationBar: const AppBottomNav(current: 0),
 
           body: Column(
-            children: [
+            children: <Widget>[
               if (vm.offline) const OfflineMaterialBanner(),
               Expanded(
                 child: SafeArea(
@@ -78,10 +78,10 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                   child: Form(
                     key: _formKey,
                     child: ListView(
-                      children: [
+                      children: <Widget>[
                         const SizedBox(height: 12),
 
-                        if (vm.autoBrightnessSupported) ...[
+                        if (vm.autoBrightnessSupported) ...<Widget>[
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -95,7 +95,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                               ),
                             ),
                             child: Row(
-                              children: [
+                              children: <Widget>[
                                 const Icon(Icons.brightness_auto, size: 20),
                                 const SizedBox(width: 8),
                                 const Text('Auto brightness'),
@@ -117,17 +117,17 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           decoration: const InputDecoration(
                             hintText: 'Emergency Type',
                           ),
-                          inputFormatters: [SafeTextFormatter(max: 60)],
+                          inputFormatters: <TextInputFormatter>[SafeTextFormatter(max: 60)],
                           maxLength: 60,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           buildCounter:
                               (
                                 _, {
-                                required currentLength,
-                                required isFocused,
-                                maxLength,
+                                required int currentLength,
+                                required bool isFocused,
+                                int? maxLength,
                               }) => kNoCounter,
-                          validator: (v) => requiredText(v),
+                          validator: (String? v) => requiredText(v),
                         ),
                         const SizedBox(height: 12),
 
@@ -135,15 +135,15 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           controller: _placeCtrl,
                           onChanged: vm.onPlaceTimeChanged,
                           decoration: const InputDecoration(hintText: 'Place'),
-                          inputFormatters: [SafeTextFormatter(max: 100)],
+                          inputFormatters: <TextInputFormatter>[SafeTextFormatter(max: 100)],
                           maxLength: 100,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           buildCounter:
                               (
                                 _, {
-                                required currentLength,
-                                required isFocused,
-                                maxLength,
+                                required int currentLength,
+                                required bool isFocused,
+                                int? maxLength,
                               }) => kNoCounter,
                           validator: validatePlaceTime,
                         ),
@@ -157,7 +157,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           onPressed: vm.loadingLocation
                               ? null
                               : () async {
-                                  final updated = await vm
+                                  final bool updated = await vm
                                       .fillWithCurrentLocation();
                                   if (!mounted) return;
                                   if (updated) {
@@ -180,7 +180,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                 },
                         ),
 
-                        if (vm.latitude != null && vm.longitude != null) ...[
+                        if (vm.latitude != null && vm.longitude != null) ...<Widget>[
                           const SizedBox(height: 6),
                           Text(
                             'Ubicación: ${vm.latitude!.toStringAsFixed(5)}, ${vm.longitude!.toStringAsFixed(5)}',
@@ -201,15 +201,15 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                           decoration: const InputDecoration(
                             hintText: 'Description',
                           ),
-                          inputFormatters: [SafeTextFormatter(max: 500)],
+                          inputFormatters: <TextInputFormatter>[SafeTextFormatter(max: 500)],
                           maxLength: 500,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           buildCounter:
                               (
                                 _, {
-                                required currentLength,
-                                required isFocused,
-                                maxLength,
+                                required int currentLength,
+                                required bool isFocused,
+                                int? maxLength,
                               }) => kNoCounter,
                           validator: validateDescription,
                         ),
@@ -217,7 +217,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                         const SizedBox(height: 12),
 
                         Row(
-                          children: [
+                          children: <Widget>[
                             Switch(
                               value: vm.isFollowUp,
                               onChanged: vm.onFollowChanged,
@@ -248,7 +248,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                   if (!_formKey.currentState!.validate()) {
                                     return;
                                   }
-                                  final id = await vm.submit(isOnline: isOnline);
+                                  final int? id = await vm.submit(isOnline: isOnline);
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(

@@ -1,11 +1,13 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../domain/use_cases/register_with_email.dart';
-import '../../domain/use_cases/send_email_verification.dart';
-import '../../domain/use_cases/reload_user.dart';
+import 'package:flutter/foundation.dart';
+
 import '../../core/utils/validators.dart';
+import '../../domain/use_cases/register_with_email.dart';
+import '../../domain/use_cases/reload_user.dart';
+import '../../domain/use_cases/send_email_verification.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   RegisterViewModel({
@@ -14,7 +16,7 @@ class RegisterViewModel extends ChangeNotifier {
     required this.reloadUserUC,
   }) {
     _connSub = Connectivity().onConnectivityChanged.listen((_) async {
-      final res = await Connectivity().checkConnectivity();
+      final List<ConnectivityResult> res = await Connectivity().checkConnectivity();
       isOnline = !res.contains(ConnectivityResult.none);
       notifyListeners(); // update state
     });
@@ -45,13 +47,13 @@ class RegisterViewModel extends ChangeNotifier {
   }) async {
     if (!isOnline) {
       error =
-          "Hey Uniandino, you’re offline! Reconnect to get all features back.";
+          'Hey Uniandino, you’re offline! Reconnect to get all features back.';
       notifyListeners();
       return false;
     }
 
     // validación en VM
-    final problems = <String?>[
+    final List<String> problems = <String?>[
       validateEmailDomain(email),
       validatePassword(password),
       validatePasswordConfirm(confirmPassword, password),

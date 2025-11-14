@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../data/repositories/notification_repository.dart';
+
 import '../../../data/models/notification_model.dart';
+import '../../../data/repositories/notification_repository.dart';
 
 class NotificationScreenViewModel extends ChangeNotifier {
 

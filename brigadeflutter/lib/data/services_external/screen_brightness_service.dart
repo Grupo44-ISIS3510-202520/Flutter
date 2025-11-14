@@ -7,11 +7,11 @@ abstract class ScreenBrightnessService {
 }
 
 class ScreenBrightnessServiceImpl implements ScreenBrightnessService {
-  final _sb = ScreenBrightness();
+  final ScreenBrightness _sb = ScreenBrightness();
 
   @override
   Future<void> setBrightness(double value) async {
-    final v = value.clamp(0.0, 1.0);
+    final double v = value.clamp(0.0, 1.0);
     await _sb.setScreenBrightness(v);
   }
 

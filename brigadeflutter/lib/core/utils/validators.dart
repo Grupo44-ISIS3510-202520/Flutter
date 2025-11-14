@@ -1,7 +1,7 @@
 // validaciones simples para formularios
 import 'constants.dart';
 
-final _emojiRegex = RegExp(r'[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]',
+final RegExp _emojiRegex = RegExp(r'[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}]',
     unicode: true);
 
 String? requiredText(String? v, {int max = 500}) {
@@ -59,10 +59,10 @@ String? validateRole(String? v) =>
 // email dominio + límite 20 + sin emojis
 String? validateEmailDomain(String? v, {String domain = kAllowedEmailDomain}) {
   if (v == null || v.trim().isEmpty) return 'required';
-  final e = v.trim();
+  final String e = v.trim();
   if (_emojiRegex.hasMatch(e)) return 'no emojis';
   if (e.length > 30) return 'max 30 chars';
-  final ok = RegExp('^[^@\\s]+@${RegExp.escape(domain)}\$',
+  final bool ok = RegExp('^[^@\\s]+@${RegExp.escape(domain)}\$',
       caseSensitive: false).hasMatch(e);
   return ok ? null : 'use your @$domain email';
 }

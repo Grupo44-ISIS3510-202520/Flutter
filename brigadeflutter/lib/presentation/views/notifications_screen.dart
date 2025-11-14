@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../presentation/viewmodels/notification_screen_viewmodel.dart';
-import '../../../data/models/notification_model.dart';
-import '../components/app_bottom_nav.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../../../data/models/notification_model.dart';
+import '../../../presentation/viewmodels/notification_screen_viewmodel.dart';
+import '../components/app_bottom_nav.dart';
 
 
 class NotificationsScreen extends StatelessWidget {
@@ -11,20 +12,20 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<NotificationScreenViewModel>(context, listen: false);
+    final NotificationScreenViewModel viewModel = Provider.of<NotificationScreenViewModel>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Notifications",
+          'Notifications',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface
       ),
       body: StreamBuilder<List<NotificationModel>>(
         stream: viewModel.notificationsStream,
-        builder: (context, snapshot) {
-          final alerts = snapshot.data ?? [];
+        builder: (BuildContext context, AsyncSnapshot<List<NotificationModel>> snapshot) {
+          final List<NotificationModel> alerts = snapshot.data ?? <NotificationModel>[];
 
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -39,8 +40,8 @@ class NotificationsScreen extends StatelessWidget {
             child: ListView.separated(
               itemCount: alerts.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final alert = alerts[index];
+              itemBuilder: (BuildContext context, int index) {
+                final NotificationModel alert = alerts[index];
                 return _NotificationCard(alert: alert);
               },
             ),
@@ -53,14 +54,14 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 class _NotificationCard extends StatelessWidget {
-  final NotificationModel alert;
 
   const _NotificationCard({required this.alert});
+  final NotificationModel alert;
 
   @override
   Widget build(BuildContext context) {
-    final iconData = _alertIcon(alert.type);
-    final bgColor = _alertColor(alert.type);
+    final IconData iconData = _alertIcon(alert.type);
+    final Color bgColor = _alertColor(alert.type);
 
     return Container(
       decoration: BoxDecoration(
@@ -76,8 +77,7 @@ class _NotificationCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Container(
                 width: 48,
                 height: 48,
@@ -91,7 +91,7 @@ class _NotificationCard extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text(
                       alert.title,
                       style: const TextStyle(
@@ -158,7 +158,7 @@ class _NotificationCard extends StatelessWidget {
   }
 
   String _timeAgo(DateTime timestamp) {
-    final diff = DateTime.now().difference(timestamp);
+    final Duration diff = DateTime.now().difference(timestamp);
     if (diff.inMinutes < 1) return 'Now';
     if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
     if (diff.inHours < 24) return '${diff.inHours} hr ago';
@@ -175,12 +175,12 @@ class _EmptyAlertsState extends StatelessWidget {
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Icon(Icons.warning_amber_rounded,
                 size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              "No active alerts",
+              'No active alerts',
               style: Theme.of(context)
                   .textTheme
                   .titleMedium

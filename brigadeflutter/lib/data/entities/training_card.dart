@@ -15,5 +15,5 @@ class TrainingCard extends Equatable {
   final String cta;
 
   @override
-  List<Object?> get props => [id, title, subtitle, imageUrl, cta];
+  List<Object?> get props => <Object?>[id, title, subtitle, imageUrl, cta];
 }

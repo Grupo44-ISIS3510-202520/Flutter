@@ -1,8 +1,8 @@
-import 'package:brigadeflutter/core/utils/validators.dart';
-
+import '../../core/utils/validators.dart';
+import '../../data/entities/auth_user.dart';
+import '../../data/entities/user_profile.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
-import '../../data/entities/user_profile.dart';
 
 class RegisterWithEmail {
   RegisterWithEmail(this.authRepo, this.userRepo);
@@ -19,7 +19,7 @@ class RegisterWithEmail {
     required String bloodGroup,
     required String role,
   }) async {
-    final problems = <String?>[
+    final List<String> problems = <String?>[
       validateEmailDomain(email),
       validatePassword(password),
       validatePasswordConfirm(confirmPassword, password),
@@ -33,12 +33,12 @@ class RegisterWithEmail {
       throw ArgumentError(problems.first);
     }
 
-    final user = await authRepo.registerWithEmail(
+    final AuthUser user = await authRepo.registerWithEmail(
       email: email.trim(),
       password: password,
     );
 
-    final profile = UserProfile(
+    final UserProfile profile = UserProfile(
       uid: user.uid,
       email: email.trim(),
       name: name.trim(),

@@ -5,6 +5,6 @@ class IsProtocolNew {
   final ProtocolRepository repository;
 
   Future<bool> call(String name, String version) async {
-    return await repository.isNew(name, version);
+    return repository.isNew(name, version);
   }
 }

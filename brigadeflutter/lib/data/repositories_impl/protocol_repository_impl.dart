@@ -22,7 +22,7 @@ class ProtocolRepositoryImpl implements ProtocolRepository {
 
   @override
   Future<bool> isNew(String name, String version) async {
-    final seen = prefs.getString(_keyFor(name));
+    final String? seen = prefs.getString(_keyFor(name));
     return seen == null || seen != version;
   }
 }

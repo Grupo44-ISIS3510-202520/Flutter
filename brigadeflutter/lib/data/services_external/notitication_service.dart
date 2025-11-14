@@ -4,7 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
 class NotificationService {
-  final androidChannel = AndroidNotificationChannel(
+  static const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
   'alerts_channel',
   'Alerts',
   importance: Importance.max,
@@ -23,12 +23,12 @@ class NotificationService {
   Future<void> init() async {
     await Firebase.initializeApp();
 
-    final settings = await _messaging.requestPermission();
+    final NotificationSettings settings = await _messaging.requestPermission();
     // debug: print permission and token
     // ignore: avoid_print
     print('FCM permission: ${settings.authorizationStatus}');
 
-    final token = await _messaging.getToken();
+    final String? token = await _messaging.getToken();
     // ignore: avoid_print
     print('FCM Token: $token');
 
@@ -50,21 +50,21 @@ class NotificationService {
         ?.createNotificationChannel(_channel);
 
     // configuración inicial de plugin
-    const initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     );
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
     // registrar manejador de background
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessage.listen((msg) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage msg) {
       // ignore: avoid_print
-      print('Foreground message received: ${msg.notification?.title} - ${msg.notification?.body}');
+      //print('Foreground message received: ${msg.notification?.title} - ${msg.notification?.body}');
       _handleForegroundMessage(msg);
     });
-    FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage msg) {
       // ignore: avoid_print
-      print('User opened app from notification: ${msg.data}');
+      //print('User opened app from notification: ${msg.data}');
     });
   }
 
@@ -82,16 +82,16 @@ class NotificationService {
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    final notification = message.notification;
+    final RemoteNotification? notification = message.notification;
     if (notification != null) {
-      const androidDetails = AndroidNotificationDetails(
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'alerts_channel',
         'Alerts',
         importance: Importance.max,
         priority: Priority.high,
       );
 
-      const notificationDetails = NotificationDetails(android: androidDetails);
+      const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
       await _flutterLocalNotificationsPlugin.show(
         notification.hashCode,
         notification.title,
