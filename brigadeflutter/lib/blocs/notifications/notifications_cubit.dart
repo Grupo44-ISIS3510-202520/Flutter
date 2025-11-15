@@ -11,7 +11,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   Future<void> loadMock() async {
     emit(state.copyWith(loading: true));
     await Future<void>.delayed(const Duration(milliseconds: 200));
-    final mock = <AppNotification>[
+    final List<AppNotification> mock = <AppNotification>[
       const AppNotification(
         title: 'Fire Alarm',
         subtitle: 'Critical Alert',
@@ -43,6 +43,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         type: NotificationType.general,
       ),
     ];
-    emit(NotificationsState(items: mock, loading: false));
+    emit(NotificationsState(items: mock));
   }
 }

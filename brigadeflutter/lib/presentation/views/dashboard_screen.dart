@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/utils/routes.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/dashboard_action_tile.dart';
-import '../viewmodels/dashboard_viewmodel.dart';
 import '../navigation/dashboard_commands.dart';
+import '../viewmodels/dashboard_viewmodel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -22,7 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_initialized) {
-        final vm = context.read<DashboardViewModel>();
+        final DashboardViewModel vm = context.read<DashboardViewModel>();
         vm.updateNearestMeetingPoint();
         _initialized = true;
       }
@@ -32,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<DashboardViewModel>(
-      builder: (_, vm, __) {
+      builder: (_, DashboardViewModel vm, __) {
         return Scaffold(
           backgroundColor: Colors.grey[100],
           appBar: AppBar(
@@ -42,7 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             backgroundColor: Colors.white,
             elevation: 0.5,
-            actions: [
+            actions: <Widget>[
               IconButton(
                 icon: const Icon(Icons.add_circle_outline),
                 onPressed: () => Navigator.pushNamed(context, routeReport),
@@ -54,16 +55,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final availableHeight = constraints.maxHeight;
-                  final emergencyCmd = vm.emergency as GoEmergencyReportCommand;
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final double availableHeight = constraints.maxHeight;
+                  final GoEmergencyReportCommand emergencyCmd = vm.emergency as GoEmergencyReportCommand;
 
                   return SingleChildScrollView(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(minHeight: availableHeight),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
+                        children: <Widget>[
                           const SizedBox(height: 18),
 
                           // Botón grande de emergencia
@@ -71,7 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                boxShadow: [
+                                boxShadow: <BoxShadow>[
                                   BoxShadow(
                                     color: Colors.red.withOpacity(0.4),
                                     blurRadius: 15,
@@ -90,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 onPressed: () => emergencyCmd.execute(context),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: [
+                                  children: <Widget>[
                                     Icon(
                                       Icons.notifications_active,
                                       color: Colors.white,
@@ -120,7 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
+                              boxShadow: <BoxShadow>[
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.08),
                                   blurRadius: 8,
@@ -130,15 +131,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: <Widget>[
                                 Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
+                                  children: <Widget>[
+                                    const Expanded(
                                       child: Text(
                                         'Closest meeting point',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 18,
                                         ),
@@ -192,7 +192,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   softWrap: true,
                                 ),
-                                if (vm.nearestSubtext.isNotEmpty) ...[
+                                if (vm.nearestSubtext.isNotEmpty) ...<Widget>[
                                   const SizedBox(height: 6),
                                   Text(
                                     vm.nearestSubtext,
@@ -215,7 +215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisSpacing: 12,
                             childAspectRatio: 1.4,
                             children: vm.actions
-                                .map((cmd) => DashboardActionTile(command: cmd))
+                                .map((DashboardActionCommand cmd) => DashboardActionTile(command: cmd))
                                 .toList(),
                           ),
 
@@ -229,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
+                                boxShadow: <BoxShadow>[
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.08),
                                     blurRadius: 8,
@@ -238,7 +238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                               child: const Row(
-                                children: [
+                                children: <Widget>[
                                   Icon(Icons.favorite, color: Colors.pink, size: 28),
                                   SizedBox(width: 12),
                                   Expanded(

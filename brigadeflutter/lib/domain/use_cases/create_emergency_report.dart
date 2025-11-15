@@ -1,6 +1,6 @@
 import '../../core/errors/failures.dart';
-import '../../core/utils/validators.dart';
 import '../../core/utils/id_generator.dart';
+import '../../core/utils/validators.dart';
 import '../../data/entities/report.dart';
 import '../../data/repositories/report_repository.dart';
 
@@ -19,7 +19,7 @@ class CreateEmergencyReport {
     double? longitude,
     required bool isOnline,
   }) async {
-    final errors = [
+    final Iterable<String> errors = <String?>[
       validateType(type),
       validatePlaceTime(placeTime),
       validateDescription(description),
@@ -28,12 +28,12 @@ class CreateEmergencyReport {
       throw ValidationFailure(errors.first);
     }
 
-    final newId =
+    final int newId =
         id ??
         (isOnline
             ? await idGen.nextReportId()
             : DateTime.now().millisecondsSinceEpoch);
-    final report = Report(
+    final Report report = Report(
       id: newId,
       type: type.trim(),
       placeTime: placeTime.trim(),

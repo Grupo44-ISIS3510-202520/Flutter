@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -9,14 +9,14 @@ import 'package:path_provider/path_provider.dart';
 
 class PdfIsolateWorker {
   static String _sanitizeId(String id) {
-    final s = id.toLowerCase();
+    final String s = id.toLowerCase();
     return s.replaceAll(RegExp(r'[^a-z0-9_-]'), '_');
   }
 
   static Future<String> getCachedPath(String id) async {
-    final sanitizedName = _sanitizeId(id);
+    final String sanitizedName = _sanitizeId(id);
     final Directory dir = await getApplicationDocumentsDirectory();
-    final String filePath = p.join(dir.path, "cached_pdfs", "$sanitizedName.pdf");
+    final String filePath = p.join(dir.path, 'cached_pdfs', '$sanitizedName.pdf');
     return filePath;
   }
 
@@ -26,22 +26,22 @@ class PdfIsolateWorker {
     required bool forceDownload,
     required String offlineMessage,
   }) async {
-    final receivePort = ReceivePort();
-    final errorPort = ReceivePort();
+    final ReceivePort receivePort = ReceivePort();
+    final ReceivePort errorPort = ReceivePort();
 
     await Isolate.spawn(
       _downloadPdfEntryPoint,
-      {
-        "port": receivePort.sendPort,
-        "errorPort": errorPort.sendPort,
-        "url": url,
-        "id": id,
-        "forceDownload": forceDownload,
-        "offlineMessage": offlineMessage,
+      <String, Object>{
+        'port': receivePort.sendPort,
+        'errorPort': errorPort.sendPort,
+        'url': url,
+        'id': id,
+        'forceDownload': forceDownload,
+        'offlineMessage': offlineMessage,
       },
     );
 
-    final completer = Completer<String>();
+    final Completer<String> completer = Completer<String>();
     receivePort.listen((message) {
       completer.complete(message as String);
       receivePort.close();
@@ -56,7 +56,7 @@ class PdfIsolateWorker {
       errorPort.close();
     });
 
-    final result = await completer.future.timeout(
+    final String result = await completer.future.timeout(
       const Duration(seconds: 30),
       onTimeout: () {
         //print('PDF download timeout');
@@ -68,19 +68,19 @@ class PdfIsolateWorker {
   }
 
   static Future<void> _downloadPdfEntryPoint(dynamic message) async {
-    final SendPort sendPort = message["port"] as SendPort;
+    final SendPort sendPort = message['port'] as SendPort;
     //final SendPort errorPort = message["errorPort"] as SendPort;
-    final String url = message["url"] as String;
-    final String id = message["id"] as String;
-    final bool forceDownload = message["forceDownload"] as bool;
-    final String offlineMessage = message["offlineMessage"] as String;
+    final String url = message['url'] as String;
+    final String id = message['id'] as String;
+    final bool forceDownload = message['forceDownload'] as bool;
+    final String offlineMessage = message['offlineMessage'] as String;
 
     try {
-      final sanitizedName = _sanitizeId(id);
+      final String sanitizedName = _sanitizeId(id);
       final Directory appDir = await getApplicationDocumentsDirectory();
-      final Directory pdfDir = Directory(p.join(appDir.path, "cached_pdfs"));
-      final String filePath = p.join(pdfDir.path, "$sanitizedName.pdf");
-      final file = File(filePath);
+      final Directory pdfDir = Directory(p.join(appDir.path, 'cached_pdfs'));
+      final String filePath = p.join(pdfDir.path, '$sanitizedName.pdf');
+      final File file = File(filePath);
 
       if (!await pdfDir.exists()) {
         await pdfDir.create(recursive: true);
@@ -91,8 +91,8 @@ class PdfIsolateWorker {
         return;
       }
 
-      final connectivity = Connectivity();
-      final connectivityResult = await connectivity.checkConnectivity();
+      final Connectivity connectivity = Connectivity();
+      final List<ConnectivityResult> connectivityResult = await connectivity.checkConnectivity();
       final bool isConnected = connectivityResult != ConnectivityResult.none;
 
       if (!isConnected) {
@@ -104,8 +104,8 @@ class PdfIsolateWorker {
         return;
       }
 
-      final dio = Dio();
-      final response = await dio.get<List<int>>(
+      final Dio dio = Dio();
+      final Response<List<int>> response = await dio.get<List<int>>(
         url,
         options: Options(
           responseType: ResponseType.bytes,
@@ -116,7 +116,7 @@ class PdfIsolateWorker {
       );
 
       if (response.statusCode == 200 && response.data != null && response.data!.isNotEmpty) {
-        final bytes = response.data!;
+        final List<int> bytes = response.data!;
 
         await file.writeAsBytes(bytes, flush: true);
         sendPort.send(filePath);
@@ -127,10 +127,10 @@ class PdfIsolateWorker {
           sendPort.send(offlineMessage);
         }
       }
-    } on DioException catch (e) {
+    } on DioException {
       try {
-        final path = await getCachedPath(id);
-        final file = File(path);
+        final String path = await getCachedPath(id);
+        final File file = File(path);
         if (await file.exists()) {
           sendPort.send(path);
         } else {
@@ -141,8 +141,8 @@ class PdfIsolateWorker {
       }
     } catch (e) {
       try {
-        final path = await getCachedPath(id);
-        final file = File(path);
+        final String path = await getCachedPath(id);
+        final File file = File(path);
         if (await file.exists()) {
           sendPort.send(path);
         } else {

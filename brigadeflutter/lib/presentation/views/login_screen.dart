@@ -1,8 +1,10 @@
-import 'package:brigadeflutter/presentation/components/banner_offline.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/services/text_formatter.dart';
 import 'package:provider/provider.dart';
-import '../../core/utils/validators.dart';
+
 import '../../core/utils/input_formatters.dart';
+import '../../core/utils/validators.dart';
+import '../components/banner_offline.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,9 +14,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _form = GlobalKey<FormState>();
-  final _email = TextEditingController();
-  final _password = TextEditingController();
+  final GlobalKey<FormState> _form = GlobalKey<FormState>();
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
 
   @override
   void dispose() {
@@ -26,16 +28,22 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
-      builder: (_, vm, __) {
+      builder: (_, AuthViewModel vm, __) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Sign in')),
+          appBar: AppBar(
+            title: const Text(
+              'Sign in',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.white,
+          ),
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: Form(
               key: _form,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+                children: <Widget>[
                   if (!vm.isOnline)
                     // const Padding(
                     //   padding: EdgeInsets.only(bottom: 12),
@@ -61,8 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _email,
                     decoration: const InputDecoration(hintText: 'email'),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => validateEmailDomain(v),
-                    inputFormatters: [NoEmojiAndLengthFormatter(30)],
+                    validator: (String? v) => validateEmailDomain(v),
+                    inputFormatters: <TextInputFormatter>[
+                      NoEmojiAndLengthFormatter(30),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -70,7 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(hintText: 'password'),
                     obscureText: true,
                     validator: validatePassword,
-                    inputFormatters: [NoEmojiAndLengthFormatter(20)],
+                    inputFormatters: <TextInputFormatter>[
+                      NoEmojiAndLengthFormatter(20),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
@@ -86,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 builder: (_) => AlertDialog(
                                   title: const Text('Error'),
                                   content: Text(vm.error!),
-                                  actions: [
+                                  actions: <Widget>[
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
                                       child: const Text('OK'),
@@ -111,10 +123,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: vm.resetting
                           ? null
                           : () async {
-                              final ctrl = TextEditingController(
-                                text: _email.text.trim(),
-                              );
-                              final dlgFormKey = GlobalKey<FormState>();
+                              final TextEditingController ctrl =
+                                  TextEditingController(
+                                    text: _email.text.trim(),
+                                  );
+                              final GlobalKey<FormState> dlgFormKey =
+                                  GlobalKey<FormState>();
 
                               await showDialog(
                                 context: context,
@@ -128,13 +142,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                         hintText: 'email',
                                       ),
                                       keyboardType: TextInputType.emailAddress,
-                                      validator: (v) => validateEmailDomain(v),
-                                      inputFormatters: [
+                                      validator: (String? v) =>
+                                          validateEmailDomain(v),
+                                      inputFormatters: <TextInputFormatter>[
                                         NoEmojiAndLengthFormatter(30),
                                       ],
                                     ),
                                   ),
-                                  actions: [
+                                  actions: <Widget>[
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
                                       child: const Text('Cancel'),
@@ -147,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   .validate()) {
                                                 return;
                                               }
-                                              final ok = await vm
+                                              final bool ok = await vm
                                                   .forgotPassword(
                                                     ctrl.text.trim(),
                                                   );
@@ -162,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                       vm.error ??
                                                           'unknown error',
                                                     ),
-                                                    actions: [
+                                                    actions: <Widget>[
                                                       TextButton(
                                                         onPressed: () =>
                                                             Navigator.pop(
@@ -183,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     content: const Text(
                                                       'We sent you a password reset link.',
                                                     ),
-                                                    actions: [
+                                                    actions: <Widget>[
                                                       TextButton(
                                                         onPressed: () =>
                                                             Navigator.pop(
@@ -210,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: <Widget>[
                       const Text("Don't have an account?"),
                       TextButton(
                         onPressed: vm.signingIn

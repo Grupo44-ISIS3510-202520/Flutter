@@ -7,12 +7,12 @@ class ProtocolsFirestoreDao {
   final FirebaseFirestore firestore;
 
   Stream<List<ProtocolModel>> watchProtocols() {
-    final col = firestore.collection('protocols-and-manuals').orderBy('lastUpdate', descending: true);
-    return col.snapshots().map((qs) => qs.docs.map((d) => ProtocolModel.fromDocument(d)).toList());
+    final Query<Map<String, dynamic>> col = firestore.collection('protocols-and-manuals').orderBy('lastUpdate', descending: true);
+    return col.snapshots().map((QuerySnapshot<Map<String, dynamic>> qs) => qs.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> d) => ProtocolModel.fromDocument(d)).toList());
   }
 
   Future<List<ProtocolModel>> getProtocolsOnce() async {
-    final qs = await firestore.collection('protocols-and-manuals').orderBy('lastUpdate', descending: true).get();
-    return qs.docs.map((d) => ProtocolModel.fromDocument(d)).toList();
+    final QuerySnapshot<Map<String, dynamic>> qs = await firestore.collection('protocols-and-manuals').orderBy('lastUpdate', descending: true).get();
+    return qs.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> d) => ProtocolModel.fromDocument(d)).toList();
   }
 }

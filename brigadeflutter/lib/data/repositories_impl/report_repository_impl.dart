@@ -1,8 +1,8 @@
-import '../entities/report.dart';
-import '../repositories/report_repository.dart';
 import '../datasources/report_firestore_dao.dart';
 import '../datasources/report_local_dao.dart';
+import '../entities/report.dart';
 import '../models/report_model.dart';
+import '../repositories/report_repository.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
   ReportRepositoryImpl({required this.remoteDao, required this.localDao});
@@ -24,8 +24,8 @@ class ReportRepositoryImpl implements ReportRepository {
     double? longitude,
     bool isOnline = true,
   }) async {
-    final model = ReportModel(
-      id: DateTime.now().millisecondsSinceEpoch.toInt(),
+    final ReportModel model = ReportModel(
+      id: DateTime.now().millisecondsSinceEpoch,
       type: type,
       placeTime: placeTime,
       description: description,
@@ -48,7 +48,7 @@ class ReportRepositoryImpl implements ReportRepository {
 
   @override
   Future<List<Report>> pending() async =>
-      (await localDao.listPending()).map((e) => e.toEntity()).toList();
+      (await localDao.listPending()).map((ReportModel e) => e.toEntity()).toList();
 
   @override
   Future<void> markSent(Report report) => localDao.remove(report.id);
@@ -79,10 +79,10 @@ class ReportRepositoryImpl implements ReportRepository {
 
   @override
   Future<void> syncPending() async {
-    final pending = await localDao.listPending();
-    for (final report in pending) {
+    final List<ReportModel> pending = await localDao.listPending();
+    for (final ReportModel report in pending) {
       await remoteDao.set(report);
-      await localDao.remove(report.id.toInt());
+      await localDao.remove(report.id);
     }
   }
 }

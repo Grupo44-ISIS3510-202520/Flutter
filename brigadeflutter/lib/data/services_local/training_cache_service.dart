@@ -9,7 +9,7 @@ class TrainingCacheService {
     required List<TrainingCard> cards,
     required List<TrainingProgress> progress,
   }) async {
-    final cardsData = cards.map((c) => {
+    final List<Map<String, String>> cardsData = cards.map((TrainingCard c) => <String, String>{
           'id': c.id,
           'title': c.title,
           'subtitle': c.subtitle,
@@ -17,7 +17,7 @@ class TrainingCacheService {
           'cta': c.cta,
         }).toList();
 
-    final progressData = progress.map((p) => {
+    final List<Map<String, Object>> progressData = progress.map((TrainingProgress p) => <String, Object>{
           'label': p.label,
           'percent': p.percent,
         }).toList();
@@ -32,7 +32,7 @@ class TrainingCacheService {
     final progressData = _box.get('progress');
     if (cardsData == null || progressData == null) return null;
 
-    return {
+    return <String, dynamic>{
       'cards': List<Map<String, dynamic>>.from(cardsData),
       'progress': List<Map<String, dynamic>>.from(progressData),
       'lastUpdated': DateTime.tryParse(_box.get('lastUpdated') ?? ''),

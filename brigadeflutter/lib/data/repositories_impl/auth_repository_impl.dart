@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../entities/auth_user.dart';
 import '../models/auth_user_model.dart';
 import '../repositories/auth_repository.dart';
@@ -9,12 +11,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<AuthUser?> observe() => _auth.authStateChanges().map(
-    (u) => u == null ? null : AuthUserModel.fromFirebaseUser(u).toEntity(),
+    (User? u) => u == null ? null : AuthUserModel.fromFirebaseUser(u).toEntity(),
   );
 
   @override
   AuthUser? current() {
-    final u = _auth.currentUser;
+    final User? u = _auth.currentUser;
     return u == null ? null : AuthUserModel.fromFirebaseUser(u).toEntity();
   }
 
@@ -23,8 +25,8 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final cred = await _auth.signInWithEmail(email: email, password: password);
-    return AuthUserModel.fromFirebaseUser(cred.user!).toEntity();
+    final UserCredential cred = await _auth.signInWithEmail(email: email, password: password);
+    return AuthUserModel.fromFirebaseUser(cred.user).toEntity();
   }
 
   @override
@@ -32,11 +34,11 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final cred = await _auth.registerWithEmail(
+    final UserCredential cred = await _auth.registerWithEmail(
       email: email,
       password: password,
     );
-    return AuthUserModel.fromFirebaseUser(cred.user!).toEntity();
+    return AuthUserModel.fromFirebaseUser(cred.user).toEntity();
   }
 
   @override

@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
-import '../navigation/dashboard_actions_factory.dart';
-import '../navigation/dashboard_commands.dart';
+
 import '../../data/models/meeting_point_model.dart';
 import '../../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
+import '../navigation/dashboard_actions_factory.dart';
+import '../navigation/dashboard_commands.dart';
 
 class DashboardViewModel extends ChangeNotifier {
   DashboardViewModel({
@@ -18,7 +19,7 @@ class DashboardViewModel extends ChangeNotifier {
   final FindNearestMeetingPoint findNearestUseCase;
 
   bool isOnline = true;
-  List<DashboardActionCommand> actions = const [];
+  List<DashboardActionCommand> actions = const <DashboardActionCommand>[];
   late DashboardActionCommand emergency;
   late DashboardActionCommand cprGuide;
 
@@ -50,7 +51,7 @@ class DashboardViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await findNearestUseCase.call();
+      final NearestMeetingResult? result = await findNearestUseCase.call();
 
       if (result == null) {
         nearestLabel = 'There are no registered meeting points';
@@ -63,7 +64,7 @@ class DashboardViewModel extends ChangeNotifier {
         lastDistanceMeters = result.distanceMeters;
         _hasCalculated = true;
 
-        final maxDistance = findNearestUseCase.maxDistanceMeters;
+        final double maxDistance = findNearestUseCase.maxDistanceMeters;
         if (result.distanceMeters > maxDistance) {
           isOutsideCampus = true;
           nearestLabel = result.point.name;
@@ -95,7 +96,7 @@ class DashboardViewModel extends ChangeNotifier {
 
   void _updateDisplayFromCache() {
     if (lastMeetingPoint != null && lastDistanceMeters != null) {
-      final maxDistance = findNearestUseCase.maxDistanceMeters;
+      final double maxDistance = findNearestUseCase.maxDistanceMeters;
       if (lastDistanceMeters! > maxDistance) {
         isOutsideCampus = true;
         nearestLabel = lastMeetingPoint!.name;

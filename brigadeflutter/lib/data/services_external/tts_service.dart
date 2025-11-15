@@ -7,7 +7,7 @@ abstract class TtsService {
 }
 
 class TtsServiceImpl implements TtsService {
-  final _tts = FlutterTts();
+  final FlutterTts _tts = FlutterTts();
 
   @override
   Future<void> init({String lang = 'en-US'}) async {

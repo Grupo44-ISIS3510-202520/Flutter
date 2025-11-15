@@ -12,7 +12,7 @@ class OfflineMaterialBanner extends StatelessWidget {
         style: TextStyle(color: Colors.black87),
       ),
       backgroundColor: const Color(0xFFFFF4E5),
-      actions: [
+      actions: <Widget>[
         TextButton(
           onPressed: () => ScaffoldMessenger.of(context).clearMaterialBanners(),
           child: const Text('Dismiss'),

@@ -1,9 +1,9 @@
 // rutas centrales para navegación
-const routeReport        = '/report';
-const routeProtocols     = '/protocols';
-const routeTraining      = '/training';
-const routeNotifications = '/notification';
-const routeProfile       = '/profile';
-const routeDashboard     = '/dashboard';
-const routeRegister      = '/register';
-const routeLogin         = '/login';
+const String routeReport        = '/report';
+const String routeProtocols     = '/protocols';
+const String routeTraining      = '/training';
+const String routeNotifications = '/notification';
+const String routeProfile       = '/profile';
+const String routeDashboard     = '/dashboard';
+const String routeRegister      = '/register';
+const String routeLogin         = '/login';

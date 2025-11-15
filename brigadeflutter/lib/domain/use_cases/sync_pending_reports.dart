@@ -1,3 +1,4 @@
+import '../../data/entities/report.dart';
 import '../../data/repositories/report_repository.dart';
 
 class SyncPendingReports {
@@ -5,8 +6,8 @@ class SyncPendingReports {
   final ReportRepository repo;
 
   Future<void> call() async {
-    final items = await repo.pending();
-    for (final r in items) {
+    final List<Report> items = await repo.pending();
+    for (final Report r in items) {
       await repo.create(r);
     }
   }

@@ -1,20 +1,21 @@
-import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../data/entities/brigadist_profile.dart';
+import '../../data/entities/user_profile.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../data/services_external/location/location_service.dart';
-import '../../data/entities/user_profile.dart';
-import '../../data/entities/brigadist_profile.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   ProfileViewModel(this._repository);
   final UserRepository _repository;
   final LocationService _location = LocationService();
-  final _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   UserProfile? _profile;
   bool _loading = false;
@@ -28,14 +29,14 @@ class ProfileViewModel extends ChangeNotifier {
     _loading = true;
     notifyListeners();
 
-    final prefs = await SharedPreferences.getInstance();
-    final cachedProfile = prefs.getString('cached_profile');
-    final lastUpdatedStr = prefs.getString('cached_profile_last_updated');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? cachedProfile = prefs.getString('cached_profile');
+    final String? lastUpdatedStr = prefs.getString('cached_profile_last_updated');
 
     // intentar cargar desde cache local
     if (cachedProfile != null && lastUpdatedStr != null) {
-      final lastUpdated = DateTime.tryParse(lastUpdatedStr);
-      final now = DateTime.now();
+      final DateTime? lastUpdated = DateTime.tryParse(lastUpdatedStr);
+      final DateTime now = DateTime.now();
       if (lastUpdated != null && now.difference(lastUpdated).inHours < 24) {
         final data = jsonDecode(cachedProfile);
 
@@ -49,8 +50,8 @@ class ProfileViewModel extends ChangeNotifier {
                 role: data['role'],
                 email: data['email'],
                 availableNow: data['availableNow'] ?? false,
-                timeSlots: List<String>.from(data['timeSlots'] ?? []),
-                medals: List<String>.from(data['medals'] ?? []),
+                timeSlots: List<String>.from(data['timeSlots'] ?? <dynamic>[]),
+                medals: List<String>.from(data['medals'] ?? <dynamic>[]),
               )
             : UserProfile(
                 uid: data['uid'],
@@ -60,7 +61,7 @@ class ProfileViewModel extends ChangeNotifier {
                 bloodGroup: data['bloodGroup'],
                 role: data['role'],
                 email: data['email'],
-                medals: List<String>.from(data['medals'] ?? []),
+                medals: List<String>.from(data['medals'] ?? <dynamic>[]),
               );
 
         debugPrint('Loaded profile from cache ');
@@ -71,19 +72,19 @@ class ProfileViewModel extends ChangeNotifier {
 
     // cargar datos actualizados de firestore
     try {
-      final user = await _repository.getProfile(uid);
+      final UserProfile? user = await _repository.getProfile(uid);
       if (user == null) return;
 
-      final trainingsSnap = await _firestore
+      final DocumentSnapshot<Map<String, dynamic>> trainingsSnap = await _firestore
           .collection('user_trainings')
           .doc(uid)
           .get();
 
-      List<String> completedMedals = [];
+      final List<String> completedMedals = <String>[];
 
       if (trainingsSnap.exists) {
-        final data = trainingsSnap.data()!;
-        data.forEach((key, value) {
+        final Map<String, dynamic> data = trainingsSnap.data()!;
+        data.forEach((String key, value) {
           if (value is Map && (value['percent'] ?? 0) == 100) {
             completedMedals.add(key);
           }
@@ -99,8 +100,7 @@ class ProfileViewModel extends ChangeNotifier {
           bloodGroup: user.bloodGroup,
           role: user.role,
           email: user.email,
-          availableNow: false,
-          timeSlots: const ['08:00–12:00', '14:00–18:00'],
+          timeSlots: const <String>['08:00–12:00', '14:00–18:00'],
           medals: completedMedals,
         );
       } else {
@@ -119,7 +119,7 @@ class ProfileViewModel extends ChangeNotifier {
       // Guardar en shared preferences
       await prefs.setString(
         'cached_profile',
-        jsonEncode({
+        jsonEncode(<String, Object>{
           'uid': _profile!.uid,
           'name': _profile!.name,
           'lastName': _profile!.lastName,
@@ -128,11 +128,11 @@ class ProfileViewModel extends ChangeNotifier {
           'role': _profile!.role,
           'email': _profile!.email,
           'availableNow': (_profile is BrigadistProfile)
-              ? (_profile as BrigadistProfile).availableNow
+              ? (_profile! as BrigadistProfile).availableNow
               : false,
           'timeSlots': (_profile is BrigadistProfile)
-              ? (_profile as BrigadistProfile).timeSlots
-              : [],
+              ? (_profile! as BrigadistProfile).timeSlots
+              : <dynamic>[],
           'medals': _profile!.medals,
         }),
       );
@@ -156,7 +156,7 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final brigadist = (_profile as BrigadistProfile).copyWith(
+      final BrigadistProfile brigadist = (_profile! as BrigadistProfile).copyWith(
         availableNow: available,
       );
 
@@ -164,8 +164,8 @@ class ProfileViewModel extends ChangeNotifier {
       _profile = brigadist;
 
       // actualizar cache
-      final prefs = await SharedPreferences.getInstance();
-      final cachedProfile = prefs.getString('cached_profile');
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? cachedProfile = prefs.getString('cached_profile');
       if (cachedProfile != null) {
         final data = jsonDecode(cachedProfile);
         data['availableNow'] = available;
@@ -182,25 +182,25 @@ class ProfileViewModel extends ChangeNotifier {
   Future<void> updateAvailabilityBasedOnLocation() async {
     if (_profile == null || _profile is! BrigadistProfile) return;
 
-    final pos = await _location.current();
+    final Position? pos = await _location.current();
     if (pos == null) return;
 
-    const uniandesLat = 4.601297;
-    const uniandesLon = -74.066140;
-    const campusRadius = 250;
+    const double uniandesLat = 4.601297;
+    const double uniandesLon = -74.066140;
+    const int campusRadius = 250;
 
-    final distance = Geolocator.distanceBetween(
+    final double distance = Geolocator.distanceBetween(
       pos.latitude,
       pos.longitude,
       uniandesLat,
       uniandesLon,
     );
 
-    final insideCampus = distance <= campusRadius;
+    final bool insideCampus = distance <= campusRadius;
 
     await FirebaseAnalytics.instance.logEvent(
       name: insideCampus ? 'auto_available_on' : 'auto_available_off',
-      parameters: {
+      parameters: <String, Object>{
         'distance_meters': distance,
         'latitude': pos.latitude,
         'longitude': pos.longitude,

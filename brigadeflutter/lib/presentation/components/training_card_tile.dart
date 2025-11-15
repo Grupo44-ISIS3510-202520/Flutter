@@ -15,7 +15,7 @@ class TrainingCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Categoría en función del id
-    final category = card.id == "basic" ? "Course" : "Certification";
+    final String category = card.id == 'basic' ? 'Course' : 'Certification';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -23,17 +23,17 @@ class TrainingCardTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
+          boxShadow: const <BoxShadow>[
             BoxShadow(blurRadius: 8, color: Colors.black12),
           ],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     category,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(

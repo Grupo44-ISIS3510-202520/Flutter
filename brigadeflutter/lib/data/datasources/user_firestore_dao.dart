@@ -1,5 +1,5 @@
-import '../services_external/firebase/firestore_service.dart';
 import '../models/user_profile_model.dart';
+import '../services_external/firebase/firestore_service.dart';
 
 class UserFirestoreDao {
   UserFirestoreDao(this._fs);
@@ -10,7 +10,7 @@ class UserFirestoreDao {
   }
 
   Future<UserProfileModel?> get(String uid) async {
-    final data = await _fs.getDoc('users', uid);
+    final Map<String, dynamic>? data = await _fs.getDoc('users', uid);
     if (data == null) return null;
     return UserProfileModel.fromJson(uid, data);
   }

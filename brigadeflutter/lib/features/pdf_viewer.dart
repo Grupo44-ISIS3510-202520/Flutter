@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+
 import '../presentation/components/banner_offline.dart';
 
 class PdfViewer extends StatefulWidget {
@@ -38,7 +41,7 @@ class _PdfViewerState extends State<PdfViewer> {
         _hasCachedFile = false;
       });
 
-      final connectivityResult = await _connectivity.checkConnectivity();
+      final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
       _isOffline = connectivityResult == ConnectivityResult.none;
 
       if (_isOffline) {
@@ -58,11 +61,11 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _loadFromUrl() async {
     try {
-      final response = await http.get(Uri.parse(widget.pdfUrl));
-      final bytes = response.bodyBytes;
+      final http.Response response = await http.get(Uri.parse(widget.pdfUrl));
+      final Uint8List bytes = response.bodyBytes;
 
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File("${dir.path}/temp_${_generatePdfId(widget.title)}.pdf");
+      final Directory dir = await getApplicationDocumentsDirectory();
+      final File file = File('${dir.path}/temp_${_generatePdfId(widget.title)}.pdf');
       await file.writeAsBytes(bytes, flush: true);
 
       setState(() {
@@ -77,11 +80,11 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _loadFromCache() async {
     try {
-      final pdfId = _generatePdfId(widget.title);
-      final cachePath = await _getCachedPath(pdfId);
-      final cacheFile = File(cachePath);
+      final String pdfId = _generatePdfId(widget.title);
+      final String cachePath = await _getCachedPath(pdfId);
+      final File cacheFile = File(cachePath);
 
-      final cacheExists = await cacheFile.exists();
+      final bool cacheExists = await cacheFile.exists();
 
       if (cacheExists) {
         setState(() {
@@ -107,15 +110,15 @@ class _PdfViewerState extends State<PdfViewer> {
 
   Future<void> _downloadToCache() async {
     try {
-      final pdfId = _generatePdfId(widget.title);
+      final String pdfId = _generatePdfId(widget.title);
 
-      final response = await http.get(Uri.parse(widget.pdfUrl));
-      final bytes = response.bodyBytes;
+      final http.Response response = await http.get(Uri.parse(widget.pdfUrl));
+      final Uint8List bytes = response.bodyBytes;
 
-      final cachePath = await _getCachedPath(pdfId);
-      final cacheFile = File(cachePath);
+      final String cachePath = await _getCachedPath(pdfId);
+      final File cacheFile = File(cachePath);
 
-      final cacheDir = cacheFile.parent;
+      final Directory cacheDir = cacheFile.parent;
       if (!await cacheDir.exists()) {
         await cacheDir.create(recursive: true);
       }
@@ -131,7 +134,7 @@ class _PdfViewerState extends State<PdfViewer> {
   }
 
   Future<String> _getCachedPath(String id) async {
-    final dir = await getApplicationDocumentsDirectory();
+    final Directory dir = await getApplicationDocumentsDirectory();
     return '${dir.path}/cached_pdfs/$id.pdf';
   }
 
@@ -148,7 +151,7 @@ class _PdfViewerState extends State<PdfViewer> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: Column(
-        children: [
+        children: <Widget>[
 
           if (_isOffline && !_hasCachedFile)
             const OfflineBanner(),
@@ -174,7 +177,7 @@ class _PdfViewerState extends State<PdfViewer> {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             CircularProgressIndicator(),
             SizedBox(height: 16),
             Text('Cargando documento...'),
@@ -187,7 +190,7 @@ class _PdfViewerState extends State<PdfViewer> {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
@@ -207,22 +210,18 @@ class _PdfViewerState extends State<PdfViewer> {
     }
 
     return PDFView(
-      filePath: _localPath!,
-      enableSwipe: true,
-      swipeHorizontal: false,
-      autoSpacing: true,
-      pageFling: true,
+      filePath: _localPath,
       onError: (error) {
         setState(() {
           _errorMessage = 'Error mostrando el documento';
         });
       },
-      onPageError: (page, error) {
+      onPageError: (int? page, error) {
         setState(() {
           _errorMessage = 'Error en página $page: $error';
         });
       },
-      onRender: (pages) {
+      onRender: (int? pages) {
       },
     );
   }

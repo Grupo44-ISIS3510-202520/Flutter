@@ -1,6 +1,5 @@
-import 'package:brigadeflutter/data/models/report_model.dart';
-
 import '../entities/report.dart';
+import '../models/report_model.dart';
 
 abstract class ReportRepository {
 

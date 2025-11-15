@@ -16,7 +16,7 @@ class AmbientLightServiceImpl implements AmbientLightService {
   @override
   Future<double> getCurrentAmbientLight() async {
     try {
-      final lux = await _light.lightSensorStream.first;
+      final int lux = await _light.lightSensorStream.first;
       return lux.toDouble();
     } catch (_) {
       return 100.0; // fallback
@@ -28,7 +28,7 @@ class AmbientLightServiceImpl implements AmbientLightService {
     _controller ??= StreamController<double>.broadcast();
 
     _light.lightSensorStream.listen(
-      (lux) => _controller?.add(lux.toDouble()),
+      (int lux) => _controller?.add(lux.toDouble()),
       onError: (_) => _controller?.add(100.0),
     );
 

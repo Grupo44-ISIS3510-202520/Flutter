@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:math';
-import 'dart:async';
 
 class EmergencyIsolateWorker {
   static Future<Map<String, dynamic>> findNearestMeetingPoint({
@@ -8,13 +8,13 @@ class EmergencyIsolateWorker {
     required double userLng,
     required List<Map<String, dynamic>> meetingPoints,
   }) async {
-    final receivePort = ReceivePort();
-    final errorPort = ReceivePort();
+    final ReceivePort receivePort = ReceivePort();
+    final ReceivePort errorPort = ReceivePort();
 
     try {
       await Isolate.spawn(
         _findNearestMeetingPointEntry,
-        {
+        <String, Object>{
           'port': receivePort.sendPort,
           'errorPort': errorPort.sendPort,
           'userLat': userLat,
@@ -25,7 +25,7 @@ class EmergencyIsolateWorker {
         onExit: receivePort.sendPort,
       );
 
-      final completer = Completer<Map<String, dynamic>>();
+      final Completer<Map<String, dynamic>> completer = Completer<Map<String, dynamic>>();
 
       receivePort.listen((message) {
         if (!completer.isCompleted) {
@@ -37,7 +37,7 @@ class EmergencyIsolateWorker {
 
       errorPort.listen((error) {
         if (!completer.isCompleted) {
-          completer.complete({
+          completer.complete(<String, dynamic>{
             'success': false,
             'error': 'Isolate error: $error'
           });
@@ -46,10 +46,10 @@ class EmergencyIsolateWorker {
         errorPort.close();
       });
 
-      final result = await completer.future.timeout(
+      final Map<String, dynamic> result = await completer.future.timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          return {
+          return <String, dynamic>{
             'success': false,
             'error': 'Timeout calculating nearest point'
           };
@@ -73,15 +73,15 @@ class EmergencyIsolateWorker {
       Map<String, dynamic>? nearestPoint;
       double nearestDist = double.maxFinite;
 
-      for (final point in meetingPoints) {
+      for (final Map<String, dynamic> point in meetingPoints) {
         final double pointLat = point['lat'];
         final double pointLng = point['lng'];
 
-        final distance = _distanceMeters(userLat, userLng, pointLat, pointLng);
+        final double distance = _distanceMeters(userLat, userLng, pointLat, pointLng);
 
         if (distance < nearestDist) {
           nearestDist = distance;
-          nearestPoint = {
+          nearestPoint = <String, dynamic>{
             'id': point['id'],
             'name': point['name'],
             'lat': pointLat,
@@ -92,18 +92,18 @@ class EmergencyIsolateWorker {
       }
 
       if (nearestPoint != null) {
-        sendPort.send({
+        sendPort.send(<String, Object>{
           'success': true,
           'result': nearestPoint,
         });
       } else {
-        sendPort.send({
+        sendPort.send(<String, Object>{
           'success': false,
           'error': 'No meeting points found',
         });
       }
     } catch (e) {
-      sendPort.send({
+      sendPort.send(<String, Object>{
         'success': false,
         'error': 'Calculation error: $e',
       });
@@ -119,15 +119,15 @@ class EmergencyIsolateWorker {
       Map<String, dynamic>? nearestPoint;
       double nearestDist = double.maxFinite;
 
-      for (final point in meetingPoints) {
+      for (final Map<String, dynamic> point in meetingPoints) {
         final double pointLat = point['lat'];
         final double pointLng = point['lng'];
 
-        final distance = _distanceMeters(userLat, userLng, pointLat, pointLng);
+        final double distance = _distanceMeters(userLat, userLng, pointLat, pointLng);
 
         if (distance < nearestDist) {
           nearestDist = distance;
-          nearestPoint = {
+          nearestPoint = <String, dynamic>{
             'id': point['id'],
             'name': point['name'],
             'lat': pointLat,
@@ -138,20 +138,20 @@ class EmergencyIsolateWorker {
       }
 
       if (nearestPoint != null) {
-        return {
+        return <String, dynamic>{
           'success': true,
           'result': nearestPoint,
           'fallback': true,
         };
       } else {
-        return {
+        return <String, dynamic>{
           'success': false,
           'error': 'No meeting points found',
           'fallback': true,
         };
       }
     } catch (e) {
-      return {
+      return <String, dynamic>{
         'success': false,
         'error': 'Fallback calculation failed: $e',
         'fallback': true,
@@ -160,15 +160,15 @@ class EmergencyIsolateWorker {
   }
 
   static double _distanceMeters(double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371000;
-    final phi1 = _toRad(lat1);
-    final phi2 = _toRad(lat2);
-    final dPhi = _toRad(lat2 - lat1);
-    final dLambda = _toRad(lon2 - lon1);
+    const int R = 6371000;
+    final double phi1 = _toRad(lat1);
+    final double phi2 = _toRad(lat2);
+    final double dPhi = _toRad(lat2 - lat1);
+    final double dLambda = _toRad(lon2 - lon1);
 
-    final a = sin(dPhi / 2) * sin(dPhi / 2) +
+    final double a = sin(dPhi / 2) * sin(dPhi / 2) +
         cos(phi1) * cos(phi2) * sin(dLambda / 2) * sin(dLambda / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return R * c;
   }
 

@@ -1,4 +1,4 @@
-import 'package:brigadeflutter/core/errors/failures.dart';
+import '../errors/failures.dart';
 
 sealed class Result<T> {
   const Result();

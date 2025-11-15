@@ -19,7 +19,7 @@ class LeaderboardViewModel extends ChangeNotifier {
 
   bool _loading = false;
   DateTime? _lastUpdated;
-  List<LeaderboardEntry> _entries = [];
+  List<LeaderboardEntry> _entries = <LeaderboardEntry>[];
 
   bool get isLoading => _loading;
   List<LeaderboardEntry> get entries => _entries;
@@ -35,24 +35,24 @@ class LeaderboardViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final usersSnapshot = await _firestore.collection('users').get();
-      final trainingsSnapshot = await _firestore
+      final QuerySnapshot<Map<String, dynamic>> usersSnapshot = await _firestore.collection('users').get();
+      final QuerySnapshot<Map<String, dynamic>> trainingsSnapshot = await _firestore
           .collection('user_trainings')
           .get();
 
-      final userTrainings = trainingsSnapshot.docs
-          .where((doc) => doc.data().isNotEmpty)
-          .map((doc) {
-            final data = doc.data();
+      final List<LeaderboardEntry> userTrainings = trainingsSnapshot.docs
+          .where((QueryDocumentSnapshot<Map<String, dynamic>> doc) => doc.data().isNotEmpty)
+          .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+            final Map<String, dynamic> data = doc.data();
             int completedCount = 0;
             DateTime? lastCompletedAt;
 
-            for (final entry in data.entries) {
+            for (final MapEntry<String, dynamic> entry in data.entries) {
               if (entry.value is Map && entry.value['percent'] == 100) {
                 completedCount++;
                 final ts = entry.value['completedAt'];
                 if (ts is Timestamp) {
-                  final completedAt = ts.toDate();
+                  final DateTime completedAt = ts.toDate();
                   if (lastCompletedAt == null ||
                       completedAt.isAfter(lastCompletedAt)) {
                     lastCompletedAt = completedAt;
@@ -61,9 +61,9 @@ class LeaderboardViewModel extends ChangeNotifier {
               }
             }
 
-            final userDoc =
-                usersSnapshot.docs.where((u) => u.id == doc.id).isNotEmpty
-                ? usersSnapshot.docs.firstWhere((u) => u.id == doc.id)
+            final QueryDocumentSnapshot<Map<String, dynamic>> userDoc =
+                usersSnapshot.docs.where((QueryDocumentSnapshot<Map<String, dynamic>> u) => u.id == doc.id).isNotEmpty
+                ? usersSnapshot.docs.firstWhere((QueryDocumentSnapshot<Map<String, dynamic>> u) => u.id == doc.id)
                 : usersSnapshot.docs.isNotEmpty
                 ? usersSnapshot.docs.first
                 : throw StateError('No users found');
@@ -75,10 +75,10 @@ class LeaderboardViewModel extends ChangeNotifier {
               lastCompletedAt: lastCompletedAt,
             );
           })
-          .where((e) => e.completedCount > 0)
+          .where((LeaderboardEntry e) => e.completedCount > 0)
           .toList();
 
-      userTrainings.sort((a, b) {
+      userTrainings.sort((LeaderboardEntry a, LeaderboardEntry b) {
         if (b.completedCount != a.completedCount) {
           return b.completedCount.compareTo(a.completedCount);
         }
@@ -89,7 +89,7 @@ class LeaderboardViewModel extends ChangeNotifier {
       });
 
       debugPrint('Found ${userTrainings.length} leaderboard entries');
-      for (final e in userTrainings) {
+      for (final LeaderboardEntry e in userTrainings) {
         debugPrint('${e.email} → ${e.completedCount} completados');
       }
 

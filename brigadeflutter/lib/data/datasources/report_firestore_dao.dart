@@ -1,5 +1,5 @@
-import '../services_external/firebase/firestore_service.dart';
 import '../models/report_model.dart';
+import '../services_external/firebase/firestore_service.dart';
 
 // dao remoto (i/o crudo con firestore)
 class ReportFirestoreDao {

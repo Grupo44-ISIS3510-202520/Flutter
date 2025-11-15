@@ -1,20 +1,21 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import '../components/app_bar_actions.dart';
-import '../components/labeled_text.dart';
-import '../components/app_bottom_nav.dart';
-import '../viewmodels/profile_viewmodel.dart';
 import '../../data/entities/brigadist_profile.dart';
+import '../../data/entities/user_profile.dart';
+import '../components/app_bar_actions.dart';
+import '../components/app_bottom_nav.dart';
+import '../components/labeled_text.dart';
+import '../viewmodels/profile_viewmodel.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ProfileViewModel>();
-    final authUser = FirebaseAuth.instance.currentUser;
+    final ProfileViewModel vm = context.watch<ProfileViewModel>();
+    final User? authUser = FirebaseAuth.instance.currentUser;
 
     if (authUser != null && !vm.isLoading && vm.profile == null) {
       Future.microtask(() => vm.load(authUser.uid));
@@ -26,21 +27,22 @@ class ProfileView extends StatelessWidget {
       );
     }
 
-    final p = vm.profile!;
-    final isBrigadist = p.role.toLowerCase() == 'brigadist';
-    final brigadist = p is BrigadistProfile ? p : null;
+    final UserProfile p = vm.profile!;
+    final bool isBrigadist = p.role.toLowerCase() == 'brigadist';
+    final BrigadistProfile? brigadist = p is BrigadistProfile ? p : null;
 
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
+          slivers: <Widget>[
+            const SliverAppBar(
               pinned: true,
-              title: const Text('User Profile'),
-              leading: backToDashboardButton(context),
-              actions: [
-                signOutAction(context), 
-              ],
+              title: Text('User Profile',style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.white,
+              //leading: backToDashboardButton(context),
+              // actions: <Widget>[
+              //   signOutAction(context), 
+              // ],
             ),
 
             SliverToBoxAdapter(
@@ -51,15 +53,15 @@ class ProfileView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
+                    boxShadow: const <BoxShadow>[
                       BoxShadow(blurRadius: 10, color: Colors.black12),
                     ],
                   ),
                   child: Column(
-                    children: [
-                      if (isBrigadist && brigadist != null) ...[
+                    children: <Widget>[
+                      if (isBrigadist && brigadist != null) ...<Widget>[
                         Row(
-                          children: [
+                          children: <Widget>[
                             Icon(
                               Icons.verified,
                               color: brigadist.availableNow ? Colors.green : Colors.grey,
@@ -76,7 +78,7 @@ class ProfileView extends StatelessWidget {
                               value: brigadist.availableNow,
                               onChanged: vm.isUpdating
                                   ? null
-                                  : (v) => vm.toggleAvailability(v),
+                                  : (bool v) => vm.toggleAvailability(v),
                             ),
                           ],
                         ),
@@ -94,7 +96,7 @@ class ProfileView extends StatelessWidget {
                       const SizedBox(height: 8),
 
                       Row(
-                        children: [
+                        children: <Widget>[
                           Expanded(
                             child: LabeledText(label: 'Blood type', value: p.bloodGroup),
                           ),
@@ -109,7 +111,7 @@ class ProfileView extends StatelessWidget {
 
                       if (isBrigadist &&
                           brigadist != null &&
-                          brigadist.timeSlots.isNotEmpty) ...[
+                          brigadist.timeSlots.isNotEmpty) ...<Widget>[
                         const SizedBox(height: 8),
                         LabeledText(
                           label: 'Time availability',
@@ -122,7 +124,7 @@ class ProfileView extends StatelessWidget {
               ),
             ),
 
-            if (brigadist != null && brigadist.medals.isNotEmpty) ...[
+            if (brigadist != null && brigadist.medals.isNotEmpty) ...<Widget>[
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -134,19 +136,19 @@ class ProfileView extends StatelessWidget {
               ),
               SliverList.builder(
                 itemCount: brigadist.medals.length,
-                itemBuilder: (_, i) => Padding(
+                itemBuilder: (_, int i) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [
+                      boxShadow: const <BoxShadow>[
                         BoxShadow(blurRadius: 8, color: Colors.black12),
                       ],
                     ),
                     child: Row(
-                      children: [
+                      children: <Widget>[
                         const Icon(Icons.military_tech),
                         const SizedBox(width: 12),
                         Expanded(child: Text(brigadist.medals[i])),

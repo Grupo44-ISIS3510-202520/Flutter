@@ -1,6 +1,16 @@
 import '../entities/report.dart';
 
 class ReportModel {
+  const ReportModel({
+    required this.id,
+    required this.type,
+    required this.placeTime,
+    required this.description,
+    required this.isFollowUp,
+    this.latitude,
+    this.longitude,
+    required this.createdAtMs,
+  });
   factory ReportModel.fromJson(Map<String, dynamic> json, {required int id}) {
     final ts = json['createdAt'];
     final ms = ts is DateTime
@@ -27,16 +37,6 @@ class ReportModel {
     longitude: e.longitude,
     createdAtMs: e.createdAt.millisecondsSinceEpoch,
   );
-  const ReportModel({
-    required this.id,
-    required this.type,
-    required this.placeTime,
-    required this.description,
-    required this.isFollowUp,
-    this.latitude,
-    this.longitude,
-    required this.createdAtMs,
-  });
   final int id;
   final String type;
   final String placeTime;
@@ -57,7 +57,7 @@ class ReportModel {
     createdAt: DateTime.fromMillisecondsSinceEpoch(createdAtMs),
   );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
     'reportId': id,
     'type': type,
     'placeTime': placeTime,

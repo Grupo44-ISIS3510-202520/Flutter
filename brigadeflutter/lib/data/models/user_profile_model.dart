@@ -1,6 +1,15 @@
 import '../entities/user_profile.dart';
 
 class UserProfileModel {
+  const UserProfileModel({
+    required this.uid,
+    required this.name,
+    required this.lastName,
+    required this.uniandesCode,
+    required this.bloodGroup,
+    required this.role,
+    required this.email,
+  });
   factory UserProfileModel.fromEntity(UserProfile e) => UserProfileModel(
     uid: e.uid,
     name: e.name,
@@ -21,18 +30,9 @@ class UserProfileModel {
         role: (json['role'] ?? '').toString(),
         email: (json['email'] ?? '').toString(),
       );
-  const UserProfileModel({
-    required this.uid,
-    required this.name,
-    required this.lastName,
-    required this.uniandesCode,
-    required this.bloodGroup,
-    required this.role,
-    required this.email,
-  });
   final String uid, name, lastName, uniandesCode, bloodGroup, role, email;
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => <String, dynamic>{
     'name': name,
     'lastName': lastName,
     'uniandesCode': uniandesCode,

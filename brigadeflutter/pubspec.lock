@@ -553,7 +553,7 @@ packages:
     source: hosted
     version: "2.3.13"
   geolocator_platform_interface:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: geolocator_platform_interface
       sha256: "30cb64f0b9adcc0fb36f628b4ebf4f731a2961a0ebd849f4b56200205056fe67"
@@ -737,7 +737,7 @@ packages:
     source: hosted
     version: "2.0.0"
   nested:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: nested
       sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"

@@ -7,11 +7,11 @@ class LeaderboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<LeaderboardViewModel>();
+    final LeaderboardViewModel vm = context.watch<LeaderboardViewModel>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Weekly Leaderboard"),
+        title: const Text('Weekly Leaderboard', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
       ),
       backgroundColor: const Color(0xFFF3F5F8),
@@ -19,10 +19,10 @@ class LeaderboardScreen extends StatelessWidget {
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: vm.entries.length,
-              itemBuilder: (context, index) {
-                final entry = vm.entries[index];
-                final emailPrefix = entry.email.split('@').first;
-                final medalIcon = index == 0
+              itemBuilder: (BuildContext context, int index) {
+                final LeaderboardEntry entry = vm.entries[index];
+                final String emailPrefix = entry.email.split('@').first;
+                final IconData? medalIcon = index == 0
                     ? Icons.emoji_events
                     : index == 1
                         ? Icons.emoji_events_outlined
@@ -42,14 +42,14 @@ class LeaderboardScreen extends StatelessWidget {
                                     ? Colors.grey
                                     : Colors.brown,
                           )
-                        : Text("${index + 1}"),
+                        : Text('${index + 1}'),
                   ),
                   title: Text(
                     emailPrefix,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   trailing: Text(
-                    "${entry.completedCount} cursos",
+                    '${entry.completedCount} cursos',
                     style: const TextStyle(color: Colors.blueAccent),
                   ),
                 );

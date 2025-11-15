@@ -1,6 +1,6 @@
 // dominio permitido para registro
-const kAllowedEmailDomain = 'uniandes.edu.co';
+const String kAllowedEmailDomain = 'uniandes.edu.co';
 
 // listas controladas
-const kBloodGroups = ['O+','O-','A+','A-','B+','B-','AB+','AB-'];
-const kRoles = ['student','professor','administrative'];
+const List<String> kBloodGroups = <String>['O+','O-','A+','A-','B+','B-','AB+','AB-'];
+const List<String> kRoles = <String>['student','professor','administrative'];

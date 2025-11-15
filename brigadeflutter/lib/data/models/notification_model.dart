@@ -2,6 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NotificationModel {
 
+  NotificationModel({
+    required this.title,
+    required this.message,
+    required this.timestamp,
+    required this.type,
+  });
+
   factory NotificationModel.fromFirestore(Map<String, dynamic> data) {
     return NotificationModel(
       title: data['title'] ?? '',
@@ -10,13 +17,6 @@ class NotificationModel {
       type: data['type'] ?? '',
     );
   }
-
-  NotificationModel({
-    required this.title,
-    required this.message,
-    required this.timestamp,
-    required this.type,
-  });
   final String title;
   final String message;
   final DateTime timestamp;

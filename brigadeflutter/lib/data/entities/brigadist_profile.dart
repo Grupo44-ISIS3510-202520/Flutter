@@ -10,11 +10,12 @@ class BrigadistProfile extends UserProfile {
     required super.role,
     required super.email,
     this.availableNow = false,
-    this.timeSlots = const [],
-    this.medals = const [],
+    this.timeSlots = const <String>[],
+    this.medals = const <String>[],
   });
   final bool availableNow;
   final List<String> timeSlots;
+  @override
   final List<String> medals;
 
   BrigadistProfile copyWith({

@@ -9,8 +9,8 @@ class NotificationRepository {
         .collection('alerts')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => NotificationModel.fromFirestore(doc.data()))
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
+            .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => NotificationModel.fromFirestore(doc.data()))
             .toList());
   }
 }

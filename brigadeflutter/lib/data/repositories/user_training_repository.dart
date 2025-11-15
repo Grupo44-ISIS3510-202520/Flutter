@@ -2,25 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserTrainingRepository {
-  final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<Map<String, dynamic>?> getUserTrainingProgress() async {
-    final uid = _auth.currentUser?.uid;
+    final String? uid = _auth.currentUser?.uid;
     if (uid == null) return null;
 
-    final doc = await _firestore.collection('user_trainings').doc(uid).get();
+    final DocumentSnapshot<Map<String, dynamic>> doc = await _firestore.collection('user_trainings').doc(uid).get();
     return doc.data();
   }
 
   Future<void> updateProgress(String trainingId, int newPercent) async {
-    final uid = _auth.currentUser?.uid;
+    final String? uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final docRef = _firestore.collection('user_trainings').doc(uid);
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore.collection('user_trainings').doc(uid);
 
-    await docRef.set({
-      trainingId: { 'percent': newPercent },
+    await docRef.set(<String, dynamic>{
+      trainingId: <String, int>{ 'percent': newPercent },
       'lastUpdated': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
@@ -30,20 +30,20 @@ class UserTrainingRepository {
   }
 
   Future<void> _addMedalForCompletedTraining(String trainingId) async {
-    final uid = _auth.currentUser?.uid;
+    final String? uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final userDoc = _firestore.collection('users').doc(uid);
+    final DocumentReference<Map<String, dynamic>> userDoc = _firestore.collection('users').doc(uid);
 
-    final snapshot = await userDoc.get();
-    final data = snapshot.data() ?? {};
-    final existingMedals = List<String>.from(data['medals'] ?? []);
+    final DocumentSnapshot<Map<String, dynamic>> snapshot = await userDoc.get();
+    final Map<String, dynamic> data = snapshot.data() ?? <String, dynamic>{};
+    final List<String> existingMedals = List<String>.from(data['medals'] ?? <dynamic>[]);
 
-    final medalName = _mapTrainingToMedal(trainingId);
+    final String medalName = _mapTrainingToMedal(trainingId);
 
     if (!existingMedals.contains(medalName)) {
       existingMedals.add(medalName);
-      await userDoc.update({'medals': existingMedals});
+      await userDoc.update(<Object, Object?>{'medals': existingMedals});
     }
   }
 

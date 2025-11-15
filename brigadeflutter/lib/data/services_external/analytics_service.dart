@@ -8,7 +8,7 @@ class AnalyticsService {
   final FirebaseAnalytics _ga = FirebaseAnalytics.instance;
 
   Future<void> setUser() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) await _ga.setUserId(id: uid);
   }
 
@@ -17,8 +17,8 @@ class AnalyticsService {
   Future<void> logGpsUsed() => _ga.logEvent(name: 'gps_used_for_report');
 
   Map<String, Object> _sanitize(Map<String, dynamic> params) {
-    final out = <String, Object>{};
-    params.forEach((k, v) {
+    final Map<String, Object> out = <String, Object>{};
+    params.forEach((String k, v) {
       if (v == null) return;
       if (v is bool) {
         out[k] = v ? 1 : 0;
@@ -37,7 +37,7 @@ class AnalyticsService {
   }) async {
     await _ga.logEvent(
       name: 'report_place_filled',
-      parameters: _sanitize({'method': method, 'ms': ms}),
+      parameters: _sanitize(<String, dynamic>{'method': method, 'ms': ms}),
     );
   }
 
@@ -47,7 +47,7 @@ class AnalyticsService {
     required bool usedGps,
     int? msTotal,
   }) async {
-    final params = {
+    final Map<String, Object> params = <String, Object>{
       'type': type,
       'follow_up': followUp,
       'used_gps': usedGps,

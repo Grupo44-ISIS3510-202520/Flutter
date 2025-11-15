@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+
 import '../../data/entities/training_card.dart';
 import '../../data/entities/training_progress.dart';
 import '../../data/repositories/training_repository.dart';
@@ -12,8 +13,8 @@ class TrainingViewModel extends ChangeNotifier {
   final TrainingRepository _repo;
 
   UiStatus _status = UiStatus.initial;
-  List<TrainingCard> _cards = [];
-  List<TrainingProgress> _progress = [];
+  List<TrainingCard> _cards = <TrainingCard>[];
+  List<TrainingProgress> _progress = <TrainingProgress>[];
   bool _submitting = false;
 
   UiStatus get status => _status;
@@ -25,7 +26,7 @@ class TrainingViewModel extends ChangeNotifier {
     _status = UiStatus.loading;
     notifyListeners();
 
-    final box = await Hive.openBox('trainingsBox');
+    final Box box = await Hive.openBox('trainingsBox');
 
     try {
       final cachedCards = box.get('cards');
@@ -58,15 +59,15 @@ class TrainingViewModel extends ChangeNotifier {
         notifyListeners();
       }
 
-      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final String? uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
         _status = UiStatus.error;
         notifyListeners();
         return;
       }
 
-      final cards = await _repo.getCards();
-      final progress = await _repo.getProgress(uid);
+      final List<TrainingCard> cards = await _repo.getCards();
+      final List<TrainingProgress> progress = await _repo.getProgress(uid);
 
       _cards = cards;
       _progress = progress;
@@ -75,7 +76,7 @@ class TrainingViewModel extends ChangeNotifier {
         'cards',
         cards
             .map(
-              (c) => {
+              (TrainingCard c) => <String, String>{
                 'id': c.id,
                 'title': c.title,
                 'subtitle': c.subtitle,
@@ -89,7 +90,7 @@ class TrainingViewModel extends ChangeNotifier {
       await box.put(
         'progress',
         progress
-            .map((p) => {'id': p.id, 'label': p.label, 'percent': p.percent})
+            .map((TrainingProgress p) => <String, Object>{'id': p.id, 'label': p.label, 'percent': p.percent})
             .toList(),
       );
 
@@ -105,13 +106,13 @@ class TrainingViewModel extends ChangeNotifier {
   }
 
   Future<void> onCtaPressed(String cardId) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final String? uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
     _submitting = true;
     notifyListeners();
 
-    final box = await Hive.openBox('trainingsBox');
+    final Box box = await Hive.openBox('trainingsBox');
 
     try {
       await _repo.start(uid, cardId);
@@ -120,7 +121,7 @@ class TrainingViewModel extends ChangeNotifier {
       await box.put(
         'progress',
         _progress
-            .map((p) => {'id': p.id, 'label': p.label, 'percent': p.percent})
+            .map((TrainingProgress p) => <String, Object>{'id': p.id, 'label': p.label, 'percent': p.percent})
             .toList(),
       );
     } catch (e, st) {
@@ -132,8 +133,8 @@ class TrainingViewModel extends ChangeNotifier {
   }
 
   List<TrainingProgress> get pendingCertificates =>
-      _progress.where((p) => p.percent < 100).toList();
+      _progress.where((TrainingProgress p) => p.percent < 100).toList();
 
   List<TrainingProgress> get completedCertificates =>
-      _progress.where((p) => p.percent == 100).toList();
+      _progress.where((TrainingProgress p) => p.percent == 100).toList();
 }

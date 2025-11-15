@@ -43,8 +43,8 @@ Future<void> openAIIsolateEntry(OpenAIIsolateMessage message) async {
   }
 
   try {
-    final service = OpenAIServiceImpl.withKey(message.apiKey);
-    final result = await service.getInstructionText(
+    final OpenAIServiceImpl service = OpenAIServiceImpl.withKey(message.apiKey);
+    final String result = await service.getInstructionText(
       emergencyType: message.emergencyType,
     );
     message.sendPort.send(result);

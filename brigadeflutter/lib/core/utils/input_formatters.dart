@@ -7,7 +7,7 @@ final RegExp kSafeChars = RegExp(
 );
 
 /// bloquea secuencias típicas de inyección
-final List<RegExp> kBlockedSequences = [
+final List<RegExp> kBlockedSequences = <RegExp>[
   RegExp(r'--'), // comentario sql
   RegExp(r'/\*'), // comentario inicio
   RegExp(r'\*/'), // comentario fin
@@ -23,21 +23,21 @@ class SafeTextFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    var txt = newValue.text;
+    String txt = newValue.text;
 
     // remove blocked sequences
-    for (final r in kBlockedSequences) {
+    for (final RegExp r in kBlockedSequences) {
       txt = txt.replaceAll(r, '');
     }
 
     // keep only safe chars
-    final buf = StringBuffer();
-    for (final rune in txt.runes) {
-      final ch = String.fromCharCode(rune);
+    final StringBuffer buf = StringBuffer();
+    for (final int rune in txt.runes) {
+      final String ch = String.fromCharCode(rune);
       if (kSafeChars.hasMatch(ch)) buf.write(ch);
     }
 
-    var safe = buf.toString();
+    String safe = buf.toString();
 
     // enforce max length
     if (safe.length > max) safe = safe.substring(0, max);
@@ -45,25 +45,24 @@ class SafeTextFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: safe,
       selection: TextSelection.collapsed(offset: safe.length),
-      composing: TextRange.empty,
     );
   }
 }
 
 /// helper: oculta el contador nativo
-const kNoCounter = SizedBox.shrink();
+const SizedBox kNoCounter = SizedBox.shrink();
 
 class NoEmojiAndLengthFormatter extends TextInputFormatter {
   NoEmojiAndLengthFormatter(this.max);
   final int max;
 
-  static final _emoji = RegExp(r'[\u{1F300}-\u{1FAFF}]', unicode: true);
+  static final RegExp _emoji = RegExp(r'[\u{1F300}-\u{1FAFF}]', unicode: true);
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldV,
     TextEditingValue newV,
   ) {
-    var t = newV.text.replaceAll(_emoji, '');
+    String t = newV.text.replaceAll(_emoji, '');
     if (t.length > max) t = t.substring(0, max);
     return TextEditingValue(
       text: t,

@@ -4,7 +4,7 @@ class OfflineBanner extends StatelessWidget {
   const OfflineBanner({
     super.key,
     this.message =
-        "Hey Uniandino, you’re offline! Reconnect to get all features back.",
+        'Hey Uniandino, you’re offline! Reconnect to get all features back.',
   });
   final String message;
 
@@ -19,7 +19,7 @@ class OfflineBanner extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Text(
-            "Hey Uniandino, you’re offline! Reconnect to get all features back.",
+            'Hey Uniandino, you’re offline! Reconnect to get all features back.',
             style: TextStyle(color: Color(0xFF856404)),
           ),
         ),

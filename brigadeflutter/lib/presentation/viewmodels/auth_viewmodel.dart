@@ -1,15 +1,16 @@
 import 'dart:async';
 
-import 'package:brigadeflutter/core/utils/validators.dart';
-import 'package:brigadeflutter/domain/use_cases/send_password_reset_email.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+
+import '../../core/utils/validators.dart';
+import '../../data/entities/auth_user.dart';
+import '../../domain/use_cases/get_current_user.dart';
+import '../../domain/use_cases/observe_auth_state.dart';
+import '../../domain/use_cases/send_password_reset_email.dart';
 import '../../domain/use_cases/sign_in_with_email.dart';
 import '../../domain/use_cases/sign_out.dart';
-import '../../domain/use_cases/observe_auth_state.dart';
-import '../../domain/use_cases/get_current_user.dart';
-import '../../data/entities/auth_user.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 class AuthViewModel extends ChangeNotifier {
 
@@ -20,7 +21,7 @@ class AuthViewModel extends ChangeNotifier {
     required this.getCurrent,
     required this.sendReset,
   }) {
-    _sub = observe().listen((u) {
+    _sub = observe().listen((AuthUser? u) {
       user = u;
       isAuthenticated = u != null;
       notifyListeners();
@@ -30,7 +31,7 @@ class AuthViewModel extends ChangeNotifier {
 
     // monitor de conectividad
     _connSub = Connectivity().onConnectivityChanged.listen((_) async {
-      final res = await Connectivity().checkConnectivity();
+      final List<ConnectivityResult> res = await Connectivity().checkConnectivity();
       isOnline = !res.contains(ConnectivityResult.none);
       notifyListeners(); // update state
     });
@@ -60,12 +61,12 @@ class AuthViewModel extends ChangeNotifier {
 
     if (!isOnline) {
       error =
-          "Hey Uniandino, you’re offline! Reconnect to get all features back.";
+          'Hey Uniandino, you’re offline! Reconnect to get all features back.';
       notifyListeners();
       return false;
     }
 
-    final err = validateEmailDomain(email);
+    final String? err = validateEmailDomain(email);
     if (err != null) {
       error = err;
       notifyListeners();
@@ -92,12 +93,12 @@ class AuthViewModel extends ChangeNotifier {
 
     if (!isOnline) {
       error =
-          "Hey Uniandino, you’re offline! Reconnect to get all features back.";
+          'Hey Uniandino, you’re offline! Reconnect to get all features back.';
       notifyListeners();
       return;
     }
 
-    final problems = <String?>[
+    final List<String> problems = <String?>[
       validateEmailDomain(email),
       validatePassword(password),
     ].whereType<String>().toList();
@@ -116,19 +117,15 @@ class AuthViewModel extends ChangeNotifier {
       // Manejamos errores específicos
       switch (e.code) {
         case 'user-not-found':
-          error = "Oops! Account not found. Check your email or sign up.";
-          break;
+          error = 'Oops! Account not found. Check your email or sign up.';
         case 'wrong-password':
-          error = "Incorrect password. Please try again.";
-          break;
+          error = 'Incorrect password. Please try again.';
         case 'invalid-email':
-          error = "Invalid email format. Please check and try again.";
-          break;
+          error = 'Invalid email format. Please check and try again.';
         case 'too-many-requests':
-          error = "Too many attempts. Please wait a few minutes.";
-          break;
+          error = 'Too many attempts. Please wait a few minutes.';
         default:
-          error = e.message ?? "Login failed. Please try again uniandino :( ).";
+          error = e.message ?? 'Login failed. Please try again uniandino :( ).';
       }
     } catch (e) {
       error = e.toString();

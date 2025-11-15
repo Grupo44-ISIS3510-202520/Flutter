@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../data/models/protocol_model.dart';
 import '../../features/pdf_viewer.dart';
-import '../viewmodels/protocols_viewmodel.dart';
 import '../components/app_bottom_nav.dart';
+import '../viewmodels/protocols_viewmodel.dart';
 
 class ProtocolsScreen extends StatefulWidget {
   const ProtocolsScreen({super.key});
@@ -24,10 +26,10 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProtocolsViewModel>(builder: (context, vm, child) {
+    return Consumer<ProtocolsViewModel>(builder: (BuildContext context, ProtocolsViewModel vm, Widget? child) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Protocols & Manuals'),
+          title: const Text('Protocols & Manuals', style: TextStyle(fontWeight: FontWeight.bold)),
           automaticallyImplyLeading: Navigator.canPop(context),
           backgroundColor: Colors.white,
           elevation: 0.5,
@@ -36,13 +38,13 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
         body: SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
-            children: [
+            children: <Widget>[
               TextField(
                 controller: _searchController,
                 onChanged: vm.onSearchChanged,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
-                  hintText: "Search protocols...",
+                  hintText: 'Search protocols...',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -57,8 +59,8 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
                   itemCount: vm.filtered.length,
                   separatorBuilder: (_, __) =>
                   const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final p = vm.filtered[i];
+                  itemBuilder: (BuildContext context, int i) {
+                    final ProtocolModel p = vm.filtered[i];
                     return _ProtocolTile(protocol: p, vm: vm);
                   },
                 ),
@@ -72,11 +74,10 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
 }
 
 class _ProtocolTile extends StatelessWidget {
+
+  const _ProtocolTile({required this.protocol, required this.vm});
   final ProtocolsViewModel vm;
   final protocol;
-
-  const _ProtocolTile({required this.protocol, required this.vm, Key? key})
-      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +90,7 @@ class _ProtocolTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
               color: Colors.grey.withOpacity(0.1),
               blurRadius: 5,
@@ -106,7 +107,7 @@ class _ProtocolTile extends StatelessWidget {
               color: Colors.redAccent, size: 26),
         ),
         title: Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Text(
                 name,
@@ -116,8 +117,8 @@ class _ProtocolTile extends StatelessWidget {
             ),
             FutureBuilder<bool>(
               future: vm.checkIsNew(name, version),
-              builder: (context, snap) {
-                final isNew = snap.data ?? false;
+              builder: (BuildContext context, AsyncSnapshot<bool> snap) {
+                final bool isNew = snap.data ?? false;
                 if (!isNew) return const SizedBox.shrink();
                 return Container(
                   padding:
@@ -125,7 +126,7 @@ class _ProtocolTile extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: Colors.amber.shade700,
                       borderRadius: BorderRadius.circular(8)),
-                  child: const Text("NEW",
+                  child: const Text('NEW',
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -148,7 +149,7 @@ class _ProtocolTile extends StatelessWidget {
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("No PDF URL found.")));
+                const SnackBar(content: Text('No PDF URL found.')));
           }
         },
       ),

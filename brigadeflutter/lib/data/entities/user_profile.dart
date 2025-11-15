@@ -7,7 +7,7 @@ class UserProfile {
     required this.bloodGroup,
     required this.role,
     required this.email,
-    this.medals = const [],
+    this.medals = const <String>[],
   });
   final String uid;
   final String name;
