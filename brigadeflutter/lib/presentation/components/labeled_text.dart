@@ -6,12 +6,12 @@ class LabeledText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(
+    final TextStyle muted = Theme.of(
       context,
     ).textTheme.bodySmall!.copyWith(color: Colors.grey[600]);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text('$label:', style: muted),
         const SizedBox(height: 4),
         Container(

@@ -1,18 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../domain/use_cases/create_emergency_report.dart';
-import '../../domain/use_cases/fill_location.dart';
-import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
+
+import '../../core/workers/openai_isolate.dart';
 import '../../data/services_external/ambient_light_service.dart';
-import '../../data/services_external/screen_brightness_service.dart';
 import '../../data/services_external/connectivity_service.dart';
 import '../../data/services_external/openai_service.dart';
+import '../../data/services_external/screen_brightness_service.dart';
 import '../../data/services_external/tts_service.dart';
-import '../../core/workers/openai_isolate.dart';
+import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
+import '../../domain/use_cases/create_emergency_report.dart';
+import '../../domain/use_cases/fill_location.dart';
 
 class EmergencyReportViewModel extends ChangeNotifier {
   EmergencyReportViewModel({
@@ -77,8 +80,8 @@ class EmergencyReportViewModel extends ChangeNotifier {
     _notify();
 
     // start listening for changes
-    _connSub = Connectivity().onConnectivityChanged.listen((status) {
-      final newOffline = (status == ConnectivityResult.none);
+    _connSub = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> status) {
+      final bool newOffline = (status == ConnectivityResult.none);
       if (newOffline != offline) {
         offline = newOffline;
         _notify();
@@ -121,7 +124,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     _notify();
 
     try {
-      final pos = await Future.any([
+      final ({double lat, double lng})? pos = await Future.any(<Future<({double lat, double lng})?>>[
         fillLocation(),
         Future.delayed(const Duration(seconds: 3), () => null),
       ]);
@@ -136,7 +139,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
         return false;
       }
 
-      final now = DateTime.now();
+      final DateTime now = DateTime.now();
       placeTime =
           'Lat ${pos.lat.toStringAsFixed(5)}, Lon ${pos.lng.toStringAsFixed(5)}'
           ' • ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
@@ -160,25 +163,25 @@ class EmergencyReportViewModel extends ChangeNotifier {
     try {
       await tts.init(lang: 'en-US');
 
-      final isOnline = await connectivity.isOnline();
+      final bool isOnline = await connectivity.isOnline();
       if (!isOnline) {
         await _handleOfflineVoice();
         return;
       }
 
-      final receivePort = ReceivePort();
-      final apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
-      final typeName = type.isEmpty ? 'Emergency' : type;
-      final dir = await getApplicationDocumentsDirectory();
-      final appPath = dir.path;
+      final ReceivePort receivePort = ReceivePort();
+      final String apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
+      final String typeName = type.isEmpty ? 'Emergency' : type;
+      final Directory dir = await getApplicationDocumentsDirectory();
+      final String appPath = dir.path;
 
       await Isolate.spawn(
         openAIIsolateEntry,
         OpenAIIsolateMessage(receivePort.sendPort, typeName, apiKey, appPath),
       );
 
-      final result = await receivePort.first as String;
-      final text = result.startsWith('Error:')
+      final String result = await receivePort.first as String;
+      final String text = result.startsWith('Error:')
           ? 'Remain calm. At the moment, we’re unable to generate voice instructions.'
           : result;
       //bool _isDisposed = false;
@@ -232,7 +235,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     _notify();
 
     // check connectivity live (ignore passed param to avoid stale value)
-    final online = await connectivity.isOnline();
+    final bool online = await connectivity.isOnline();
     isOnline = online;
     offline = !online;
     _notify();
@@ -242,8 +245,8 @@ class EmergencyReportViewModel extends ChangeNotifier {
       if (online) {
         try {
           // adjust timeout as needed
-          const timeoutDuration = Duration(seconds: 2);
-          final id = await createReport(
+          const Duration timeoutDuration = Duration(seconds: 2);
+          final int id = await createReport(
             type: type,
             placeTime: placeTime,
             description: description,

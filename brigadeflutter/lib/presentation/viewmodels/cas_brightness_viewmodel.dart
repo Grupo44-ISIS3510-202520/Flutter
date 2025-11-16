@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
-import '../../data/services_external/screen_brightness_service.dart';
+
 import '../../data/services_external/ambient_light_service.dart';
+import '../../data/services_external/screen_brightness_service.dart';
+import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
 
 class CasBrightnessViewModel extends ChangeNotifier {
   CasBrightnessViewModel({

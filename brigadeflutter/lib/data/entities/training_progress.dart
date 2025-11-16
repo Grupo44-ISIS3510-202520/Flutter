@@ -21,5 +21,5 @@ class TrainingProgress extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, label, percent];
+  List<Object?> get props => <Object?>[id, label, percent];
 }

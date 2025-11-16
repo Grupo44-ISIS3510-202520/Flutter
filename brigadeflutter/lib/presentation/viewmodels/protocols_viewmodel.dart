@@ -15,7 +15,7 @@ class ProtocolsViewModel extends ChangeNotifier {
   final IsProtocolNew isProtocolNew;
   final MarkProtocolAsRead markProtocolAsRead;
 
-  List<ProtocolModel> _all = [];
+  List<ProtocolModel> _all = <ProtocolModel>[];
   String _searchQuery = '';
   bool isLoading = true;
 
@@ -26,7 +26,7 @@ class ProtocolsViewModel extends ChangeNotifier {
     isLoading = true;
 
     _subscription = getProtocolsStream().listen(
-      (list) {
+      (List<ProtocolModel> list) {
         _all = list;
         isLoading = false;
         notifyListeners();
@@ -47,8 +47,8 @@ class ProtocolsViewModel extends ChangeNotifier {
 
   List<ProtocolModel> get filtered {
     if (_searchQuery.isEmpty) return _all;
-    final q = _searchQuery.toLowerCase();
-    return _all.where((p) => p.name.toLowerCase().contains(q)).toList();
+    final String q = _searchQuery.toLowerCase();
+    return _all.where((ProtocolModel p) => p.name.toLowerCase().contains(q)).toList();
   }
 
   void onSearchChanged(String q) {
@@ -62,6 +62,6 @@ class ProtocolsViewModel extends ChangeNotifier {
   }
 
   Future<bool> checkIsNew(String name, String version) async {
-    return await isProtocolNew(name, version);
+    return isProtocolNew(name, version);
   }
 }

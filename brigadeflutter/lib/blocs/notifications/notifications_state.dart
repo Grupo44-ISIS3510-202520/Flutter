@@ -4,7 +4,7 @@ import 'app_notification.dart';
 class NotificationsState extends Equatable {
 
   const NotificationsState({
-    this.items = const [],
+    this.items = const <AppNotification>[],
     this.loading = false,
     this.error,
   });
@@ -25,5 +25,5 @@ class NotificationsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [items, loading, error];
+  List<Object?> get props => <Object?>[items, loading, error];
 }

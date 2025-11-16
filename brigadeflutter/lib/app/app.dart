@@ -1,49 +1,50 @@
-import 'package:brigadeflutter/presentation/viewmodels/leaderboard_viewmodel.dart';
-import 'package:brigadeflutter/presentation/viewmodels/training_viewmodel.dart';
-import 'package:brigadeflutter/presentation/views/leaderboard_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// viewmodels
+import '../presentation/viewmodels/auth_viewmodel.dart';
+import '../presentation/viewmodels/emergency_report_viewmodel.dart';
+import '../presentation/viewmodels/leaderboard_viewmodel.dart';
+import '../presentation/viewmodels/profile_viewmodel.dart';
+import '../presentation/viewmodels/protocols_viewmodel.dart';
+import '../presentation/viewmodels/register_viewmodel.dart';
+import '../presentation/viewmodels/training_viewmodel.dart';
+import '../presentation/views/dashboard_screen.dart';
+import '../presentation/views/emergency_report_view.dart';
+import '../presentation/views/leaderboard_screen.dart';
+// views
+import '../presentation/views/login_screen.dart';
+import '../presentation/views/notifications_screen.dart';
+import '../presentation/views/profile_view.dart';
+import '../presentation/views/protocols_screen.dart';
+import '../presentation/views/register_screen.dart';
+import '../presentation/views/training_screen.dart';
 // di
 import 'di.dart' show sl;
 
-// viewmodels
-import '../presentation/viewmodels/auth_viewmodel.dart';
-import '../presentation/viewmodels/register_viewmodel.dart';
-import '../presentation/viewmodels/emergency_report_viewmodel.dart';
-import '../presentation/viewmodels/protocols_viewmodel.dart';
-import '../presentation/viewmodels/profile_viewmodel.dart';
-
-// views
-import '../presentation/views/login_screen.dart';
-import '../presentation/views/register_screen.dart';
-import '../presentation/views/dashboard_screen.dart';
-import '../presentation/views/emergency_report_view.dart';
-import '../presentation/views/protocols_screen.dart';
-import '../presentation/views/profile_view.dart';
-import '../presentation/views/training_screen.dart';
-import '../presentation/views/notifications_screen.dart';
-
 // route names
-const routeDashboard = '/dashboard';
-const routeTraining = '/training';
-const routeProtocols = '/protocols';
-const routeNotifications = '/notification';
-const routeProfile = '/profile';
-const routeLogin = '/login';
-const routeRegister = '/register';
-const routeReport = '/report';
-const routeLeaderboard = '/leaderboard';
+const String routeDashboard = '/dashboard';
+const String routeTraining = '/training';
+const String routeProtocols = '/protocols';
+const String routeNotifications = '/notification';
+const String routeProfile = '/profile';
+const String routeLogin = '/login';
+const String routeRegister = '/register';
+const String routeReport = '/report';
+const String routeLeaderboard = '/leaderboard';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.navigatorKey});
+
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
-      builder: (_, auth, __) {
+      builder: (_, AuthViewModel auth, __) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Brigade',
           theme: ThemeData(
@@ -53,7 +54,7 @@ class MyApp extends StatelessWidget {
 
           home: auth.isAuthenticated ? const DashboardScreen() : const LoginScreen(),
 
-          onGenerateRoute: (settings) {
+          onGenerateRoute: (RouteSettings settings) {
             switch (settings.name) {
               case routeLogin:
                 return MaterialPageRoute(
@@ -81,7 +82,7 @@ class MyApp extends StatelessWidget {
                   settings: settings,
                   builder: (_) => ChangeNotifierProvider(
                     create: (_) {
-                      final vm = sl<EmergencyReportViewModel>();
+                      final EmergencyReportViewModel vm = sl<EmergencyReportViewModel>();
                       WidgetsBinding.instance.addPostFrameCallback(
                             (_) => vm.initBrightness(),
                       );
@@ -119,8 +120,8 @@ class MyApp extends StatelessWidget {
                 return MaterialPageRoute(
                   builder: (_) => ChangeNotifierProvider(
                     create: (_) {
-                      final vm = sl<ProfileViewModel>();
-                      final user = FirebaseAuth.instance.currentUser;
+                      final ProfileViewModel vm = sl<ProfileViewModel>();
+                      final User? user = FirebaseAuth.instance.currentUser;
                       if (user != null) {
                         vm.load(user.uid);
                       }

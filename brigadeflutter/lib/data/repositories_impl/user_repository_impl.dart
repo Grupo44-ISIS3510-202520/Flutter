@@ -1,7 +1,7 @@
+import '../datasources/user_firestore_dao.dart';
 import '../entities/user_profile.dart';
 import '../models/user_profile_model.dart';
 import '../repositories/user_repository.dart';
-import '../datasources/user_firestore_dao.dart';
 
 class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl(this.remote);

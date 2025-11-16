@@ -12,13 +12,13 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final ColorScheme cs = Theme.of(context).colorScheme;
 
     return DecoratedBox(
       // fondo menos blanco con sombra y borde superior
       decoration: BoxDecoration(
         color: cs.surface, // integra con tema
-        boxShadow: const [
+        boxShadow: const <BoxShadow>[
           BoxShadow(
             color: Color(0x14000000), // sombra suave
             blurRadius: 12,
@@ -38,26 +38,22 @@ class AppBottomNav extends StatelessWidget {
           selectedItemColor: cs.primary,
           unselectedItemColor: cs.onSurfaceVariant,
           currentIndex: current,
-          onTap: (i) {
+          onTap: (int i) {
             switch (i) {
               case 0:
                 _go(context, '/dashboard');
-                break;
               case 1:
                 _go(context, '/training');
-                break;
               case 2:
                 _go(context, '/protocols');
-                break; // conectado
+// conectado
               case 3:
                 _go(context, '/notification');
-                break;
               case 4:
                 _go(context, '/profile');
-                break;
             }
           },
-          items: const [
+          items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.local_hospital_outlined),
               label: 'Dashboard',

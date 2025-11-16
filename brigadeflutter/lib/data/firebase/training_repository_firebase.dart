@@ -4,9 +4,9 @@ import '../entities/training_progress.dart';
 import '../repositories/training_repository.dart';
 
 class FirebaseTrainingRepository implements TrainingRepository {
-  final _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final _cards = <TrainingCard>[
+  final List<TrainingCard> _cards = <TrainingCard>[
     const TrainingCard(
       id: 'primeros_auxilios_basicos',
       title: 'Primeros Auxilios Básicos',
@@ -44,44 +44,44 @@ class FirebaseTrainingRepository implements TrainingRepository {
 
   @override
   Future<List<TrainingProgress>> getProgress(String uid) async {
-    final doc = await _firestore.collection('user_trainings').doc(uid).get();
+    final DocumentSnapshot<Map<String, dynamic>> doc = await _firestore.collection('user_trainings').doc(uid).get();
 
     if (!doc.exists) {
-      await _firestore.collection('user_trainings').doc(uid).set({
-        for (final card in _cards) card.id: {'percent': 0}
+      await _firestore.collection('user_trainings').doc(uid).set(<String, dynamic>{
+        for (final TrainingCard card in _cards) card.id: <String, int>{'percent': 0}
       });
 
       return _cards
-          .map((c) => TrainingProgress(id: c.id, label: c.title, percent: 0))
+          .map((TrainingCard c) => TrainingProgress(id: c.id, label: c.title, percent: 0))
           .toList();
     }
 
-    final data = doc.data() ?? {};
+    final Map<String, dynamic> data = doc.data() ?? <String, dynamic>{};
 
-    return _cards.map((c) {
-      final percent = (data[c.id]?['percent'] ?? 0) as int;
+    return _cards.map((TrainingCard c) {
+      final int percent = (data[c.id]?['percent'] ?? 0) as int;
       return TrainingProgress(id: c.id, label: c.title, percent: percent);
     }).toList();
   }
 
   @override
 Future<void> start(String uid, String cardId) async {
-  final docRef = _firestore.collection('user_trainings').doc(uid);
-  final snapshot = await docRef.get();
+  final DocumentReference<Map<String, dynamic>> docRef = _firestore.collection('user_trainings').doc(uid);
+  final DocumentSnapshot<Map<String, dynamic>> snapshot = await docRef.get();
 
   int current = 0;
   if (snapshot.exists) {
     current = (snapshot.data()?[cardId]?['percent'] ?? 0) as int;
   }
 
-  final newPercent = (current + 10).clamp(0, 100);
-  final Map<String, dynamic> updateData = {
-    cardId: {'percent': newPercent},
+  final int newPercent = (current + 10).clamp(0, 100);
+  final Map<String, dynamic> updateData = <String, dynamic>{
+    cardId: <String, int>{'percent': newPercent},
     'lastUpdated': FieldValue.serverTimestamp(),
   };
 
   if (newPercent >= 100) {
-    updateData[cardId] = {
+    updateData[cardId] = <String, Object>{
       'percent': newPercent,
       'completedAt': FieldValue.serverTimestamp(),
     };
@@ -95,16 +95,16 @@ Future<void> start(String uid, String cardId) async {
 }
 
   Future<void> _addMedal(String uid, String cardId) async {
-    final userDoc = _firestore.collection('users').doc(uid);
-    final snapshot = await userDoc.get();
-    final data = snapshot.data() ?? {};
-    final existing = List<String>.from(data['medals'] ?? []);
+    final DocumentReference<Map<String, dynamic>> userDoc = _firestore.collection('users').doc(uid);
+    final DocumentSnapshot<Map<String, dynamic>> snapshot = await userDoc.get();
+    final Map<String, dynamic> data = snapshot.data() ?? <String, dynamic>{};
+    final List<String> existing = List<String>.from(data['medals'] ?? <dynamic>[]);
 
-    final medal = _mapTrainingToMedal(cardId);
+    final String medal = _mapTrainingToMedal(cardId);
 
     if (!existing.contains(medal)) {
       existing.add(medal);
-      await userDoc.update({'medals': existing});
+      await userDoc.update(<Object, Object?>{'medals': existing});
     }
   }
 

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:brigadeflutter/data/services_external/ambient_light_service.dart';
-import 'package:brigadeflutter/data/services_external/screen_brightness_service.dart';
+import '../../data/services_external/ambient_light_service.dart';
+import '../../data/services_external/screen_brightness_service.dart';
 
 // caso de uso: ajuste dinámico del brillo según luz ambiental
 class AdjustBrightnessFromAmbient {
@@ -13,8 +13,8 @@ class AdjustBrightnessFromAmbient {
 
   // inicio del monitoreo continuo
   StreamSubscription<double> start() {
-    return ambientLightService.ambientLuxStream().listen((lux) async {
-      final brightness = _mapLuxToBrightness(lux);
+    return ambientLightService.ambientLuxStream().listen((double lux) async {
+      final double brightness = _mapLuxToBrightness(lux);
       await screenBrightnessService.setBrightness(brightness);
     });
   }

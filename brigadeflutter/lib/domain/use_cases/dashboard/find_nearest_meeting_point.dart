@@ -1,9 +1,11 @@
 import 'dart:math';
+
 import 'package:geolocator/geolocator.dart';
+
+import '../../../core/workers/meeting_point_isolate.dart';
 import '../../../data/models/meeting_point_model.dart';
 import '../../../data/repositories/meeting_point_repository.dart';
 import '../../../data/services_external/location/location_service.dart';
-import '../../../core/workers/meeting_point_isolate.dart';
 
 class LocationUnavailableException implements Exception {
   LocationUnavailableException([this.message = 'Location unavailable']);
@@ -38,13 +40,13 @@ class FindNearestMeetingPoint {
       throw LocationUnavailableException();
     }
 
-    final userLat = pos.latitude;
-    final userLng = pos.longitude;
+    final double userLat = pos.latitude;
+    final double userLng = pos.longitude;
 
-    final points = repository.getMeetingPoints();
+    final List<MeetingPoint> points = repository.getMeetingPoints();
     if (points.isEmpty) return null;
 
-    final pointsData = points.map((p) => {
+    final List<Map<String, Object>> pointsData = points.map((MeetingPoint p) => <String, Object>{
       'id': p.id,
       'name': p.name,
       'lat': p.lat,
@@ -52,7 +54,7 @@ class FindNearestMeetingPoint {
     }).toList();
 
     try {
-      final isolateResult = await EmergencyIsolateWorker.findNearestMeetingPoint(
+      final Map<String, dynamic> isolateResult = await EmergencyIsolateWorker.findNearestMeetingPoint(
         userLat: userLat,
         userLng: userLng,
         meetingPoints: pointsData,
@@ -60,7 +62,7 @@ class FindNearestMeetingPoint {
 
       if (!isolateResult['success']) {
         final error = isolateResult['error'];
-        final usedFallback = isolateResult['fallback'] == true;
+        final bool usedFallback = isolateResult['fallback'] == true;
 
         if (usedFallback) {
           throw Exception(error);
@@ -69,17 +71,17 @@ class FindNearestMeetingPoint {
         return _calculateInMainThread(userLat, userLng, points);
       }
 
-      final resultData = isolateResult['result'] as Map<String, dynamic>;
-      final usedFallback = isolateResult['fallback'] == true;
+      final Map<String, dynamic> resultData = isolateResult['result'] as Map<String, dynamic>;
+      final bool usedFallback = isolateResult['fallback'] == true;
 
-      final nearestPoint = MeetingPoint(
+      final MeetingPoint nearestPoint = MeetingPoint(
         id: resultData['id'],
         name: resultData['name'],
         lat: resultData['lat'],
         lng: resultData['lng'],
       );
 
-      final distanceMeters = resultData['distanceMeters'] as double;
+      final double distanceMeters = resultData['distanceMeters'] as double;
 
       return NearestMeetingResult(
           point: nearestPoint,
@@ -100,8 +102,8 @@ class FindNearestMeetingPoint {
       MeetingPoint? nearest;
       double nearestDist = double.infinity;
 
-      for (final p in points) {
-        final d = _distanceMeters(userLat, userLng, p.lat, p.lng);
+      for (final MeetingPoint p in points) {
+        final double d = _distanceMeters(userLat, userLng, p.lat, p.lng);
         if (d < nearestDist) {
           nearestDist = d;
           nearest = p;
@@ -121,15 +123,15 @@ class FindNearestMeetingPoint {
   }
 
   double _distanceMeters(double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371000;  
-    final phi1 = _toRad(lat1);
-    final phi2 = _toRad(lat2);
-    final dPhi = _toRad(lat2 - lat1);
-    final dLambda = _toRad(lon2 - lon1);
+    const int R = 6371000;  
+    final double phi1 = _toRad(lat1);
+    final double phi2 = _toRad(lat2);
+    final double dPhi = _toRad(lat2 - lat1);
+    final double dLambda = _toRad(lon2 - lon1);
 
-    final a = sin(dPhi / 2) * sin(dPhi / 2) +
+    final double a = sin(dPhi / 2) * sin(dPhi / 2) +
         cos(phi1) * cos(phi2) * sin(dLambda / 2) * sin(dLambda / 2);
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return R * c;
   }
 

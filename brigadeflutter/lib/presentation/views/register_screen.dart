@@ -1,10 +1,11 @@
-import 'package:brigadeflutter/presentation/components/banner_offline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/utils/constants.dart';
-import '../../core/utils/validators.dart';
 import '../../core/utils/input_formatters.dart';
+import '../../core/utils/validators.dart';
+import '../components/banner_offline.dart';
 import '../viewmodels/register_viewmodel.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -14,13 +15,13 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _form = GlobalKey<FormState>();
-  final _email = TextEditingController();
-  final _password = TextEditingController();
-  final _confirm = TextEditingController();
-  final _name = TextEditingController();
-  final _lastName = TextEditingController();
-  final _code = TextEditingController();
+  final GlobalKey<FormState> _form = GlobalKey<FormState>();
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  final TextEditingController _confirm = TextEditingController();
+  final TextEditingController _name = TextEditingController();
+  final TextEditingController _lastName = TextEditingController();
+  final TextEditingController _code = TextEditingController();
   String _bg = kBloodGroups.first;
   String _role = kRoles.first;
 
@@ -38,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<RegisterViewModel>(
-      builder: (_, vm, __) {
+      builder: (_, RegisterViewModel vm, __) {
         return Scaffold(
           appBar: AppBar(title: const Text('Create account')),
           body: Padding(
@@ -46,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Form(
               key: _form,
               child: ListView(
-                children: [
+                children: <Widget>[
                   if (!vm.isOnline)
                     // const Padding(
                     //   padding: EdgeInsets.only(bottom: 12),
@@ -68,14 +69,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _name,
                     decoration: const InputDecoration(hintText: 'name'),
                     validator: validateName,
-                    inputFormatters: [NoEmojiAndLengthFormatter(15)],
+                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(15)],
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _lastName,
                     decoration: const InputDecoration(hintText: 'last name'),
                     validator: validateLastName,
-                    inputFormatters: [NoEmojiAndLengthFormatter(15)],
+                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(15)],
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -85,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     keyboardType: TextInputType.number,
                     validator: validateUniandesCode,
-                    inputFormatters: [
+                    inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(12),
                     ],
@@ -94,9 +95,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   DropdownButtonFormField<String>(
                     value: _bg,
                     items: kBloodGroups
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map((String e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) =>
+                    onChanged: (String? v) =>
                         setState(() => _bg = v ?? kBloodGroups.first),
                     decoration: const InputDecoration(hintText: 'blood group'),
                     validator: validateBloodGroup,
@@ -105,9 +106,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   DropdownButtonFormField<String>(
                     value: _role,
                     items: kRoles
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map((String e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => setState(() => _role = v ?? kRoles.first),
+                    onChanged: (String? v) => setState(() => _role = v ?? kRoles.first),
                     decoration: const InputDecoration(hintText: 'role'),
                     validator: validateRole,
                   ),
@@ -115,8 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _email,
                     decoration: const InputDecoration(hintText: 'email'),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => validateEmailDomain(v),
-                    inputFormatters: [NoEmojiAndLengthFormatter(30)],
+                    validator: (String? v) => validateEmailDomain(v),
+                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(30)],
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -124,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: const InputDecoration(hintText: 'password'),
                     obscureText: true,
                     validator: validatePassword,
-                    inputFormatters: [NoEmojiAndLengthFormatter(20)],
+                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(20)],
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -133,9 +134,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'confirm password',
                     ),
                     obscureText: true,
-                    validator: (v) =>
+                    validator: (String? v) =>
                         validatePasswordConfirm(v, _password.text),
-                    inputFormatters: [NoEmojiAndLengthFormatter(20)],
+                    inputFormatters: <TextInputFormatter>[NoEmojiAndLengthFormatter(20)],
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
@@ -143,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? null
                         : () async {
                             if (!_form.currentState!.validate()) return;
-                            final ok = await vm.submit(
+                            final bool ok = await vm.submit(
                               email: _email.text.trim(),
                               password: _password.text,
                               confirmPassword: _confirm.text,
@@ -160,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 builder: (_) => AlertDialog(
                                   title: const Text('Error'),
                                   content: Text(vm.error ?? 'unknown error'),
-                                  actions: [
+                                  actions: <Widget>[
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
                                       child: const Text('OK'),
@@ -176,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   content: const Text(
                                     'Please check your email and verify your account.',
                                   ),
-                                  actions: [
+                                  actions: <Widget>[
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
                                       child: const Text('OK'),

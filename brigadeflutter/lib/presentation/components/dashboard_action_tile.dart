@@ -19,7 +19,7 @@ class DashboardActionTile extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Icon(command.icon, size: 42, color: Colors.blue[600]),
               const SizedBox(height: 8),
               Text(

@@ -1,86 +1,77 @@
-import 'package:brigadeflutter/presentation/viewmodels/leaderboard_viewmodel.dart';
-import 'package:brigadeflutter/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// external services
-import 'package:brigadeflutter/data/services_external/ambient_light_service.dart';
-import 'package:brigadeflutter/data/services_external/screen_brightness_service.dart';
-import 'package:brigadeflutter/data/services_external/firebase/auth_service.dart';
-import 'package:brigadeflutter/data/services_external/firebase/firestore_service.dart';
-import 'package:brigadeflutter/data/services_external/location/location_service.dart';
-import 'package:brigadeflutter/data/services_external/secure/token_service.dart';
-
 // core
 import '../core/utils/id_generator.dart';
-
 // data - datasources
 import '../data/datasources/location_dao.dart';
+import '../data/datasources/protocols_firestore_dao.dart';
 import '../data/datasources/report_firestore_dao.dart';
 import '../data/datasources/report_local_dao.dart';
-import '../data/datasources/protocols_firestore_dao.dart';
 import '../data/datasources/user_firestore_dao.dart';
-
+import '../data/firebase/training_repository_firebase.dart';
+import '../data/repositories/auth_repository.dart';
 // data - repositories & implementations
 import '../data/repositories/location_repository.dart';
-import '../data/repositories/report_repository.dart';
+import '../data/repositories/meeting_point_repository.dart';
 import '../data/repositories/protocol_repository.dart';
+import '../data/repositories/report_repository.dart';
+import '../data/repositories/training_repository.dart';
 import '../data/repositories/user_repository.dart';
-import '../data/repositories/auth_repository.dart';
+import '../data/repositories_impl/auth_repository_impl.dart';
 import '../data/repositories_impl/location_repository_impl.dart';
 import '../data/repositories_impl/meeting_point_repository_impl.dart';
-import '../data/repositories_impl/report_repository_impl.dart';
 import '../data/repositories_impl/protocol_repository_impl.dart';
+import '../data/repositories_impl/report_repository_impl.dart';
 import '../data/repositories_impl/user_repository_impl.dart';
-import '../data/repositories_impl/auth_repository_impl.dart';
-import '../data/firebase/training_repository_firebase.dart';
-import '../data/repositories/training_repository.dart';
-
+// external services
+import '../data/services_external/ambient_light_service.dart';
+import '../data/services_external/connectivity_service.dart';
+import '../data/services_external/firebase/auth_service.dart';
+import '../data/services_external/firebase/firestore_service.dart';
+import '../data/services_external/location/location_service.dart';
+// notifications service
+import '../data/services_external/notitication_service.dart';
+import '../data/services_external/openai_service.dart';
+import '../data/services_external/screen_brightness_service.dart';
+import '../data/services_external/secure/token_service.dart';
+import '../data/services_external/tts_service.dart';
 // domain - use cases
 // import '../domain/use_cases/adjust_screen_light.dart';
 import '../domain/use_cases/adjust_brightness_from_ambient.dart';
 import '../domain/use_cases/create_emergency_report.dart';
-import '../domain/use_cases/fill_location.dart';
-import '../domain/use_cases/send_password_reset_email.dart';
-import '../domain/use_cases/protocols/get_protocols_stream.dart';
-import '../domain/use_cases/protocols/mark_protocol_as_read.dart';
-import '../domain/use_cases/protocols/is_protocol_new.dart';
-import '../domain/use_cases/register_with_email.dart';
-import '../domain/use_cases/send_email_verification.dart';
-import '../domain/use_cases/reload_user.dart';
-import '../domain/use_cases/get_id_token_cache.dart';
-import '../domain/use_cases/sign_in_with_email.dart';
-import '../domain/use_cases/observe_auth_state.dart';
-import '../domain/use_cases/get_current_user.dart';
-import '../domain/use_cases/sign_out.dart';
-
 //dashboard
 import '../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
-import '../data/repositories/meeting_point_repository.dart';
-
-// presentation - viewmodels & navigation
-import '../presentation/viewmodels/emergency_report_viewmodel.dart';
-import '../presentation/viewmodels/protocols_viewmodel.dart';
-import '../presentation/viewmodels/register_viewmodel.dart';
+import '../domain/use_cases/fill_location.dart';
+import '../domain/use_cases/get_current_user.dart';
+import '../domain/use_cases/get_id_token_cache.dart';
+import '../domain/use_cases/observe_auth_state.dart';
+import '../domain/use_cases/protocols/get_protocols_stream.dart';
+import '../domain/use_cases/protocols/is_protocol_new.dart';
+import '../domain/use_cases/protocols/mark_protocol_as_read.dart';
+import '../domain/use_cases/register_with_email.dart';
+import '../domain/use_cases/reload_user.dart';
+import '../domain/use_cases/send_email_verification.dart';
+import '../domain/use_cases/send_password_reset_email.dart';
+import '../domain/use_cases/sign_in_with_email.dart';
+import '../domain/use_cases/sign_out.dart';
+import '../presentation/navigation/dashboard_actions_factory.dart';
 import '../presentation/viewmodels/auth_viewmodel.dart';
 import '../presentation/viewmodels/dashboard_viewmodel.dart';
-import '../presentation/navigation/dashboard_actions_factory.dart';
-import '../presentation/viewmodels/training_viewmodel.dart';
-
-import '../data/services_external/openai_service.dart';
-import '../data/services_external/tts_service.dart';
-import '../data/services_external/connectivity_service.dart';
-
-
-// notifications service
-import '../data/services_external/notitication_service.dart';
+// presentation - viewmodels & navigation
+import '../presentation/viewmodels/emergency_report_viewmodel.dart';
+import '../presentation/viewmodels/leaderboard_viewmodel.dart';
 import '../presentation/viewmodels/notification_viewmodel.dart';
+import '../presentation/viewmodels/profile_viewmodel.dart';
+import '../presentation/viewmodels/protocols_viewmodel.dart';
+import '../presentation/viewmodels/register_viewmodel.dart';
+import '../presentation/viewmodels/training_viewmodel.dart';
 
 final GetIt sl = GetIt.instance;
 
 Future<void> setupDi() async {
-  final prefs = await SharedPreferences.getInstance();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   // external services
   sl.registerLazySingleton(() => FirestoreService());
