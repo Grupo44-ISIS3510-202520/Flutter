@@ -1,20 +1,19 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:brigadeflutter/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import '../firebase_options.dart';
 
 Future<void> setupFCM() async {
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   // request permissions (for iOS and Android 13+)
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
+  final NotificationSettings settings = await messaging.requestPermission(
+    
   );
   //print('User granted permission: ${settings.authorizationStatus}');
 
   // get FCM token
-  String? token = await messaging.getToken();
+  final String? token = await messaging.getToken();
   //print('FCM Token: $token');
 
   // listen for foreground messages

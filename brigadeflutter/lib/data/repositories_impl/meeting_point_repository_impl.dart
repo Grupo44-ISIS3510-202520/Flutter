@@ -1,8 +1,8 @@
-import '../models/meeting_point_model.dart';
 import '../../data/repositories/meeting_point_repository.dart';
+import '../models/meeting_point_model.dart';
 
 class MeetingPointRepositoryImpl implements MeetingPointRepository {
-  static const _points = <MeetingPoint>[
+  static const List<MeetingPoint> _points = <MeetingPoint>[
     MeetingPoint(
       id: '1',
       name: 'Cancha de Fútbol - Centro Deportivo',

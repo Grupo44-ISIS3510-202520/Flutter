@@ -7,7 +7,7 @@ class ProgressTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percent = progress.percent / 100.0;
+    final double percent = progress.percent / 100.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -16,16 +16,16 @@ class ProgressTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
+          boxShadow: const <BoxShadow>[
             BoxShadow(blurRadius: 6, color: Colors.black12),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Text(
                     progress.label,
@@ -38,12 +38,12 @@ class ProgressTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Row(
-                  children: [
+                  children: <Widget>[
                     const Icon(Icons.star,
                         size: 14, color: Color(0xFF2F6AF6)), 
                     const SizedBox(width: 4),
                     Text(
-                      "${progress.percent}%",
+                      '${progress.percent}%',
                       style: const TextStyle(
                         color: Color(0xFF2F6AF6),
                         fontWeight: FontWeight.bold,

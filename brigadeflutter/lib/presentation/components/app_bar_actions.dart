@@ -1,6 +1,6 @@
 
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 //dashboard
 IconButton backToDashboardButton(BuildContext context) {
@@ -8,7 +8,7 @@ IconButton backToDashboardButton(BuildContext context) {
     tooltip: 'Back to dashboard',
     icon: const Icon(Icons.arrow_back),
     onPressed: () {
-      Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (Route route) => false);
     },
   );
 }
@@ -20,12 +20,12 @@ Widget signOutAction(BuildContext context, {bool confirm = true}) {
     icon: const Icon(Icons.logout),
     onPressed: () async {
       if (confirm) {
-        final ok = await showDialog<bool>(
+        final bool? ok = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
+          builder: (BuildContext ctx) => AlertDialog(
             title: const Text('Sign out'),
             content: const Text('Are you sure you want to sign out?'),
-            actions: [
+            actions: <Widget>[
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
               ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sign out')),
             ],
@@ -37,7 +37,7 @@ Widget signOutAction(BuildContext context, {bool confirm = true}) {
       await FirebaseAuth.instance.signOut();
 
       if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route route) => false);
       }
     },
   );

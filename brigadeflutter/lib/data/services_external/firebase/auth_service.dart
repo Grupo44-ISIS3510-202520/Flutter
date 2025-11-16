@@ -18,7 +18,7 @@ class AuthService {
   }) => _auth.createUserWithEmailAndPassword(email: email, password: password);
 
   Future<void> sendEmailVerification() async {
-    final u = _auth.currentUser;
+    final User? u = _auth.currentUser;
     if (u != null && !u.emailVerified) await u.sendEmailVerification();
   }
 

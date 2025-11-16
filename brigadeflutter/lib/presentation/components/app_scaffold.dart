@@ -24,7 +24,7 @@ class AppScaffold extends StatelessWidget {
       appBar: AppBar(
         leading: backToDashboard ? backToDashboardButton(context) : null,
         title: Text(title),
-        actions: [
+        actions: <Widget>[
           if (extraActions != null) ...extraActions!,
           if (showSignOut) signOutAction(context),
         ],

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/training_viewmodel.dart';
-import '../components/app_bottom_nav.dart';
-import '../components/app_bar_actions.dart';
+
 import '../../data/entities/training_card.dart';
 import '../../data/entities/training_progress.dart';
+import '../components/app_bar_actions.dart';
+import '../components/app_bottom_nav.dart';
+import '../viewmodels/training_viewmodel.dart';
 
 class TrainingScreen extends StatefulWidget {
   const TrainingScreen({super.key});
@@ -22,15 +23,15 @@ class _TrainingScreenState extends State<TrainingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<TrainingViewModel>();
+    final TrainingViewModel vm = context.watch<TrainingViewModel>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F5F8),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text("Training"),
-        leading: backToDashboardButton(context),
+        title: const Text('Training', style: TextStyle(fontWeight: FontWeight.bold)),
+        //leading: backToDashboardButton(context),
       ),
       body: Builder(
         builder: (_) {
@@ -38,11 +39,11 @@ class _TrainingScreenState extends State<TrainingScreen> {
             case UiStatus.loading:
               return const Center(child: CircularProgressIndicator());
             case UiStatus.error:
-              return const Center(child: Text("Error loading training"));
+              return const Center(child: Text('Error loading training'));
             case UiStatus.ready:
               return ListView(
                 padding: const EdgeInsets.only(bottom: 24),
-                children: [
+                children: <Widget>[
                    Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: OutlinedButton.icon(
@@ -51,7 +52,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                         color: Color(0xFF2F6AF6),
                       ),
                       label: const Text(
-                        "Weekly Leaderboard",
+                        'Weekly Leaderboard',
                         style: TextStyle(
                           color: Color(0xFF2F6AF6),
                           fontWeight: FontWeight.w600,
@@ -69,22 +70,22 @@ class _TrainingScreenState extends State<TrainingScreen> {
                     ),
                   ),
                   _buildSection(
-                    "Cursos en progreso",
+                    'Cursos en progreso',
                     vm.progress
-                        .where((p) => p.percent > 0 && p.percent < 100)
+                        .where((TrainingProgress p) => p.percent > 0 && p.percent < 100)
                         .toList(),
                     vm,
                     vm.cards,
                   ),
                   _buildSection(
-                    "Cursos completados",
-                    vm.progress.where((p) => p.percent == 100).toList(),
+                    'Cursos completados',
+                    vm.progress.where((TrainingProgress p) => p.percent == 100).toList(),
                     vm,
                     vm.cards,
                   ),
                   _buildSection(
-                    "Cursos disponibles",
-                    vm.progress.where((p) => p.percent == 0).toList(),
+                    'Cursos disponibles',
+                    vm.progress.where((TrainingProgress p) => p.percent == 0).toList(),
                     vm,
                     vm.cards,
                   ),
@@ -109,7 +110,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
           child: Text(
@@ -120,9 +121,9 @@ class _TrainingScreenState extends State<TrainingScreen> {
             ),
           ),
         ),
-        ...progressList.map((progress) {
-          final card = cards.firstWhere(
-            (c) => c.id == progress.id, 
+        ...progressList.map((TrainingProgress progress) {
+          final TrainingCard card = cards.firstWhere(
+            (TrainingCard c) => c.id == progress.id, 
             orElse: () => cards.first,
           );
 
@@ -141,9 +142,9 @@ class _TrainingScreenState extends State<TrainingScreen> {
     TrainingProgress progress,
     TrainingViewModel vm,
   ) {
-    final percent = progress.percent / 100.0;
-    final inProgress = progress.percent > 0 && progress.percent < 100;
-    final completed = progress.percent == 100;
+    final double percent = progress.percent / 100.0;
+    final bool inProgress = progress.percent > 0 && progress.percent < 100;
+    final bool completed = progress.percent == 100;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -151,13 +152,13 @@ class _TrainingScreenState extends State<TrainingScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [BoxShadow(blurRadius: 6, color: Colors.black12)],
+          boxShadow: const <BoxShadow>[BoxShadow(blurRadius: 6, color: Colors.black12)],
         ),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               SizedBox(
                 width: 70,
                 height: 70,
@@ -166,7 +167,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                   child: Image.network(
                     card.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
+                    errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
                       return Container(
                         color: Colors.grey[200],
                         child: const Icon(Icons.error),
@@ -180,9 +181,9 @@ class _TrainingScreenState extends State<TrainingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     const Text(
-                      "Certification",
+                      'Certification',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -221,7 +222,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                     const SizedBox(height: 6),
                     if (!completed)
                       Row(
-                        children: [
+                        children: <Widget>[
                           Expanded(
                             child: ElevatedButton(
                               onPressed: vm.submitting
@@ -237,7 +238,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                                 animationDuration: Duration.zero,
                               ),
                               child: Text(
-                                inProgress ? "Avanzar" : "Iniciar curso",
+                                inProgress ? 'Avanzar' : 'Iniciar curso',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Colors.white,
@@ -249,7 +250,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: Text(
-                                "${progress.percent}%",
+                                '${progress.percent}%',
                                 style: const TextStyle(
                                   color: Color(0xFF2F6AF6),
                                   fontWeight: FontWeight.bold,
@@ -260,11 +261,11 @@ class _TrainingScreenState extends State<TrainingScreen> {
                       )
                     else
                       const Row(
-                        children: [
+                        children: <Widget>[
                           Icon(Icons.star, color: Color(0xFF2F6AF6), size: 18),
                           SizedBox(width: 6),
                           Text(
-                            "Completado",
+                            'Completado',
                             style: TextStyle(
                               color: Color(0xFF2F6AF6),
                               fontWeight: FontWeight.w600,
