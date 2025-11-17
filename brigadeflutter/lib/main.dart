@@ -19,7 +19,6 @@ import 'presentation/viewmodels/dashboard_viewmodel.dart';
 import 'presentation/viewmodels/emergency_report_viewmodel.dart';
 import 'presentation/viewmodels/notification_screen_viewmodel.dart'; //este es para el screen de notificaciones
 import 'presentation/viewmodels/training_viewmodel.dart';
-//import 'app/fcm.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,10 +33,8 @@ Future<void> main() async {
 
   await setupDi();
 
-  // Provide a navigatorKey so background tasks can show dialogs/snackbars.
   final navigatorKey = GlobalKey<NavigatorState>();
-  // await setupFCM();
-  // print('GetIt hash in main.dart: ${sl.hashCode}');
+
 
   runApp(
     MultiProvider(
@@ -67,7 +64,7 @@ Future<void> main() async {
       final conn = await Connectivity().checkConnectivity();
       final navigatorCtx = navigatorKey.currentContext;
       if (conn == ConnectivityResult.none && navigatorCtx != null) {
-        // show immediate offline dialog about notifications
+
         showDialog<void>(
           context: navigatorCtx,
           barrierDismissible: true,
@@ -116,10 +113,10 @@ Future<void> main() async {
                 ),
                 TextButton(
                   onPressed: () async {
-                    // persistent retry flow: don't dismiss until result
+
                     final retryCtx = navigatorKey.currentContext;
                     if (retryCtx == null) return;
-                    // show a blocking progress dialog while retrying
+
                     showDialog<void>(
                       context: retryCtx,
                       barrierDismissible: false,

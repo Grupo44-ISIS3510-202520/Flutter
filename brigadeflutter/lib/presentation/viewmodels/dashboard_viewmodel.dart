@@ -15,11 +15,12 @@ class DashboardViewModel extends ChangeNotifier {
     emergency = factory.emergency();
     cprGuide = factory.cprGuide();
   }
+
   final DashboardActionsFactory factory;
   final FindNearestMeetingPoint findNearestUseCase;
 
   bool isOnline = true;
-  List<DashboardActionCommand> actions = const <DashboardActionCommand>[];
+  List<DashboardActionCommand> actions = const [];
   late DashboardActionCommand emergency;
   late DashboardActionCommand cprGuide;
 
@@ -51,7 +52,11 @@ class DashboardViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final NearestMeetingResult? result = await findNearestUseCase.call();
+      final result = await findNearestUseCase
+          .call()
+          .timeout(const Duration(seconds: 8), onTimeout: () {
+        throw LocationUnavailableException();
+      });
 
       if (result == null) {
         nearestLabel = 'There are no registered meeting points';
@@ -64,11 +69,12 @@ class DashboardViewModel extends ChangeNotifier {
         lastDistanceMeters = result.distanceMeters;
         _hasCalculated = true;
 
-        final double maxDistance = findNearestUseCase.maxDistanceMeters;
+        final maxDistance = findNearestUseCase.maxDistanceMeters;
         if (result.distanceMeters > maxDistance) {
           isOutsideCampus = true;
           nearestLabel = result.point.name;
-          nearestSubtext = 'Out of campus • ${result.distanceMeters.toStringAsFixed(0)} m';
+          nearestSubtext =
+          'Out of campus • ${result.distanceMeters.toStringAsFixed(0)} m';
         } else {
           isOutsideCampus = false;
           nearestLabel = result.point.name;
@@ -96,15 +102,17 @@ class DashboardViewModel extends ChangeNotifier {
 
   void _updateDisplayFromCache() {
     if (lastMeetingPoint != null && lastDistanceMeters != null) {
-      final double maxDistance = findNearestUseCase.maxDistanceMeters;
+      final maxDistance = findNearestUseCase.maxDistanceMeters;
       if (lastDistanceMeters! > maxDistance) {
         isOutsideCampus = true;
         nearestLabel = lastMeetingPoint!.name;
-        nearestSubtext = 'Out of campus • ${lastDistanceMeters!.toStringAsFixed(0)} m';
+        nearestSubtext =
+        'Out of campus • ${lastDistanceMeters!.toStringAsFixed(0)} m';
       } else {
         isOutsideCampus = false;
         nearestLabel = lastMeetingPoint!.name;
-        nearestSubtext = '${lastDistanceMeters!.toStringAsFixed(0)} m';
+        nearestSubtext =
+        '${lastDistanceMeters!.toStringAsFixed(0)} m';
       }
     }
     notifyListeners();
@@ -117,12 +125,8 @@ class DashboardViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    debugPrint('DashboardViewModel disposed — stacktrace:\n${StackTrace.current}');
+    debugPrint(
+        'DashboardViewModel disposed — stacktrace:\n${StackTrace.current}');
     super.dispose();
   }
-
-
-
-
-
 }
