@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app/di.dart' show sl;
+import '../components/connectivity_status_icon.dart';
 import '../viewmodels/cas_brightness_viewmodel.dart';
 
 class CasBrightnessScreen extends StatelessWidget {
@@ -13,7 +14,12 @@ class CasBrightnessScreen extends StatelessWidget {
       child: Consumer<CasBrightnessViewModel>(
         builder: (_, CasBrightnessViewModel vm, __) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Context Aware: Brightness')),
+            appBar: AppBar(
+              title: const Text('Context Aware: Brightness'),
+              actions: const <Widget>[
+                ConnectivityStatusIcon(),
+              ],
+            ),
             body: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
