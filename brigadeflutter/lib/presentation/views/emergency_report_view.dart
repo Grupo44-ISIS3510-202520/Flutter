@@ -7,6 +7,7 @@ import '../../core/utils/validators.dart';
 import '../components/app_bar_actions.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/banner_report_offline.dart';
+import '../components/connectivity_status_icon.dart';
 import '../viewmodels/emergency_report_viewmodel.dart';
 
 class EmergencyReportScreen extends StatefulWidget {
@@ -67,7 +68,10 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.white,
-            actions: <Widget>[signOutAction(context)],
+            actions: <Widget>[
+              const ConnectivityStatusIcon(),
+              signOutAction(context),
+            ],
           ),
           bottomNavigationBar: const AppBottomNav(current: 0),
 

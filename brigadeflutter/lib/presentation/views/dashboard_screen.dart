@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/utils/routes.dart';
 import '../components/app_bottom_nav.dart';
+import '../components/connectivity_status_icon.dart';
 import '../components/dashboard_action_tile.dart';
 import '../navigation/dashboard_commands.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
@@ -44,6 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             backgroundColor: Colors.white,
             elevation: 0.5,
             actions: <Widget>[
+              const ConnectivityStatusIcon(),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline),
                 onPressed: () => Navigator.pushNamed(context, routeReport),
