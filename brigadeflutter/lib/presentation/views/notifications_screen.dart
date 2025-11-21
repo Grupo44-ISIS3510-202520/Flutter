@@ -7,13 +7,13 @@ import '../../../presentation/viewmodels/notification_screen_viewmodel.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/connectivity_status_icon.dart';
 
-
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final NotificationScreenViewModel viewModel = Provider.of<NotificationScreenViewModel>(context, listen: false);
+    final NotificationScreenViewModel viewModel =
+        Provider.of<NotificationScreenViewModel>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -28,29 +28,37 @@ class NotificationsScreen extends StatelessWidget {
       ),
       body: StreamBuilder<List<NotificationModel>>(
         stream: viewModel.notificationsStream,
-        builder: (BuildContext context, AsyncSnapshot<List<NotificationModel>> snapshot) {
-          final List<NotificationModel> alerts = snapshot.data ?? <NotificationModel>[];
+        builder:
+            (
+              BuildContext context,
+              AsyncSnapshot<List<NotificationModel>> snapshot,
+            ) {
+              final List<NotificationModel> alerts =
+                  snapshot.data ?? <NotificationModel>[];
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (alerts.isEmpty) {
-            return const _EmptyAlertsState();
-          }
+              if (alerts.isEmpty) {
+                return const _EmptyAlertsState();
+              }
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListView.separated(
-              itemCount: alerts.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (BuildContext context, int index) {
-                final NotificationModel alert = alerts[index];
-                return _NotificationCard(alert: alert);
-              },
-            ),
-          );
-        },
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: ListView.separated(
+                  itemCount: alerts.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (BuildContext context, int index) {
+                    final NotificationModel alert = alerts[index];
+                    return _NotificationCard(alert: alert);
+                  },
+                ),
+              );
+            },
       ),
       bottomNavigationBar: const AppBottomNav(current: 3),
     );
@@ -58,7 +66,6 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 class _NotificationCard extends StatelessWidget {
-
   const _NotificationCard({required this.alert});
   final NotificationModel alert;
 
@@ -76,7 +83,7 @@ class _NotificationCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // optional analytics or navigation
+          _showNotificationDialog(context, alert);
         },
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -103,6 +110,7 @@ class _NotificationCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -168,7 +176,63 @@ class _NotificationCard extends StatelessWidget {
     if (diff.inHours < 24) return '${diff.inHours} hr ago';
     return DateFormat('dd MMM').format(timestamp);
   }
+
+  void _showNotificationDialog(BuildContext context, NotificationModel alert) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _alertIcon(alert.type),
+                      color: Colors.black54,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        alert.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  alert.message,
+                  style: const TextStyle(fontSize: 15, height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
 class _EmptyAlertsState extends StatelessWidget {
   const _EmptyAlertsState();
 
@@ -180,23 +244,24 @@ class _EmptyAlertsState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(Icons.warning_amber_rounded,
-                size: 64, color: Colors.grey.shade400),
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 16),
             Text(
               'No active alerts',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: Colors.grey.shade700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade700),
             ),
             const SizedBox(height: 8),
             Text(
               "You'll be notified when new alerts are posted",
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
           ],
@@ -205,74 +270,3 @@ class _EmptyAlertsState extends StatelessWidget {
     );
   }
 }
-
-
-
-// class NotificationsScreen extends StatelessWidget {
-//   const NotificationsScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final viewModel = Provider.of<NotificationScreenViewModel>(context, listen: false);
-
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Notifications')),
-//       body: StreamBuilder<List<NotificationModel>>(
-//         stream: viewModel.notificationsStream,
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return const Center(child: CircularProgressIndicator());
-//           }
-//           if (snapshot.hasError) {
-//             return Center(child: Text('Error: ${snapshot.error}'));
-//           }
-//           final alerts = snapshot.data ?? [];
-//           if (alerts.isEmpty) {
-//             return const Center(child: Text('No notifications'));
-//           }
-
-//           return ListView.builder(
-//             itemCount: alerts.length,
-//             itemBuilder: (context, index) {
-//               final alert = alerts[index];
-//               return ListTile(
-//                 leading: _buildIcon(alert.type),
-//                 title: Text(alert.title),
-//                 subtitle: Text(alert.message),
-//                 trailing: Text(
-//                   _timeAgo(alert.timestamp),
-//                   style: const TextStyle(fontSize: 12, color: Color.fromARGB(255, 170, 53, 53)),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//       bottomNavigationBar: const AppBottomNav(current: 3),
-//     );
-//   }
-
-//   // icon based on alert type
-//   Icon _buildIcon(String type) {
-//     switch (type) {
-//       case 'critical':
-//         return const Icon(Icons.error, color: Colors.red);
-//       case 'medical':
-//         return const Icon(Icons.health_and_safety, color: Colors.green);
-//       case 'security':
-//         return const Icon(Icons.shield, color: Colors.blue);
-//       case 'reminder':
-//         return const Icon(Icons.campaign, color: Colors.purple);
-//       default:
-//         return const Icon(Icons.info_outline, color: Color.fromARGB(255, 221, 189, 189));
-//     }
-//   }
-//     // time ago format
-//   String _timeAgo(DateTime date) {
-//     final diff = DateTime.now().difference(date);
-//     if (diff.inMinutes < 1) return 'Now';
-//     if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-//     if (diff.inHours < 24) return '${diff.inHours} hr ago';
-//     return '${diff.inDays} d ago';
-//   }
-// }
