@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../data/models/protocol_model.dart';
 import '../../features/pdf_viewer.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/connectivity_status_icon.dart';
 import '../viewmodels/protocols_viewmodel.dart';
 
 class ProtocolsScreen extends StatefulWidget {
@@ -34,9 +33,6 @@ class _ProtocolsScreenState extends State<ProtocolsScreen> {
           automaticallyImplyLeading: Navigator.canPop(context),
           backgroundColor: Colors.white,
           elevation: 0.5,
-          actions: const <Widget>[
-            ConnectivityStatusIcon(),
-          ],
         ),
         bottomNavigationBar: const AppBottomNav(current: 2),
         body: SafeArea(

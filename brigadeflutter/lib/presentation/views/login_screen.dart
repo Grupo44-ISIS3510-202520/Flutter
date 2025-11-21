@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../core/utils/input_formatters.dart';
 import '../../core/utils/validators.dart';
 import '../components/banner_offline.dart';
-import '../components/connectivity_status_icon.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -37,9 +36,6 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.white,
-            actions: const <Widget>[
-              ConnectivityStatusIcon(),
-            ],
           ),
           body: Padding(
             padding: const EdgeInsets.all(16),

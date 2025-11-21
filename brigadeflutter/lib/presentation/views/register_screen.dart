@@ -6,7 +6,6 @@ import '../../core/utils/constants.dart';
 import '../../core/utils/input_formatters.dart';
 import '../../core/utils/validators.dart';
 import '../components/banner_offline.dart';
-import '../components/connectivity_status_icon.dart';
 import '../viewmodels/register_viewmodel.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -42,12 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Consumer<RegisterViewModel>(
       builder: (_, RegisterViewModel vm, __) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Create account'),
-            actions: const <Widget>[
-              ConnectivityStatusIcon(),
-            ],
-          ),
+          appBar: AppBar(title: const Text('Create account')),
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: Form(

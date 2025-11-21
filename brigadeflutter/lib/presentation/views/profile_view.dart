@@ -6,7 +6,6 @@ import '../../data/entities/brigadist_profile.dart';
 import '../../data/entities/user_profile.dart';
 import '../components/app_bar_actions.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/connectivity_status_icon.dart';
 import '../components/labeled_text.dart';
 import '../viewmodels/profile_viewmodel.dart';
 
@@ -41,9 +40,9 @@ class ProfileView extends StatelessWidget {
               title: Text('User Profile',style: TextStyle(fontWeight: FontWeight.bold)),
               backgroundColor: Colors.white,
               //leading: backToDashboardButton(context),
-              actions: <Widget>[
-                ConnectivityStatusIcon(),
-              ],
+              // actions: <Widget>[
+              //   signOutAction(context), 
+              // ],
             ),
 
             SliverToBoxAdapter(

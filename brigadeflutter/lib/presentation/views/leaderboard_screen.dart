@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../components/connectivity_status_icon.dart';
 import '../viewmodels/leaderboard_viewmodel.dart';
 
 class LeaderboardScreen extends StatelessWidget {
@@ -14,9 +13,6 @@ class LeaderboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Weekly Leaderboard', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        actions: const <Widget>[
-          ConnectivityStatusIcon(),
-        ],
       ),
       backgroundColor: const Color(0xFFF3F5F8),
       body: vm.isLoading

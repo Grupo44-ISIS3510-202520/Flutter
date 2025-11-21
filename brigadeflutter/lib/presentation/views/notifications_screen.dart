@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../presentation/viewmodels/notification_screen_viewmodel.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/connectivity_status_icon.dart';
 
 
 class NotificationsScreen extends StatelessWidget {
@@ -22,9 +21,6 @@ class NotificationsScreen extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.white,
-        actions: const <Widget>[
-          ConnectivityStatusIcon(),
-        ],
       ),
       body: StreamBuilder<List<NotificationModel>>(
         stream: viewModel.notificationsStream,

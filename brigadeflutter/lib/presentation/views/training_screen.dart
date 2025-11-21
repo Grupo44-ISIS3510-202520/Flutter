@@ -5,7 +5,6 @@ import '../../data/entities/training_card.dart';
 import '../../data/entities/training_progress.dart';
 import '../components/app_bar_actions.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/connectivity_status_icon.dart';
 import '../viewmodels/training_viewmodel.dart';
 
 class TrainingScreen extends StatefulWidget {
@@ -33,9 +32,6 @@ class _TrainingScreenState extends State<TrainingScreen> {
         elevation: 0,
         title: const Text('Training', style: TextStyle(fontWeight: FontWeight.bold)),
         //leading: backToDashboardButton(context),
-        actions: const <Widget>[
-          ConnectivityStatusIcon(),
-        ],
       ),
       body: Builder(
         builder: (_) {
