@@ -1,34 +1,15 @@
-// import 'dart:isolate';
-// import '../../data/services_external/openai_service.dart';
-
-// // message data passed to isolate
-// class OpenAIIsolateMessage {
-//   final SendPort sendPort;
-//   final String emergencyType;
-//   OpenAIIsolateMessage(this.sendPort, this.emergencyType);
-// }
-
-// // entrypoint function for the isolate
-// Future<void> openAIIsolateEntry(OpenAIIsolateMessage message) async {
-//   final service = OpenAIServiceImpl();
-//   try {
-//     final result = await service.getInstructionText(
-//       emergencyType: message.emergencyType,
-//     );
-//     message.sendPort.send(result);
-//   } catch (e) {
-//     message.sendPort.send('Error: $e');
-//   }
-// }
-
 import 'dart:isolate';
 import 'package:hive/hive.dart';
 
 import '../../data/services_external/openai_service.dart';
 
-// Include the key as argument instead of reading dotenv again
 class OpenAIIsolateMessage {
-  OpenAIIsolateMessage(this.sendPort, this.emergencyType, this.apiKey, this.appDocPath);
+  OpenAIIsolateMessage(
+    this.sendPort,
+    this.emergencyType,
+    this.apiKey,
+    this.appDocPath,
+  );
   final SendPort sendPort;
   final String emergencyType;
   final String apiKey;
@@ -36,10 +17,14 @@ class OpenAIIsolateMessage {
 }
 
 Future<void> openAIIsolateEntry(OpenAIIsolateMessage message) async {
-    try {
+  try {
     Hive.init(message.appDocPath);
-  } catch (_) {
-    // ignore if already initialized
+  } on HiveError {
+    // Already initialized or other Hive-specific issue — ignore silently.
+  } on Exception catch (e) {
+    // Forward initialization failures to the caller isolate and stop.
+    message.sendPort.send('InitError: $e');
+    return;
   }
 
   try {
