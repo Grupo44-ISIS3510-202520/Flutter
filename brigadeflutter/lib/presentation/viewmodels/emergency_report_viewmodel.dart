@@ -80,7 +80,9 @@ class EmergencyReportViewModel extends ChangeNotifier {
     _notify();
 
     // start listening for changes
-    _connSub = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> status) {
+    _connSub = Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> status,
+    ) {
       final bool newOffline = (status == ConnectivityResult.none);
       if (newOffline != offline) {
         offline = newOffline;
@@ -124,10 +126,12 @@ class EmergencyReportViewModel extends ChangeNotifier {
     _notify();
 
     try {
-      final ({double lat, double lng})? pos = await Future.any(<Future<({double lat, double lng})?>>[
-        fillLocation(),
-        Future.delayed(const Duration(seconds: 3), () => null),
-      ]);
+      final ({double lat, double lng})? pos = await Future.any(
+        <Future<({double lat, double lng})?>>[
+          fillLocation(),
+          Future.delayed(const Duration(seconds: 3), () => null),
+        ],
+      );
 
       if (pos == null) {
         if (placeFromGps) {

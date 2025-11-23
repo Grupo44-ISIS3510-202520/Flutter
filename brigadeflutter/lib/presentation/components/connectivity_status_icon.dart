@@ -3,10 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 /// A visual indicator widget that displays the current connectivity status.
-/// This widget is NOT a button - it only shows the status visually.
-///
-/// - Green icon: User is online
-/// - Red icon: User is offline
+/// - Green icon: User is online - Red icon: User is offline
 class ConnectivityStatusIcon extends StatelessWidget {
   const ConnectivityStatusIcon({super.key});
 
