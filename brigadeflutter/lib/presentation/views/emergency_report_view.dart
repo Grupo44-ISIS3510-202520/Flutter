@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/utils/input_formatters.dart';
-import '../../core/utils/validators.dart';
+import '../../helpers/utils/input_formatters.dart';
+import '../../helpers/utils/validators.dart';
 import '../components/app_bar_actions.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/banner_report_offline.dart';

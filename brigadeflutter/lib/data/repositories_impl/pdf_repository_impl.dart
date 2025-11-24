@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import '../../core/workers/pdf_isolate_worker.dart';
+import '../../helpers/workers/pdf_isolate_worker.dart';
 import '../repositories/pdf_repository.dart';
 
 class PdfRepositoryImpl implements PdfRepository {

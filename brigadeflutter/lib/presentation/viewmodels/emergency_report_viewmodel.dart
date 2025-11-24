@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../core/workers/openai_isolate.dart';
+import '../../helpers/workers/openai_isolate.dart';
 import '../../data/services_external/ambient_light_service.dart';
 import '../../data/services_external/connectivity_service.dart';
 import '../../data/services_external/openai_service.dart';

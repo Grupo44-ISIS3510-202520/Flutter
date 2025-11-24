@@ -33,6 +33,11 @@ Future<void> main() async {
 
   await setupDi();
 
+  // Sync Firestore alerts to local database
+  final notificationRepo = NotificationRepository(dao: sl());
+  await notificationRepo.syncAlertsToLocal();
+  notificationRepo.startRealtimeSync();
+
   final navigatorKey = GlobalKey<NavigatorState>();
 
 

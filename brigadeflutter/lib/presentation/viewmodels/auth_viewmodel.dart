@@ -4,7 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../core/utils/validators.dart';
+import '../../helpers/utils/validators.dart';
 import '../../data/entities/auth_user.dart';
 import '../../domain/use_cases/get_current_user.dart';
 import '../../domain/use_cases/observe_auth_state.dart';

@@ -2,77 +2,117 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/models/notification_model.dart';
-import '../../../presentation/viewmodels/notification_screen_viewmodel.dart';
+// old NotificationScreenViewModel removed; using SimpleNotificationViewModel instead
+import '../../../presentation/viewmodels/simple_notification_view_model.dart';
+import 'package:brigadeflutter/app/di.dart' show sl;
 import '../components/app_bottom_nav.dart';
 import '../components/connectivity_status_icon.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  bool _cacheDialogShown = false;
+
+  @override
   Widget build(BuildContext context) {
-    final NotificationScreenViewModel viewModel =
-        Provider.of<NotificationScreenViewModel>(context, listen: false);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Notifications',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.white,
-        actions: const <Widget>[
-          ConnectivityStatusIcon(),
-        ],
-      ),
-      body: StreamBuilder<List<NotificationModel>>(
-        stream: viewModel.notificationsStream,
-        builder:
-            (
-              BuildContext context,
-              AsyncSnapshot<List<NotificationModel>> snapshot,
-            ) {
-              final List<NotificationModel> alerts =
-                  snapshot.data ?? <NotificationModel>[];
-
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+    return ChangeNotifierProvider<SimpleNotificationViewModel>(
+      create: (_) => SimpleNotificationViewModel(
+        dao: sl(),
+        preferences: sl(),
+      )..loadNotifications(),
+      child: Consumer<SimpleNotificationViewModel>(
+        builder: (context, vm, _) {
+          // after load completes check cache info once and show dialog if needed
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (_cacheDialogShown) return;
+            if (vm.isLoading) return;
+            print('title[NotificationScreen] PostFrameCallback: vm.notifications.length = ${vm.notifications.length}');
+            try {
+              final Map<String, dynamic> info = await vm.getCacheInfo();
+              print('title[NotificationScreen] Cache info received: $info');
+              bool usedCache = false;
+              if (info.isNotEmpty) {
+                if (info['usedCache'] == true || info['fromCache'] == true) usedCache = true;
+                if (!usedCache && info['cacheSize'] is int && info['cacheSize'] > 0) usedCache = true;
+                if (!usedCache && info['count'] is int && info['count'] > 0) usedCache = true;
               }
-
-              if (alerts.isEmpty) {
-                return const _EmptyAlertsState();
+              print('title[NotificationScreen] usedCache = $usedCache');
+              if (usedCache && mounted) {
+                _cacheDialogShown = true;
+                print('title[NotificationScreen] Showing cache dialog');
+                showDialog<void>(
+                  context: context,
+                  builder: (dCtx) => AlertDialog(
+                    title: const Text('Offline data used'),
+                    content: const Text(
+                      'The notifications shown are loaded from cache because the device is offline or the server could not be reached.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dCtx).pop(),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
               }
+            } catch (_) {
+              // ignore errors from cache info retrieval
+            }
+          });
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: ListView.separated(
-                  itemCount: alerts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (BuildContext context, int index) {
-                    final NotificationModel alert = alerts[index];
-                    return _NotificationCard(alert: alert);
-                  },
-                ),
-              );
-            },
+          final alerts = vm.notifications;
+          print('[NotificationScreen] Building UI with ${alerts.length} alerts');
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Notifications',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: Colors.white,
+              actions: const <Widget>[
+                ConnectivityStatusIcon(),
+              ],
+            ),
+            body: vm.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : (alerts.isEmpty
+                    ? const _EmptyAlertsState()
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: ListView.separated(
+                          itemCount: alerts.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (BuildContext context, int index) {
+                            final alert = alerts[index];
+                            return _NotificationCard(alert: alert);
+                          },
+                        ),
+                      )),
+            bottomNavigationBar: const AppBottomNav(current: 3),
+          );
+        },
       ),
-      bottomNavigationBar: const AppBottomNav(current: 3),
     );
   }
 }
 
 class _NotificationCard extends StatelessWidget {
   const _NotificationCard({required this.alert});
-  final NotificationModel alert;
+  final dynamic alert; // can be NotificationModel or NotificationEntity
 
   @override
   Widget build(BuildContext context) {
-    final IconData iconData = _alertIcon(alert.type);
-    final Color bgColor = _alertColor(alert.type);
+    // NotificationEntity now has .type field directly
+    final String type = alert.type ?? 'info';
+    final IconData iconData = _alertIcon(type);
+    final Color bgColor = _alertColor(type);
 
     return Container(
       decoration: BoxDecoration(
@@ -177,7 +217,7 @@ class _NotificationCard extends StatelessWidget {
     return DateFormat('dd MMM').format(timestamp);
   }
 
-  void _showNotificationDialog(BuildContext context, NotificationModel alert) {
+  void _showNotificationDialog(BuildContext context, dynamic alert) {
     showDialog(
       context: context,
       builder: (context) => Dialog(

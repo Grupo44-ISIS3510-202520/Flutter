@@ -4,7 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../core/utils/validators.dart';
+import '../../helpers/utils/validators.dart';
 import '../../domain/use_cases/register_with_email.dart';
 import '../../domain/use_cases/reload_user.dart';
 import '../../domain/use_cases/send_email_verification.dart';

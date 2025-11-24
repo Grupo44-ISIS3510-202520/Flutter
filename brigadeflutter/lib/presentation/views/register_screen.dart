@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/utils/constants.dart';
-import '../../core/utils/input_formatters.dart';
-import '../../core/utils/validators.dart';
+import '../../helpers/utils/constants.dart';
+import '../../helpers/utils/input_formatters.dart';
+import '../../helpers/utils/validators.dart';
 import '../components/banner_offline.dart';
 import '../components/connectivity_status_icon.dart';
 import '../viewmodels/register_viewmodel.dart';

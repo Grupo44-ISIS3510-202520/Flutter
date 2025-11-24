@@ -1,4 +1,4 @@
-import '../../core/utils/validators.dart';
+import '../../helpers/utils/validators.dart';
 import '../../data/entities/auth_user.dart';
 import '../../data/entities/user_profile.dart';
 import '../../data/repositories/auth_repository.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/utils/routes.dart';
+import '../../helpers/utils/routes.dart';
 import '../components/app_bottom_nav.dart';
 import '../components/connectivity_status_icon.dart';
 import '../components/dashboard_action_tile.dart';
