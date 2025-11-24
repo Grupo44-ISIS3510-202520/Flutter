@@ -127,7 +127,7 @@ class NotificationDao {
       final notifications = await _db.getAll();
       _notificationsController.add(notifications);
     } catch (e) {
-      print('❌ [NotificationDao] Error emitting notifications: $e');
+      print('[NotificationDao] Error emitting notifications: $e');
     }
   }
   

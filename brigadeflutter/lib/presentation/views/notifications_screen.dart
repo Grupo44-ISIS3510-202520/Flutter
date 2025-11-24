@@ -31,20 +31,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (_cacheDialogShown) return;
             if (vm.isLoading) return;
-            print('🖥️ [NotificationScreen] PostFrameCallback: vm.notifications.length = ${vm.notifications.length}');
+            print('title[NotificationScreen] PostFrameCallback: vm.notifications.length = ${vm.notifications.length}');
             try {
               final Map<String, dynamic> info = await vm.getCacheInfo();
-              print('🖥️ [NotificationScreen] Cache info received: $info');
+              print('title[NotificationScreen] Cache info received: $info');
               bool usedCache = false;
               if (info.isNotEmpty) {
                 if (info['usedCache'] == true || info['fromCache'] == true) usedCache = true;
                 if (!usedCache && info['cacheSize'] is int && info['cacheSize'] > 0) usedCache = true;
                 if (!usedCache && info['count'] is int && info['count'] > 0) usedCache = true;
               }
-              print('🖥️ [NotificationScreen] usedCache = $usedCache');
+              print('title[NotificationScreen] usedCache = $usedCache');
               if (usedCache && mounted) {
                 _cacheDialogShown = true;
-                print('🖥️ [NotificationScreen] Showing cache dialog');
+                print('title[NotificationScreen] Showing cache dialog');
                 showDialog<void>(
                   context: context,
                   builder: (dCtx) => AlertDialog(
@@ -67,7 +67,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           });
 
           final alerts = vm.notifications;
-          print('🖥️ [NotificationScreen] Building UI with ${alerts.length} alerts');
+          print('[NotificationScreen] Building UI with ${alerts.length} alerts');
 
           return Scaffold(
             appBar: AppBar(
