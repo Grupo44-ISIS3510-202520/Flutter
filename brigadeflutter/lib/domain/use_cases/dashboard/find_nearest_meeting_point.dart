@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:geolocator/geolocator.dart';
 
-import '../../../core/workers/meeting_point_isolate.dart';
+import '../../../helpers/workers/meeting_point_isolate.dart';
 import '../../../data/models/meeting_point_model.dart';
 import '../../../data/repositories/meeting_point_repository.dart';
 import '../../../data/services_external/location/location_service.dart';

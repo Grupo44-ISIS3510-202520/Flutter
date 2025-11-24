@@ -50,9 +50,9 @@ dependencies:
   flutter_dotenv: ^5.1.0
   fl_chart: ^0.68.0
   flutter_pdfview: ^1.2.5
-  flutter_cache_manager: ^3.3.0
+  flutter_cache_manager: ^3.4.1
   path_provider: ^2.1.2
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.3
   get_it: ^7.6.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -71,6 +71,8 @@ dependencies:
 
   geolocator_platform_interface: any
   nested: any
+  sqflite: ^2.4.2
+  timeago: ^3.7.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

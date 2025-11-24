@@ -1,6 +1,6 @@
-import '../../core/errors/failures.dart';
-import '../../core/utils/id_generator.dart';
-import '../../core/utils/validators.dart';
+import '../../helpers/errors/failures.dart';
+import '../../helpers/utils/id_generator.dart';
+import '../../helpers/utils/validators.dart';
 import '../../data/entities/report.dart';
 import '../../data/repositories/report_repository.dart';
 

@@ -1,4 +1,4 @@
-import '../../core/utils/validators.dart';
+import '../../helpers/utils/validators.dart';
 import '../../data/repositories/auth_repository.dart';
 
 class SendPasswordResetEmail {
