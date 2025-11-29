@@ -96,4 +96,10 @@ class ReportRepositoryImpl implements ReportRepository {
       await localDao.remove(report.reportId);
     }
   }
+  
+  @override
+  Future<List<Report>> getUserReports(String userId) async {
+    final List<ReportModel> models = await remoteDao.queryByUserId(userId);
+    return models.map((ReportModel m) => m.toEntity()).toList();
+  }
 }

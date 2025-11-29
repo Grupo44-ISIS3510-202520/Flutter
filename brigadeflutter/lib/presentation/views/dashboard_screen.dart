@@ -46,9 +46,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             elevation: 0.5,
             actions: <Widget>[
               const ConnectivityStatusIcon(),
-              IconButton(
+              PopupMenuButton<String>(
                 icon: const Icon(Icons.add_circle_outline),
-                onPressed: () => Navigator.pushNamed(context, routeReport),
+                onSelected: (String value) {
+                  if (value == 'create') {
+                    Navigator.pushNamed(context, routeReport);
+                  } else if (value == 'view') {
+                    Navigator.pushNamed(context, routeReportsList);
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'create',
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.edit, size: 20),
+                        SizedBox(width: 12),
+                        Text('Create Report'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'view',
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.list, size: 20),
+                        SizedBox(width: 12),
+                        Text('View Reports List'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

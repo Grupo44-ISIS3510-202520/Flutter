@@ -30,4 +30,7 @@ abstract class ReportRepository {
   Future<List<ReportModel>> listPending();
   Future<void> removeLocal(String reportId);
   Future<void> syncPending();
+  
+  // Get reports by user ID
+  Future<List<Report>> getUserReports(String userId);
 }
