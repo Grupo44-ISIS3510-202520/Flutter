@@ -16,12 +16,14 @@ import '../../data/services_external/tts_service.dart';
 import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
 import '../../domain/use_cases/create_emergency_report.dart';
 import '../../domain/use_cases/fill_location.dart';
+import '../../domain/use_cases/get_current_user.dart';
 
 class EmergencyReportViewModel extends ChangeNotifier {
   EmergencyReportViewModel({
     required this.createReport,
     required this.fillLocation,
     required this.adjustBrightness,
+    required this.getCurrentUser,
     required this.ambient,
     required this.screen,
     required this.openai,
@@ -31,6 +33,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   final CreateEmergencyReport createReport;
   final FillLocation fillLocation;
   final AdjustBrightnessFromAmbient adjustBrightness;
+  final GetCurrentUser getCurrentUser;
   final AmbientLightService ambient;
   final ScreenBrightnessService screen;
   final OpenAIService openai;
@@ -51,11 +54,15 @@ class EmergencyReportViewModel extends ChangeNotifier {
 
   // state forms
   String type = '';
-  String placeTime = '';
+  String place = '';
   String description = '';
   bool isFollowUp = false;
+  int elapsedTime = 0; // in ms or s
   double? latitude;
   double? longitude;
+  String? audioUrl;
+  String? imageUrl;
+  int uiid = 0;
   bool submittingReport = false;
   bool loadingLocation = false;
   bool placeFromGps = false;
@@ -99,8 +106,8 @@ class EmergencyReportViewModel extends ChangeNotifier {
 
   // changes in form fields
   void onTypeChanged(String value) => type = value;
-  void onPlaceTimeChanged(String value) {
-    placeTime = value;
+  void onPlaceChanged(String value) {
+    place = value;
     placeFromGps = false;
   }
 
@@ -109,12 +116,17 @@ class EmergencyReportViewModel extends ChangeNotifier {
     isFollowUp = value;
     _notify();
   }
+  
+  void onElapsedTimeChanged(int value) => elapsedTime = value;
+  void onAudioUrlChanged(String? value) => audioUrl = value;
+  void onImageUrlChanged(String? value) => imageUrl = value;
+  void onUiidChanged(int value) => uiid = value;
 
   // clears ubicación GPS
   void clearGpsLocation() {
     latitude = null;
     longitude = null;
-    if (placeFromGps) placeTime = '';
+    if (placeFromGps) place = '';
     placeFromGps = false;
     _notify();
   }
@@ -144,7 +156,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
       }
 
       final DateTime now = DateTime.now();
-      placeTime =
+      place =
           'Lat ${pos.lat.toStringAsFixed(5)}, Lon ${pos.lng.toStringAsFixed(5)}'
           ' • ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
       latitude = pos.lat;
@@ -227,9 +239,9 @@ class EmergencyReportViewModel extends ChangeNotifier {
   }
 
   // submits emergency report
-  Future<int?> submit({required bool isOnline}) async {
+  Future<String?> submit({required bool isOnline}) async {
     if (type.trim().isEmpty ||
-        placeTime.trim().isEmpty ||
+        place.trim().isEmpty ||
         description.trim().isEmpty) {
       return null;
     }
@@ -250,26 +262,36 @@ class EmergencyReportViewModel extends ChangeNotifier {
         try {
           // adjust timeout as needed
           const Duration timeoutDuration = Duration(seconds: 2);
-          final int id = await createReport(
+          final String reportId = await createReport(
             type: type,
-            placeTime: placeTime,
+            place: place,
             description: description,
             isFollowUp: isFollowUp,
+            elapsedTime: elapsedTime,
             latitude: latitude,
             longitude: longitude,
+            audioUrl: audioUrl,
+            imageUrl: imageUrl,
+            uiid: uiid,
+            userId: getCurrentUser()?.uid ?? '',
             isOnline: true,
           ).timeout(timeoutDuration);
           _resetForm();
-          return id;
+          return reportId;
         } on TimeoutException {
           // remote timed out — fallback to saving locally
           await createReport(
             type: type,
-            placeTime: placeTime,
+            place: place,
             description: description,
             isFollowUp: isFollowUp,
+            elapsedTime: elapsedTime,
             latitude: latitude,
             longitude: longitude,
+            audioUrl: audioUrl,
+            imageUrl: imageUrl,
+            uiid: uiid,
+            userId: getCurrentUser()?.uid ?? '',
             isOnline: false,
           );
           return null;
@@ -277,11 +299,16 @@ class EmergencyReportViewModel extends ChangeNotifier {
           // other remote error — fallback local
           await createReport(
             type: type,
-            placeTime: placeTime,
+            place: place,
             description: description,
             isFollowUp: isFollowUp,
+            elapsedTime: elapsedTime,
             latitude: latitude,
             longitude: longitude,
+            audioUrl: audioUrl,
+            imageUrl: imageUrl,
+            uiid: uiid,
+            userId: getCurrentUser()?.uid ?? '',
             isOnline: false,
           );
           return null;
@@ -290,11 +317,16 @@ class EmergencyReportViewModel extends ChangeNotifier {
         // offline: save locally
         await createReport(
           type: type,
-          placeTime: placeTime,
+          place: place,
           description: description,
           isFollowUp: isFollowUp,
+          elapsedTime: elapsedTime,
           latitude: latitude,
           longitude: longitude,
+          audioUrl: audioUrl,
+          imageUrl: imageUrl,
+          uiid: uiid,
+          userId: getCurrentUser()?.uid ?? '',
           isOnline: false,
         );
         _resetForm();
@@ -309,11 +341,15 @@ class EmergencyReportViewModel extends ChangeNotifier {
   // form reset
   void _resetForm() {
     type = '';
-    placeTime = '';
+    place = '';
     description = '';
     isFollowUp = false;
+    elapsedTime = 0;
     latitude = null;
     longitude = null;
+    audioUrl = null;
+    imageUrl = null;
+    uiid = 0;
     placeFromGps = false;
     _notify();
   }

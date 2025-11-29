@@ -18,7 +18,7 @@ String? validateType(String? v) {
   return null;
 }
 
-String? validatePlaceTime(String? v) {
+String? validatePlace(String? v) {
   if (v == null || v.trim().isEmpty) return 'required';
   if (v.length > 100) return 'max 100 chars';
   if (_emojiRegex.hasMatch(v)) return 'no emojis';

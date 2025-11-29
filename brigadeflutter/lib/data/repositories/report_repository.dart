@@ -5,11 +5,16 @@ abstract class ReportRepository {
 
   Future<void> createEmergencyReport({
     required String type,
-    required String placeTime,
+    required String place,
     required String description,
     required bool isFollowUp,
+    required int elapsedTime,
     double? latitude,
     double? longitude,
+    String? audioUrl,
+    String? imageUrl,
+    required int uiid,
+    required String userId,
     bool isOnline = true,
   });
 
@@ -23,6 +28,6 @@ abstract class ReportRepository {
   //new methods for local storage 
   Future<void> saveLocal(ReportModel model);
   Future<List<ReportModel>> listPending();
-  Future<void> removeLocal(int id);
+  Future<void> removeLocal(String reportId);
   Future<void> syncPending();
 }

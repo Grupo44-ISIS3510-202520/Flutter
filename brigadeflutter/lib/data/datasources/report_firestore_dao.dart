@@ -8,14 +8,14 @@ class ReportFirestoreDao {
 
   // CREATE
   Future<void> set(ReportModel model) async {
-    // usa id numérico como nombre del documento
-    await _fs.setDoc('reports-emergency', model.id.toString(), model.toJson());
+    // usa reportId String como nombre del documento (F## o K##)
+    await _fs.setDoc('reports', model.reportId, model.toJson());
   }
 
   Future<void> setMerge(ReportModel model) async {
     await _fs.setDocMerge(
       'reports-emergency',
-      model.id.toString(),
+      model.reportId,
       model.toJson(),
     );
   }

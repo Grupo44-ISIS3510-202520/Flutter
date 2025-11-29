@@ -13,11 +13,8 @@ class ReportLocalDao {
 
   Future<void> savePending(ReportModel model) async {
     final Box<Map> box = Hive.box<Map>(_box);
-    final String key = model.id.toString(); // usar clave string
-    await box.put(key, <dynamic, dynamic>{
-      'id': model.id,
+    await box.put(model.reportId, <dynamic, dynamic>{
       ...model.toJson(),
-      'createdAtMs': model.createdAtMs,
     });
   }
 
@@ -27,15 +24,14 @@ class ReportLocalDao {
         .map(
           (Map m) => ReportModel.fromJson(
             Map<String, dynamic>.from(m),
-            id: (m['id'] as num).toInt(),
           ),
         )
         .toList();
   }
 
-  Future<void> remove(int id) async {
+  Future<void> remove(String reportId) async {
     final Box<Map> box = Hive.box<Map>(_box);
-    await box.delete(id.toString()); // eliminar por clave string
+    await box.delete(reportId);
   }
 
   Future<void> clearAll() async {
@@ -44,15 +40,15 @@ class ReportLocalDao {
   }
 
   Future<void> replaceId({
-    required int tempId,
-    required int finalId,
+    required String tempId,
+    required String finalId,
   }) async {
     final Box<Map> box = Hive.box<Map>(_box);
-    final Map? data = box.get(tempId.toString());
+    final Map? data = box.get(tempId);
     if (data == null) return;
-    data['id'] = finalId;
+    data['reportId'] = finalId;
     box
-      ..delete(tempId.toString())
-      ..put(finalId.toString(), data);
+      ..delete(tempId)
+      ..put(finalId, data);
   }
 }

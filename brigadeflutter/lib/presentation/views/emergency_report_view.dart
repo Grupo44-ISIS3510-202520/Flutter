@@ -54,8 +54,8 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
     return Consumer<EmergencyReportViewModel>(
       builder: (_, EmergencyReportViewModel vm, __) {
         // sincroniza place cuando viene del gps
-        if (_placeCtrl.text != vm.placeTime && vm.placeTime.isNotEmpty) {
-          _placeCtrl.text = vm.placeTime;
+        if (_placeCtrl.text != vm.place && vm.place.isNotEmpty) {
+          _placeCtrl.text = vm.place;
         }
 
         final bool isOnline = vm.isOnline ?? !vm.offline;
@@ -144,7 +144,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
                         TextFormField(
                           controller: _placeCtrl,
-                          onChanged: vm.onPlaceTimeChanged,
+                          onChanged: vm.onPlaceChanged,
                           decoration: const InputDecoration(hintText: 'Place'),
                           inputFormatters: <TextInputFormatter>[
                             SafeTextFormatter(max: 100),
@@ -158,7 +158,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                 required bool isFocused,
                                 int? maxLength,
                               }) => kNoCounter,
-                          validator: validatePlaceTime,
+                          validator: validatePlace,
                         ),
                         const SizedBox(height: 8),
 
@@ -174,14 +174,14 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                       .fillWithCurrentLocation();
                                   if (!mounted) return;
                                   if (updated) {
-                                    _placeCtrl.text = vm.placeTime;
+                                    _placeCtrl.text = vm.place;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text('Added location'),
                                       ),
                                     );
                                   } else {
-                                    _placeCtrl.text = vm.placeTime;
+                                    _placeCtrl.text = vm.place;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
@@ -264,20 +264,20 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                   if (!_formKey.currentState!.validate()) {
                                     return;
                                   }
-                                  final int? id = await vm.submit(
+                                  final String? reportId = await vm.submit(
                                     isOnline: isOnline,
                                   );
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        id != null
-                                            ? 'Report submitted (id: #$id)'
+                                        reportId != null
+                                            ? 'Report submitted (id: $reportId)'
                                             : 'Error submitting report :( We will save it locally and try again later',
                                       ),
                                     ),
                                   );
-                                  if (id != null) {
+                                  if (reportId != null) {
                                     // limpia UI tras éxito
                                     _typeCtrl.clear();
                                     _placeCtrl.clear();

@@ -213,6 +213,7 @@ Future<void> setupDi() async {
       createReport: sl<CreateEmergencyReport>(),
       fillLocation: sl<FillLocation>(),
       adjustBrightness: sl<AdjustBrightnessFromAmbient>(),
+      getCurrentUser: sl<GetCurrentUser>(),
       ambient: sl<AmbientLightService>(),
       screen: sl<ScreenBrightnessService>(),
       openai: sl<OpenAIService>(),
