@@ -1,3 +1,5 @@
+// app/di.dart
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,7 +40,6 @@ import '../data/services_external/screen_brightness_service.dart';
 import '../data/services_external/secure/token_service.dart';
 import '../data/services_external/tts_service.dart';
 // domain - use cases
-// import '../domain/use_cases/adjust_screen_light.dart';
 import '../domain/use_cases/adjust_brightness_from_ambient.dart';
 import '../domain/use_cases/create_emergency_report.dart';
 //dashboard
@@ -75,6 +76,13 @@ import '../data/datasources/notification_dao.dart';
 import '../data/services_local/notification_preferences_service.dart';
 import '../presentation/viewmodels/simple_notification_view_model.dart';
 
+// RAG imports
+import '../data/cache/rag_cache.dart';
+import '../data/repositories/rag_repository.dart';
+import '../data/repositories_impl/rag_repository_impl.dart';
+import '../domain/use_cases/get_rag_answer.dart';
+import '../presentation/viewmodels/rag_viewmodel.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> setupDi() async {
@@ -85,16 +93,16 @@ Future<void> setupDi() async {
   sl.registerLazySingleton(() => LocationService());
   sl.registerLazySingleton(() => AuthService(auth: FirebaseAuth.instance));
   sl.registerLazySingleton<AmbientLightService>(
-    () => AmbientLightServiceImpl(),
+        () => AmbientLightServiceImpl(),
   );
   sl.registerLazySingleton<ScreenBrightnessService>(
-    () => ScreenBrightnessServiceImpl(),
+        () => ScreenBrightnessServiceImpl(),
   );
   sl.registerLazySingleton(() => TokenService());
   sl.registerLazySingleton<OpenAIService>(() => OpenAIServiceImpl());
   sl.registerLazySingleton<TtsService>(() => TtsServiceImpl());
   sl.registerLazySingleton<ConnectivityService>(
-    () => ConnectivityServiceImpl(),
+        () => ConnectivityServiceImpl(),
   );
 
   // DAOs
@@ -106,34 +114,44 @@ Future<void> setupDi() async {
 
   // Repositories
   sl.registerLazySingleton<ReportRepository>(
-    () => ReportRepositoryImpl(remoteDao: sl(), localDao: sl()),
+        () => ReportRepositoryImpl(remoteDao: sl(), localDao: sl()),
   );
   sl.registerLazySingleton<LocationRepository>(
-    () => LocationRepositoryImpl(sl()),
+        () => LocationRepositoryImpl(sl()),
   );
   sl.registerLazySingleton<ProtocolRepository>(
-    () => ProtocolRepositoryImpl(dao: sl(), prefs: prefs),
+        () => ProtocolRepositoryImpl(dao: sl(), prefs: prefs),
   );
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
   sl.registerLazySingleton<TrainingRepository>(
-    () => FirebaseTrainingRepository(),
+        () => FirebaseTrainingRepository(),
   );
   sl.registerLazySingleton<MeetingPointRepository>(
-    () => MeetingPointRepositoryImpl(),
+        () => MeetingPointRepositoryImpl(),
   );
+
+  // RAG Cache and Repository
+  sl.registerLazySingleton<RagCache>(() => RagCache(prefs));
+  sl.registerLazySingleton<RagRepository>(
+        () => RagRepositoryImpl(cache: sl()),
+  );
+
   // App services / helpers
   sl.registerLazySingleton(() => FirestoreIdGenerator());
 
   //Use cases - dashboard
   sl.registerFactory(
-    () => FindNearestMeetingPoint(locationService: sl(), repository: sl()),
+        () => FindNearestMeetingPoint(locationService: sl(), repository: sl()),
   );
 
   // Use cases - protocols
   sl.registerFactory(() => GetProtocolsStream(repository: sl()));
   sl.registerFactory(() => MarkProtocolAsRead(repository: sl()));
   sl.registerFactory(() => IsProtocolNew(repository: sl()));
+
+  // Use cases - RAG
+  sl.registerFactory(() => GetRagAnswer(repository: sl()));
 
   // Use cases - reports & location
   sl.registerFactory(() => FillLocation(sl()));
@@ -150,35 +168,25 @@ Future<void> setupDi() async {
   sl.registerFactory(() => SignOut(sl()));
   sl.registerFactory(() => SendPasswordResetEmail(sl()));
 
-  // // Use case - brightness
-  // sl.registerFactory(
-  //   () => AdjustBrightnessFromAmbient(
-  //     sl<AmbientLightService>(),
-  //     sl<ScreenBrightnessService>(),
-  //   ),
-  // );
-
   try {
     sl.registerLazySingleton<AdjustBrightnessFromAmbient>(
-      () => AdjustBrightnessFromAmbient(
+          () => AdjustBrightnessFromAmbient(
         sl<AmbientLightService>(),
         sl<ScreenBrightnessService>(),
       ),
     );
-    //print('AdjustBrightnessFromAmbient registered');
   } catch (e) {
-    //print('Error registering AdjustBrightnessFromAmbient: $e');
-    //print(s);
+    // Error handling
   }
 
   assert(
-    sl.isRegistered<AdjustBrightnessFromAmbient>(),
-    'AdjustBrightnessFromAmbient not registered in GetIt',
+  sl.isRegistered<AdjustBrightnessFromAmbient>(),
+  'AdjustBrightnessFromAmbient not registered in GetIt',
   );
 
   // ViewModels
   sl.registerFactory(
-    () => ProtocolsViewModel(
+        () => ProtocolsViewModel(
       getProtocolsStream: sl(),
       markProtocolAsRead: sl(),
       isProtocolNew: sl(),
@@ -186,7 +194,7 @@ Future<void> setupDi() async {
   );
 
   sl.registerFactory(
-    () => RegisterViewModel(
+        () => RegisterViewModel(
       registerUC: sl(),
       sendVerifyUC: sl(),
       reloadUserUC: sl(),
@@ -194,7 +202,7 @@ Future<void> setupDi() async {
   );
 
   sl.registerFactory(
-    () => AuthViewModel(
+        () => AuthViewModel(
       signIn: sl(),
       signOutUC: sl(),
       observe: sl(),
@@ -205,11 +213,11 @@ Future<void> setupDi() async {
 
   sl.registerLazySingleton(() => DashboardActionsFactory());
   sl.registerLazySingleton(
-    () => DashboardViewModel(factory: sl(), findNearestUseCase: sl()),
+        () => DashboardViewModel(factory: sl(), findNearestUseCase: sl()),
   );
 
   sl.registerFactory<EmergencyReportViewModel>(
-    () => EmergencyReportViewModel(
+        () => EmergencyReportViewModel(
       createReport: sl<CreateEmergencyReport>(),
       fillLocation: sl<FillLocation>(),
       adjustBrightness: sl<AdjustBrightnessFromAmbient>(),
@@ -222,40 +230,40 @@ Future<void> setupDi() async {
   );
 
   sl.registerFactory<TrainingViewModel>(
-    () => TrainingViewModel(repo: sl<TrainingRepository>()),
+        () => TrainingViewModel(repo: sl<TrainingRepository>()),
   );
 
   sl.registerFactory(() => LeaderboardViewModel());
 
   sl.registerFactory(() => ProfileViewModel(sl<UserRepository>()));
 
-  // print('registered: ${sl.allReady()}');
-  // print(
-  //   'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
-  // );
-  //print('registered: ${sl.allReady()}');
-  // print(
-  //  'is AdjustBrightnessFromAmbient registered? ${sl.isRegistered<AdjustBrightnessFromAmbient>()}',
-  //);
+  // RAG ViewModel
+  sl.registerFactory(
+        () => RagViewModel(
+      getRagAnswerUseCase: sl(),
+      repository: sl(),
+    ),
+  );
+
   // notifications service
   sl.registerLazySingleton<NotificationService>(() => NotificationService());
   sl.registerFactory<NotificationViewModel>(
-    () => NotificationViewModel(sl<NotificationService>()),
+        () => NotificationViewModel(sl<NotificationService>()),
   );
 
   // Database
   sl.registerLazySingleton<NotificationDatabase>(
-    () => NotificationDatabase.instance,
+        () => NotificationDatabase.instance,
   );
 
   // Cache Manager
   sl.registerLazySingleton<NotificationCacheManager>(
-    () => NotificationCacheManager(),
+        () => NotificationCacheManager(),
   );
 
   // DAO
   sl.registerLazySingleton<NotificationDao>(
-    () => NotificationDao(
+        () => NotificationDao(
       database: sl<NotificationDatabase>(),
       cache: sl<NotificationCacheManager>(),
     ),
@@ -263,12 +271,12 @@ Future<void> setupDi() async {
 
   // Preferences
   sl.registerLazySingleton<NotificationPreferencesService>(
-    () => NotificationPreferencesService(),
+        () => NotificationPreferencesService(),
   );
 
   // ViewModel
   sl.registerFactory<SimpleNotificationViewModel>(
-    () => SimpleNotificationViewModel(
+        () => SimpleNotificationViewModel(
       dao: sl<NotificationDao>(),
       preferences: sl<NotificationPreferencesService>(),
     ),
