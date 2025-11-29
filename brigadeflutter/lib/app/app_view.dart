@@ -1,3 +1,5 @@
+// app/app_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,11 +18,11 @@ class AppView extends StatelessWidget {
       builder: (_, AuthViewModel vm, __) {
         // router mínimo basado en auth
         if (!vm.isAuthenticated) return const LoginScreen();
-        // return const EmergencyReportScreen();
-        ChangeNotifierProvider(
-          create: (_) => sl<DashboardViewModel>(),
-          child: const DashboardScreen(),
-        );
+
+        // ✨ NOTA: El RagViewModel ya está disponible globalmente desde main.dart
+        // No necesitamos agregarlo aquí porque ya está en el MultiProvider principal
+        // Simplemente retornamos el DashboardScreen que tiene acceso al provider
+
         return const DashboardScreen();
       },
     );
