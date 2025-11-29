@@ -26,14 +26,15 @@ class SafeTextFormatter extends TextInputFormatter {
     String txt = newValue.text;
 
     // remove blocked sequences
-    for (final RegExp r in kBlockedSequences) {
-      txt = txt.replaceAll(r, '');
+    for (int i = 0, n = kBlockedSequences.length; i < n; i++) {
+      txt = txt.replaceAll(kBlockedSequences[i], '');
     }
 
     // keep only safe chars
     final StringBuffer buf = StringBuffer();
-    for (final int rune in txt.runes) {
-      final String ch = String.fromCharCode(rune);
+    final List<int> runes = txt.runes.toList();
+    for (int i = 0, n = runes.length; i < n; i++) {
+      final String ch = String.fromCharCode(runes[i]);
       if (kSafeChars.hasMatch(ch)) buf.write(ch);
     }
 
