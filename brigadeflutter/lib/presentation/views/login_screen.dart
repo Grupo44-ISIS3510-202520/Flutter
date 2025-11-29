@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/services/text_formatter.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/utils/input_formatters.dart';
@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -41,54 +42,156 @@ class _LoginScreenState extends State<LoginScreen> {
               ConnectivityStatusIcon(),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _form,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  if (!vm.isOnline)
-                    // const Padding(
-                    //   padding: EdgeInsets.only(bottom: 12),
-                    //   child: MaterialBanner(
-                    //     backgroundColor: Color(0xFFFFF3CD),
-                    //     content: Text(
-                    //       "Hey Uniandino, you’re offline! Reconnect to get all features back.",
-                    //       style: TextStyle(color: Color(0xFF856404)),
-                    //     ),
-                    //     actions: [
-                    //       TextButton(
-                    //         onPressed: null,
-                    //         child: Text(
-                    //           'OK',
-                    //           style: TextStyle(color: Color(0xFF856404)),
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    const OfflineBanner(),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Form(
+                key: _form,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const SizedBox(height: 24),
+                    // App Icon
+                    Center(
+                      child: Hero(
+                        tag: 'app_logo',
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color.fromARGB(255, 173, 173, 173).withOpacity(0.03),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/icon-transparent.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // Welcome text
+                    const Text(
+                      'Welcome back',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sign in to continue',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    if (!vm.isOnline)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: OfflineBanner(),
+                      ),
+                  // Email field
                   TextFormField(
                     controller: _email,
-                    decoration: const InputDecoration(hintText: 'email'),
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      hintText: 'Enter your email',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue, width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
                     keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.email],
                     validator: (String? v) => validateEmailDomain(v),
                     inputFormatters: <TextInputFormatter>[
                       NoEmojiAndLengthFormatter(30),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+                  // Password field
                   TextFormField(
                     controller: _password,
-                    decoration: const InputDecoration(hintText: 'password'),
-                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      hintText: 'Enter your password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                        tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue, width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    autofillHints: const [AutofillHints.password],
                     validator: validatePassword,
                     inputFormatters: <TextInputFormatter>[
                       NoEmojiAndLengthFormatter(20),
                     ],
+                    onFieldSubmitted: (_) {
+                      if (!vm.signingIn && _form.currentState!.validate()) {
+                        vm.login(_email.text.trim(), _password.text);
+                      }
+                    },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  // Sign in button
                   FilledButton(
                     onPressed: vm.signingIn
                         ? null
@@ -112,15 +215,32 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             }
                           },
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      minimumSize: const Size.fromHeight(52),
+                    ),
                     child: vm.signingIn
                         ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
                           )
-                        : const Text('Sign in'),
+                        : const Text(
+                            'Sign in',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
+                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -143,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: TextFormField(
                                       controller: ctrl,
                                       decoration: const InputDecoration(
-                                        hintText: 'email',
+                                        hintText: 'Email',
                                       ),
                                       keyboardType: TextInputType.emailAddress,
                                       validator: (String? v) =>
@@ -223,28 +343,72 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               );
                             },
-                      child: const Text('Forgot password?'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      child: const Text(
+                        'Forgot password?',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 24),
+                  // Divider
+                  Row(
+                    children: <Widget>[
+                      Expanded(child: Divider(color: Colors.grey[300])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'or',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey[300])),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Create account
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      const Text("Don't have an account?"),
+                      Text(
+                        "Don't have an account?",
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 15,
+                        ),
+                      ),
                       TextButton(
                         onPressed: vm.signingIn
                             ? null
                             : () =>
                                   Navigator.of(context).pushNamed('/register'),
-                        child: const Text('Create account'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: const Text(
+                          'Create account',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
-        );
+        ));
       },
     );
   }
