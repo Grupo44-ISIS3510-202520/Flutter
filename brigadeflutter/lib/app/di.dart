@@ -41,6 +41,7 @@ import '../data/services_external/tts_service.dart';
 // import '../domain/use_cases/adjust_screen_light.dart';
 import '../domain/use_cases/adjust_brightness_from_ambient.dart';
 import '../domain/use_cases/create_emergency_report.dart';
+import '../domain/use_cases/get_user_reports.dart';
 //dashboard
 import '../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
 import '../domain/use_cases/fill_location.dart';
@@ -63,6 +64,7 @@ import '../presentation/viewmodels/dashboard_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/viewmodels/leaderboard_viewmodel.dart';
 import '../presentation/viewmodels/notification_viewmodel.dart';
+import '../presentation/viewmodels/reports_list_viewmodel.dart';
 import '../presentation/viewmodels/profile_viewmodel.dart';
 import '../presentation/viewmodels/protocols_viewmodel.dart';
 import '../presentation/viewmodels/register_viewmodel.dart';
@@ -138,6 +140,7 @@ Future<void> setupDi() async {
   // Use cases - reports & location
   sl.registerFactory(() => FillLocation(sl()));
   sl.registerFactory(() => CreateEmergencyReport(sl(), sl()));
+  sl.registerFactory(() => GetUserReports(sl()));
 
   // Use cases - auth
   sl.registerFactory(() => RegisterWithEmail(sl(), sl()));
@@ -224,6 +227,13 @@ Future<void> setupDi() async {
 
   sl.registerFactory<TrainingViewModel>(
     () => TrainingViewModel(repo: sl<TrainingRepository>()),
+  );
+  
+  sl.registerFactory<ReportsListViewModel>(
+    () => ReportsListViewModel(
+      getUserReports: sl<GetUserReports>(),
+      getCurrentUser: sl<GetCurrentUser>(),
+    ),
   );
 
   sl.registerFactory(() => LeaderboardViewModel());

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../presentation/viewmodels/auth_viewmodel.dart';
 import '../presentation/viewmodels/emergency_report_viewmodel.dart';
 import '../presentation/viewmodels/leaderboard_viewmodel.dart';
+import '../presentation/viewmodels/reports_list_viewmodel.dart';
 import '../presentation/viewmodels/profile_viewmodel.dart';
 import '../presentation/viewmodels/protocols_viewmodel.dart';
 import '../presentation/viewmodels/register_viewmodel.dart';
@@ -13,6 +14,7 @@ import '../presentation/viewmodels/training_viewmodel.dart';
 import '../presentation/views/dashboard_screen.dart';
 import '../presentation/views/emergency_report_view.dart';
 import '../presentation/views/leaderboard_screen.dart';
+import '../presentation/views/reports_list_screen.dart';
 // views
 import '../presentation/views/login_screen.dart';
 import '../presentation/views/notifications_screen.dart';
@@ -22,6 +24,7 @@ import '../presentation/views/register_screen.dart';
 import '../presentation/views/training_screen.dart';
 // di
 import 'di.dart' show sl;
+import '../helpers/utils/routes.dart' show routeReportsList;
 
 // route names
 const String routeDashboard = '/dashboard';
@@ -89,6 +92,15 @@ class MyApp extends StatelessWidget {
                       return vm;
                     },
                     child: const EmergencyReportScreen(),
+                  ),
+                );
+              
+              case routeReportsList:
+                return MaterialPageRoute(
+                  settings: settings,
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => sl<ReportsListViewModel>(),
+                    child: const ReportsListScreen(),
                   ),
                 );
 

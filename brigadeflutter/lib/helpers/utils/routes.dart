@@ -1,5 +1,6 @@
 // rutas centrales para navegación
 const String routeReport        = '/report';
+const String routeReportsList   = '/reports-list';
 const String routeProtocols     = '/protocols';
 const String routeTraining      = '/training';
 const String routeNotifications = '/notification';
