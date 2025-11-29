@@ -42,6 +42,8 @@ class ReportsListViewModel extends ChangeNotifier {
   String _searchQuery = '';
   bool _fromCache = false;
   DateTime? _lastSyncTime;
+  String _dataSource = 'Unknown'; // 'Firestore', 'Cache Manager', 'Hive', 'Unknown'
+  int _dataAgeMinutes = 0;
   
   List<Report> get reports => _filteredReports;
   bool get loading => _loading;
@@ -49,6 +51,8 @@ class ReportsListViewModel extends ChangeNotifier {
   String get searchQuery => _searchQuery;
   bool get fromCache => _fromCache;
   DateTime? get lastSyncTime => _lastSyncTime;
+  String get dataSource => _dataSource;
+  int get dataAgeMinutes => _dataAgeMinutes;
   
   Future<void> loadReports() async {
     final String? userId = getCurrentUser()?.uid;
@@ -78,11 +82,19 @@ class ReportsListViewModel extends ChangeNotifier {
         _allReports = result.reports;
         _filteredReports = futures[0] as List<Report>;
         _lastSyncTime = futures[1] as DateTime?;
+        _dataSource = 'Cache/Hive'; // Hybrid storage (could be from either layer)
+        
+        // Calculate data age
+        if (_lastSyncTime != null) {
+          _dataAgeMinutes = DateTime.now().difference(_lastSyncTime!).inMinutes;
+        }
       } else {
-        // Fresh data - no need for parallel operations
+        // Fresh data from Firestore
         _allReports = result.reports;
         _filteredReports = List<Report>.from(_allReports);
         _lastSyncTime = DateTime.now();
+        _dataSource = 'Firestore';
+        _dataAgeMinutes = 0;
       }
       
       _fromCache = result.fromCache;

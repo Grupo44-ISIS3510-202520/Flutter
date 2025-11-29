@@ -32,40 +32,167 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
     super.dispose();
   }
   
+  Widget _buildFirestoreBanner(ReportsListViewModel vm) {
+    final DateFormat dateFormat = DateFormat('MMM dd, yyyy HH:mm');
+    final String syncTime = dateFormat.format(DateTime.now());
+    
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        border: Border(
+          bottom: BorderSide(color: Colors.green.shade200, width: 1),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.cloud_done, size: 20, color: Colors.green.shade700),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Live data from Firestore',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade900,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Synced: $syncTime • Cached for offline access',
+                  style: TextStyle(
+                    color: Colors.green.shade700,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
   Widget _buildCacheBanner(ReportsListViewModel vm) {
     final DateFormat dateFormat = DateFormat('MMM dd, yyyy HH:mm');
     final String lastSync = vm.lastSyncTime != null
         ? dateFormat.format(vm.lastSyncTime!)
         : 'Unknown';
     
+    // Calculate data age string
+    String dataAge;
+    if (vm.dataAgeMinutes < 1) {
+      dataAge = 'Just now';
+    } else if (vm.dataAgeMinutes < 60) {
+      dataAge = '${vm.dataAgeMinutes} min ago';
+    } else if (vm.dataAgeMinutes < 1440) {
+      final int hours = (vm.dataAgeMinutes / 60).floor();
+      dataAge = '$hours ${hours == 1 ? "hour" : "hours"} ago';
+    } else {
+      final int days = (vm.dataAgeMinutes / 1440).floor();
+      dataAge = '$days ${days == 1 ? "day" : "days"} ago';
+    }
+    
+    // Auto-cleanup info
+    final int daysUntilCleanup = 7 - (vm.dataAgeMinutes / 1440).floor();
+    final String cleanupInfo = daysUntilCleanup > 0
+        ? 'Auto-cleanup in $daysUntilCleanup ${daysUntilCleanup == 1 ? "day" : "days"}'
+        : 'Cache expired (using persistent storage)';
+    
     return Container(
       width: double.infinity,
-      color: Colors.orange.shade100,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        border: Border(
+          bottom: BorderSide(color: Colors.orange.shade200, width: 1),
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(Icons.cloud_off, size: 20, color: Colors.orange.shade800),
-          const SizedBox(width: 8),
-          Expanded(
+          Row(
+            children: <Widget>[
+              Icon(Icons.storage, size: 22, color: Colors.orange.shade700),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Viewing ${vm.dataSource} data',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade900,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Data age: $dataAge',
+                      style: TextStyle(
+                        color: Colors.orange.shade800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  'Viewing cached reports',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.orange.shade900,
-                    fontSize: 14,
-                  ),
+                Row(
+                  children: <Widget>[
+                    Icon(Icons.sync, size: 16, color: Colors.orange.shade700),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Last sync: $lastSync',
+                      style: TextStyle(
+                        color: Colors.orange.shade900,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  'Last synced: $lastSync',
-                  style: TextStyle(
-                    color: Colors.orange.shade800,
-                    fontSize: 12,
-                  ),
+                const SizedBox(height: 6),
+                Row(
+                  children: <Widget>[
+                    Icon(Icons.auto_delete, size: 16, color: Colors.orange.shade700),
+                    const SizedBox(width: 6),
+                    Text(
+                      cleanupInfo,
+                      style: TextStyle(
+                        color: Colors.orange.shade900,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '💡 Pull down to refresh and sync with latest data',
+            style: TextStyle(
+              color: Colors.orange.shade700,
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
             ),
           ),
         ],
@@ -93,8 +220,11 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
           bottomNavigationBar: const AppBottomNav(current: 0),
           body: Column(
             children: <Widget>[
-              // Offline banner
-              if (vm.fromCache) _buildCacheBanner(vm),
+              // Data source banner - always show for transparency
+              if (vm.fromCache)
+                _buildCacheBanner(vm)
+              else if (vm.dataSource == 'Firestore' && vm.reports.isNotEmpty)
+                _buildFirestoreBanner(vm),
               
               // Search bar
               Padding(
