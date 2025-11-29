@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/models/rag_model.dart';
-import '../viewmodels/rag_viewmodel.dart';
+import '../viewmodels/rag_viewmodel.dart' as vm;
 
 class RagScreen extends StatefulWidget {
   const RagScreen({super.key});
@@ -16,12 +16,12 @@ class RagScreen extends StatefulWidget {
 
 class _RagScreenState extends State<RagScreen> {
   final TextEditingController _queryController = TextEditingController();
-  late RagViewModel _viewModel;
+  late vm.RagViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = Provider.of<RagViewModel>(context, listen: false);
+    _viewModel = Provider.of<vm.RagViewModel>(context, listen: false);
   }
 
   @override
@@ -32,7 +32,7 @@ class _RagScreenState extends State<RagScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<RagViewModel>(
+    return Consumer<vm.RagViewModel>(
       builder: (context, vm, child) {
         return Scaffold(
           appBar: AppBar(
@@ -66,7 +66,7 @@ class _RagScreenState extends State<RagScreen> {
     );
   }
 
-  Widget _buildCacheInfoCard(RagViewModel vm) {
+  Widget _buildCacheInfoCard(vm.RagViewModel viewModel) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
@@ -84,7 +84,7 @@ class _RagScreenState extends State<RagScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${vm.cacheSize} answers cached',
+                '${viewModel.cacheSize} answers cached',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w500,
@@ -98,8 +98,8 @@ class _RagScreenState extends State<RagScreen> {
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
             onPressed: () {
-              vm.loadCacheHistory();
-              _showHistoryDialog(vm);
+              viewModel.loadCacheHistory();
+              _showHistoryDialog(viewModel);
             },
           ),
         ],
@@ -107,8 +107,9 @@ class _RagScreenState extends State<RagScreen> {
     );
   }
 
-  Widget _buildQueryInput(RagViewModel vm) {
-    final isLoading = vm.state is RagLoading;
+  Widget _buildQueryInput(vm.RagViewModel viewModel) {
+    final isLoading = viewModel.state is vm.RagLoading;
+    final canSend = _queryController.text.trim().isNotEmpty && !isLoading;
 
     return TextField(
       controller: _queryController,
@@ -120,36 +121,54 @@ class _RagScreenState extends State<RagScreen> {
           borderRadius: BorderRadius.circular(24),
           borderSide: BorderSide.none,
         ),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.send),
-          onPressed: isLoading || _queryController.text.trim().isEmpty
-              ? null
-              : () {
-            vm.askQuestion(_queryController.text);
-          },
-        ),
+        suffixIcon: isLoading
+            ? const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            : IconButton(
+                icon: Icon(
+                  Icons.send,
+                  color: canSend ? Theme.of(context).colorScheme.primary : Colors.grey,
+                ),
+                onPressed: canSend
+                    ? () {
+                        if (_queryController.text.trim().isNotEmpty) {
+                          viewModel.askQuestion(_queryController.text);
+                        }
+                      }
+                    : null,
+              ),
       ),
       enabled: !isLoading,
-      onSubmitted: isLoading
-          ? null
-          : (value) {
-        if (value.trim().isNotEmpty) {
-          vm.askQuestion(value);
-        }
+      onChanged: (value) {
+        // Trigger rebuild to update button state
+        setState(() {});
       },
+      onSubmitted: canSend
+          ? (value) {
+              if (value.trim().isNotEmpty) {
+                viewModel.askQuestion(value);
+              }
+            }
+          : null,
     );
   }
 
-  Widget _buildStateContent(RagViewModel vm) {
-    final state = vm.state;
+  Widget _buildStateContent(vm.RagViewModel viewModel) {
+    final state = viewModel.state;
 
-    if (state is RagIdle) {
+    if (state is vm.RagIdle) {
       return _buildEmptyState();
-    } else if (state is RagLoading) {
+    } else if (state is vm.RagLoading) {
       return const Center(child: CircularProgressIndicator());
-    } else if (state is RagSuccess) {
+    } else if (state is vm.RagSuccess) {
       return _buildAnswerCard(state);
-    } else if (state is RagError) {
+    } else if (state is vm.RagError) {
       return _buildErrorCard(state);
     }
 
@@ -195,7 +214,10 @@ class _RagScreenState extends State<RagScreen> {
     );
   }
 
-  Widget _buildAnswerCard(RagSuccess state) {
+  Widget _buildAnswerCard(vm.RagSuccess state) {
+    final isEmergencyResponse = state.sources.isNotEmpty && 
+        state.sources.first.contains('Sistema offline');
+    
     return SingleChildScrollView(
       child: Container(
         decoration: BoxDecoration(
@@ -206,7 +228,35 @@ class _RagScreenState extends State<RagScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (state.fromCache)
+            // Emergency response warning
+            if (isEmergencyResponse)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  border: Border.all(color: Colors.orange.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Servidor temporalmente fuera de servicio. Mostrando información básica de emergencia.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (isEmergencyResponse) const SizedBox(height: 16),
+            // Regular cache badge
+            if (state.fromCache && !isEmergencyResponse)
               Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.secondaryContainer,
@@ -225,7 +275,7 @@ class _RagScreenState extends State<RagScreen> {
                   ),
                 ),
               ),
-            if (state.fromCache) const SizedBox(height: 16),
+            if (state.fromCache && !isEmergencyResponse) const SizedBox(height: 16),
             const Text(
               'Answer:',
               style: TextStyle(
@@ -279,7 +329,7 @@ class _RagScreenState extends State<RagScreen> {
     );
   }
 
-  Widget _buildErrorCard(RagError state) {
+  Widget _buildErrorCard(vm.RagError state) {
     return Center(
       child: Container(
         decoration: BoxDecoration(
@@ -309,7 +359,7 @@ class _RagScreenState extends State<RagScreen> {
     );
   }
 
-  void _showHistoryDialog(RagViewModel vm) {
+  void _showHistoryDialog(vm.RagViewModel viewModel) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -340,16 +390,16 @@ class _RagScreenState extends State<RagScreen> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: vm.cacheHistory.isEmpty
+                child: viewModel.cacheHistory.isEmpty
                     ? const Center(
                   child: Text('No cached answers yet'),
                 )
                     : ListView.separated(
-                  itemCount: vm.cacheHistory.length,
+                  itemCount: viewModel.cacheHistory.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
-                    final entry = vm.cacheHistory[index];
-                    return _buildHistoryItem(entry, vm);
+                    final entry = viewModel.cacheHistory[index];
+                    return _buildHistoryItem(entry, viewModel);
                   },
                 ),
               ),
@@ -360,11 +410,11 @@ class _RagScreenState extends State<RagScreen> {
     );
   }
 
-  Widget _buildHistoryItem(RagCacheEntry entry, RagViewModel vm) {
+  Widget _buildHistoryItem(RagCacheEntry entry, vm.RagViewModel viewModel) {
     return InkWell(
       onTap: () {
         _queryController.text = entry.query;
-        vm.useCachedQuery(entry);
+        viewModel.useCachedQuery(entry);
         Navigator.pop(context);
       },
       child: Container(

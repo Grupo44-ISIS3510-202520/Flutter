@@ -1,93 +1,175 @@
-// presentation/viewmodels/rag_viewmodel.dart
-
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-
 import '../../data/models/rag_model.dart';
 import '../../data/repositories/rag_repository.dart';
-import '../../domain/use_cases/get_rag_answer.dart';
+
+// State classes
+abstract class RagState {}
+class RagIdle extends RagState {}
+class RagLoading extends RagState {}
+class RagSuccess extends RagState {
+  final String answer;
+  final List<String> sources;
+  final bool fromCache;
+  RagSuccess(this.answer, this.sources, {this.fromCache = false});
+}
+class RagError extends RagState {
+  final String message;
+  RagError(this.message);
+}
 
 class RagViewModel extends ChangeNotifier {
-  final GetRagAnswer getRagAnswerUseCase;
-  final RagRepository repository;
+  final RagRepository _repository;
 
-  RagViewModel({
-    required this.getRagAnswerUseCase,
-    required this.repository,
-  }) {
+  RagViewModel({required RagRepository repository}) : _repository = repository {
     _initializeCache();
   }
 
+  // State
   RagState _state = RagIdle();
-  RagState get state => _state;
-
   int _cacheSize = 0;
-  int get cacheSize => _cacheSize;
-
   List<RagCacheEntry> _cacheHistory = [];
+
+  // Debouncing
+  Timer? _debounceTimer;
+  static const Duration _debounceDuration = Duration(milliseconds: 800);
+
+  // Getters
+  RagState get state => _state;
+  int get cacheSize => _cacheSize;
   List<RagCacheEntry> get cacheHistory => _cacheHistory;
 
-  StreamSubscription<RagState>? _subscription;
-
+  // Initialize cache
   Future<void> _initializeCache() async {
-    await repository.initializeCache();
-    await _updateCacheSize();
-    await loadCacheHistory();
+    try {
+      await _repository.initializeCache();
+      await _updateCacheStats();
+    } catch (e) {
+      print('Failed to initialize cache: $e');
+    }
   }
 
-  void askQuestion(String query) {
-    _subscription?.cancel();
-
-    _subscription = getRagAnswerUseCase(query).listen(
-          (RagState newState) {
-        _state = newState;
-        notifyListeners();
-
-        if (newState is RagSuccess) {
-          _updateCacheSize();
-          loadCacheHistory();
-        }
-      },
-      onError: (dynamic error) {
-        _state = RagError(error.toString());
-        notifyListeners();
-      },
-    );
+  // Update cache statistics
+  Future<void> _updateCacheStats() async {
+    try {
+      _cacheSize = await _repository.getCacheSize();
+      notifyListeners();
+    } catch (e) {
+      print('Failed to update cache stats: $e');
+    }
   }
 
-  void clearState() {
-    _state = RagIdle();
+  // Ask question with debounce protection
+  Future<void> askQuestion(String query) async {
+    final trimmedQuery = query.trim();
+    
+    // Validation
+    if (trimmedQuery.isEmpty) {
+      _state = RagError('Please enter a question');
+      notifyListeners();
+      return;
+    }
+
+    if (_state is RagLoading) {
+      print('Request already in progress - ignoring');
+      return;
+    }
+
+    // Cancel any pending debounce timer
+    _debounceTimer?.cancel();
+
+    // Set loading state
+    _state = RagLoading();
     notifyListeners();
+
+    try {
+      print('Sending query: "$trimmedQuery"');
+      
+      final result = await _repository.getAnswer(trimmedQuery);
+      
+      final response = result.$1;
+      final fromCache = result.$2;
+
+      _state = RagSuccess(
+        response.answer,
+        response.sources,
+        fromCache: fromCache,
+      );
+
+      print('✅ Query completed (fromCache: $fromCache)');
+      
+      // Update cache stats
+      await _updateCacheStats();
+    } catch (e) {
+      final errorMsg = _getUserFriendlyError(e);
+      _state = RagError(errorMsg);
+      print('Query failed: $errorMsg');
+    } finally {
+      notifyListeners();
+    }
   }
 
-  Future<void> clearCache() async {
-    await repository.clearCache();
-    await _updateCacheSize();
-    await loadCacheHistory();
-  }
-
+  // Load cache history
   Future<void> loadCacheHistory() async {
-    _cacheHistory = await repository.getCacheHistory();
-    notifyListeners();
+    try {
+      _cacheHistory = await _repository.getCacheHistory();
+      notifyListeners();
+    } catch (e) {
+      print('Failed to load cache history: $e');
+    }
   }
 
+  // Use cached query
   void useCachedQuery(RagCacheEntry entry) {
     _state = RagSuccess(
-      answer: entry.answer,
-      sources: entry.sources,
+      entry.answer,
+      entry.sources,
       fromCache: true,
     );
     notifyListeners();
   }
 
-  Future<void> _updateCacheSize() async {
-    _cacheSize = await repository.getCacheSize();
+  // Convert technical errors to user-friendly messages
+  String _getUserFriendlyError(dynamic error) {
+    final errorMsg = error.toString().toLowerCase();
+
+    if (errorMsg.contains('timeout')) {
+      return 'Request took too long. Please try again.';
+    } else if (errorMsg.contains('network') || errorMsg.contains('connection')) {
+      return 'No internet connection. Please check your network.';
+    } else if (errorMsg.contains('temporarily unavailable')) {
+      return error.toString().replaceFirst('Exception: ', '');
+    } else if (errorMsg.contains('500') || errorMsg.contains('server error')) {
+      return 'Server is experiencing issues. Please try again in a moment.';
+    } else if (errorMsg.contains('401') || errorMsg.contains('403')) {
+      return 'Authentication error. Please contact support.';
+    } else {
+      return 'An error occurred. Please try again.';
+    }
+  }
+
+  // Clear current response
+  void clearResponse() {
+    _state = RagIdle();
     notifyListeners();
+  }
+
+  // Clear cache
+  Future<void> clearCache() async {
+    try {
+      await _repository.clearCache();
+      await _updateCacheStats();
+      _cacheHistory = [];
+      print('Cache cleared');
+      notifyListeners();
+    } catch (e) {
+      print('Failed to clear cache: $e');
+    }
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 }

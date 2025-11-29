@@ -263,7 +263,6 @@ Future<void> setupDi() async {
   // RAG ViewModel
   sl.registerFactory(
         () => RagViewModel(
-      getRagAnswerUseCase: sl(),
       repository: sl(),
     ),
   );
