@@ -17,22 +17,33 @@ class ReportRepositoryImpl implements ReportRepository {
   @override
   Future<void> createEmergencyReport({
     required String type,
-    required String placeTime,
+    required String place,
     required String description,
     required bool isFollowUp,
+    required int elapsedTime,
     double? latitude,
     double? longitude,
+    String? audioUrl,
+    String? imageUrl,
+    required int uiid,
+    required String userId,
     bool isOnline = true,
   }) async {
+    final now = DateTime.now();
     final ReportModel model = ReportModel(
-      id: DateTime.now().millisecondsSinceEpoch,
+      reportId: 'F${now.millisecondsSinceEpoch}',
       type: type,
-      placeTime: placeTime,
       description: description,
       isFollowUp: isFollowUp,
+      timestampMs: now.millisecondsSinceEpoch,
+      elapsedTime: elapsedTime,
+      place: place,
       latitude: latitude,
       longitude: longitude,
-      createdAtMs: DateTime.now().millisecondsSinceEpoch,
+      audioUrl: audioUrl,
+      imageUrl: imageUrl,
+      uiid: uiid,
+      userId: userId,
     );
 
     if (isOnline) {
@@ -51,7 +62,7 @@ class ReportRepositoryImpl implements ReportRepository {
       (await localDao.listPending()).map((ReportModel e) => e.toEntity()).toList();
 
   @override
-  Future<void> markSent(Report report) => localDao.remove(report.id);
+  Future<void> markSent(Report report) => localDao.remove(report.reportId);
 
   @override
   Future<void> saveLocal(ReportModel model) async {
@@ -64,8 +75,8 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<void> removeLocal(int id) async {
-    await localDao.remove(id);
+  Future<void> removeLocal(String reportId) async {
+    await localDao.remove(reportId);
   }
 
   // @override
@@ -82,7 +93,7 @@ class ReportRepositoryImpl implements ReportRepository {
     final List<ReportModel> pending = await localDao.listPending();
     for (final ReportModel report in pending) {
       await remoteDao.set(report);
-      await localDao.remove(report.id);
+      await localDao.remove(report.reportId);
     }
   }
 }

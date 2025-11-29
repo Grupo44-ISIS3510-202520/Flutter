@@ -9,39 +9,49 @@ class CreateEmergencyReport {
   final ReportRepository repo;
   final FirestoreIdGenerator idGen;
 
-  Future<int> call({
-    int? id,
+  Future<String> call({
+    String? reportId,
     required String type,
-    required String placeTime,
+    required String place,
     required String description,
     required bool isFollowUp,
+    required int elapsedTime,
     double? latitude,
     double? longitude,
+    String? audioUrl,
+    String? imageUrl,
+    required int uiid,
+    required String userId,
     required bool isOnline,
   }) async {
     final Iterable<String> errors = <String?>[
       validateType(type),
-      validatePlaceTime(placeTime),
+      validatePlace(place),
       validateDescription(description),
     ].whereType<String>();
     if (errors.isNotEmpty) {
       throw ValidationFailure(errors.first);
     }
 
-    final int newId =
-        id ??
+    final String newReportId = reportId ??
         (isOnline
-            ? await idGen.nextReportId()
-            : DateTime.now().millisecondsSinceEpoch);
+            ? 'F${await idGen.nextReportId()}'
+            : 'F${DateTime.now().millisecondsSinceEpoch}');
+    
     final Report report = Report(
-      id: newId,
+      reportId: newReportId,
       type: type.trim(),
-      placeTime: placeTime.trim(),
       description: description.trim(),
       isFollowUp: isFollowUp,
+      timestamp: DateTime.now(),
+      elapsedTime: elapsedTime,
+      place: place.trim(),
       latitude: latitude,
       longitude: longitude,
-      createdAt: DateTime.now(),
+      audioUrl: audioUrl,
+      imageUrl: imageUrl,
+      uiid: uiid,
+      userId: userId,
     );
 
     if (isOnline) {
@@ -49,6 +59,6 @@ class CreateEmergencyReport {
     } else {
       await repo.enqueue(report);
     }
-    return newId;
+    return newReportId;
   }
 }

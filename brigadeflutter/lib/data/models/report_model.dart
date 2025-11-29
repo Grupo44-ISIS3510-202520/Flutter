@@ -2,69 +2,102 @@ import '../entities/report.dart';
 
 class ReportModel {
   const ReportModel({
-    required this.id,
+    required this.reportId,
     required this.type,
-    required this.placeTime,
     required this.description,
     required this.isFollowUp,
+    required this.timestampMs,
+    required this.elapsedTime,
+    required this.place,
     this.latitude,
     this.longitude,
-    required this.createdAtMs,
+    this.audioUrl,
+    this.imageUrl,
+    required this.uiid,
+    required this.userId,
   });
-  factory ReportModel.fromJson(Map<String, dynamic> json, {required int id}) {
-    final ts = json['createdAt'];
-    final ms = ts is DateTime
-        ? ts.millisecondsSinceEpoch
-        : (json['createdAtMs'] ?? 0);
+  
+  factory ReportModel.fromJson(Map<String, dynamic> json) {
+    final ts = json['timestamp'];
+    final ms = ts is String
+        ? DateTime.parse(ts).millisecondsSinceEpoch
+        : (json['timestampMs'] ?? DateTime.now().millisecondsSinceEpoch);
     return ReportModel(
-      id: id,
+      reportId: json['reportId'] ?? '',
       type: json['type'] ?? '',
-      placeTime: json['placeTime'] ?? '',
       description: json['description'] ?? '',
       isFollowUp: json['isFollowUp'] ?? false,
+      timestampMs: ms is int ? ms : DateTime.now().millisecondsSinceEpoch,
+      elapsedTime: json['elapsedTime'] ?? 0,
+      place: json['place'] ?? '',
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      createdAtMs: ms is int ? ms : 0,
+      audioUrl: json['audioUrl'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      uiid: json['uiid'] ?? 0,
+      userId: json['userId'] ?? '',
     );
   }
+  
   factory ReportModel.fromEntity(Report e) => ReportModel(
-    id: e.id,
+    reportId: e.reportId,
     type: e.type,
-    placeTime: e.placeTime,
     description: e.description,
     isFollowUp: e.isFollowUp,
+    timestampMs: e.timestamp.millisecondsSinceEpoch,
+    elapsedTime: e.elapsedTime,
+    place: e.place,
     latitude: e.latitude,
     longitude: e.longitude,
-    createdAtMs: e.createdAt.millisecondsSinceEpoch,
+    audioUrl: e.audioUrl,
+    imageUrl: e.imageUrl,
+    uiid: e.uiid,
+    userId: e.userId,
   );
-  final int id;
+  
+  final String reportId; // F## or K##
   final String type;
-  final String placeTime;
   final String description;
   final bool isFollowUp;
+  final int timestampMs;
+  final int elapsedTime; // ms or s
+  final String place;
   final double? latitude;
   final double? longitude;
-  final int createdAtMs;
+  final String? audioUrl;
+  final String? imageUrl;
+  final int uiid;
+  final String userId;
 
   Report toEntity() => Report(
-    id: id,
+    reportId: reportId,
     type: type,
-    placeTime: placeTime,
     description: description,
     isFollowUp: isFollowUp,
+    timestamp: DateTime.fromMillisecondsSinceEpoch(timestampMs),
+    elapsedTime: elapsedTime,
+    place: place,
     latitude: latitude,
     longitude: longitude,
-    createdAt: DateTime.fromMillisecondsSinceEpoch(createdAtMs),
+    audioUrl: audioUrl,
+    imageUrl: imageUrl,
+    uiid: uiid,
+    userId: userId,
   );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'reportId': id,
+    'reportId': reportId,
     'type': type,
-    'placeTime': placeTime,
     'description': description,
     'isFollowUp': isFollowUp,
+    'timestamp': DateTime.fromMillisecondsSinceEpoch(timestampMs).toIso8601String(),
+    'elapsedTime': elapsedTime,
+    'place': place,
     'latitude': latitude,
     'longitude': longitude,
-    'createdAt': DateTime.fromMillisecondsSinceEpoch(createdAtMs),
+    'audioUrl': audioUrl,
+    'imageUrl': imageUrl,
+    'uiid': uiid,
+    'userId': userId,
   };
 }
