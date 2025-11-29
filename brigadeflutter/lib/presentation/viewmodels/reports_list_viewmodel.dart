@@ -5,6 +5,25 @@ import '../../domain/use_cases/get_current_user.dart';
 import '../../domain/use_cases/get_user_reports.dart';
 import '../../domain/use_cases/get_user_reports_with_cache.dart';
 
+// Top-level function for isolate execution
+// Filters reports based on search query in separate isolate
+List<Report> _filterReportsIsolate(Map<String, dynamic> params) {
+  final List<Report> allReports = params['reports'] as List<Report>;
+  final String searchQuery = params['query'] as String;
+  
+  if (searchQuery.isEmpty) {
+    return List<Report>.from(allReports);
+  }
+  
+  return allReports.where((Report report) {
+    final String searchLower = searchQuery.toLowerCase();
+    return report.reportId.toLowerCase().contains(searchLower) ||
+           report.type.toLowerCase().contains(searchLower) ||
+           report.place.toLowerCase().contains(searchLower) ||
+           report.description.toLowerCase().contains(searchLower);
+  }).toList();
+}
+
 class ReportsListViewModel extends ChangeNotifier {
   ReportsListViewModel({
     required this.getUserReports,
@@ -45,17 +64,29 @@ class ReportsListViewModel extends ChangeNotifier {
     notifyListeners();
     
     try {
+      // MULTITHREADING STRATEGY: Get reports and prepare data concurrently
       final result = await getUserReportsWithCache(userId);
-      _allReports = result.reports;
-      _filteredReports = List<Report>.from(_allReports);
-      _fromCache = result.fromCache;
-      _error = null;
       
-      if (_fromCache) {
-        _lastSyncTime = await getUserReportsWithCache.getLastSyncTime();
+      // Process results - copy list creation and cache time check can run in parallel
+      if (result.fromCache) {
+        // When using cache, fetch lastSyncTime in parallel with list copy
+        final futures = await Future.wait<dynamic>([
+          Future<List<Report>>(() => List<Report>.from(result.reports)),
+          getUserReportsWithCache.getLastSyncTime(),
+        ]);
+        
+        _allReports = result.reports;
+        _filteredReports = futures[0] as List<Report>;
+        _lastSyncTime = futures[1] as DateTime?;
       } else {
+        // Fresh data - no need for parallel operations
+        _allReports = result.reports;
+        _filteredReports = List<Report>.from(_allReports);
         _lastSyncTime = DateTime.now();
       }
+      
+      _fromCache = result.fromCache;
+      _error = null;
     } catch (e) {
       final String errorMsg = e.toString();
       if (errorMsg.contains('No internet connection and no cached reports')) {
@@ -74,18 +105,33 @@ class ReportsListViewModel extends ChangeNotifier {
     }
   }
   
-  void search(String query) {
-    _searchQuery = query.trim().toLowerCase();
+  void search(String query) async {
+    _searchQuery = query.trim();
     
-    if (_searchQuery.isEmpty) {
-      _filteredReports = List<Report>.from(_allReports);
+    // ISOLATE STRATEGY: For large datasets (>50 items), use isolate for filtering
+    // This prevents UI freezing during search on large lists
+    if (_allReports.length > 50) {
+      // Run filtering in separate isolate to keep UI responsive
+      _filteredReports = await compute(
+        _filterReportsIsolate,
+        <String, dynamic>{
+          'reports': _allReports,
+          'query': _searchQuery,
+        },
+      );
     } else {
-      _filteredReports = _allReports.where((Report report) {
-        return report.type.toLowerCase().contains(_searchQuery) ||
-               report.description.toLowerCase().contains(_searchQuery) ||
-               report.place.toLowerCase().contains(_searchQuery) ||
-               report.reportId.toLowerCase().contains(_searchQuery);
-      }).toList();
+      // For small lists, direct filtering is faster (no isolate overhead)
+      if (_searchQuery.isEmpty) {
+        _filteredReports = List<Report>.from(_allReports);
+      } else {
+        final String searchLower = _searchQuery.toLowerCase();
+        _filteredReports = _allReports.where((Report report) {
+          return report.reportId.toLowerCase().contains(searchLower) ||
+                 report.type.toLowerCase().contains(searchLower) ||
+                 report.place.toLowerCase().contains(searchLower) ||
+                 report.description.toLowerCase().contains(searchLower);
+        }).toList();
+      }
     }
     
     notifyListeners();

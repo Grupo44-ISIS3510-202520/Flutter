@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+
 import '../datasources/report_cache_dao.dart';
 import '../datasources/report_firestore_dao.dart';
 import '../datasources/report_local_dao.dart';
@@ -5,6 +9,12 @@ import '../entities/report.dart';
 import '../models/report_model.dart';
 import '../repositories/report_repository.dart';
 import '../services_external/connectivity_service.dart';
+
+// Top-level function for isolate execution
+// Transforms list of ReportModel to Report entities in separate isolate
+List<Report> _transformModelsToEntitiesIsolate(List<ReportModel> models) {
+  return models.map((ReportModel m) => m.toEntity()).toList();
+}
 
 class ReportRepositoryImpl implements ReportRepository {
   ReportRepositoryImpl({
@@ -109,7 +119,8 @@ class ReportRepositoryImpl implements ReportRepository {
   @override
   Future<List<Report>> getUserReports(String userId) async {
     final List<ReportModel> models = await remoteDao.queryByUserId(userId);
-    return models.map((ReportModel m) => m.toEntity()).toList();
+    // ISOLATE: Transform models in separate thread for better performance
+    return compute(_transformModelsToEntitiesIsolate, models);
   }
   
   @override
@@ -118,30 +129,63 @@ class ReportRepositoryImpl implements ReportRepository {
     final bool isOnline = await connectivity.isOnline();
     
     if (isOnline) {
-      try {
-        // Try to fetch from Firestore
-        final List<ReportModel> models = await remoteDao.queryByUserId(userId);
-        final List<Report> reports = models.map((ReportModel m) => m.toEntity()).toList();
+      // MULTITHREADING STRATEGY 1: Parallel Operations
+      // Run Firestore fetch and cache check concurrently to reduce total wait time
+      List<ReportModel>? firestoreModels;
+      Object? firestoreError;
+      List<ReportModel>? cachedModels;
+      
+      // Execute both operations in parallel using Future.wait
+      await Future.wait<void>([
+        // Thread 1: Fetch from Firestore
+        remoteDao.queryByUserId(userId).then((models) {
+          firestoreModels = models;
+        }).catchError((Object e) {
+          firestoreError = e;
+        }),
+        // Thread 2: Check cache simultaneously (for instant fallback if Firestore fails)
+        cacheDao.getCachedUserReports(userId).then((cached) {
+          cachedModels = cached;
+        }),
+      ]);
+      
+      if (firestoreModels != null) {
+        // MULTITHREADING STRATEGY 2: Isolate for CPU-intensive transformation
+        // Use compute() to run transformation in separate isolate for true parallelism
+        // This prevents blocking the main thread for large datasets
+        final List<Report> reports = await compute(
+          _transformModelsToEntitiesIsolate,
+          firestoreModels!,
+        );
         
-        // Cache the successful fetch
-        await cacheDao.cacheUserReports(userId, models);
+        // MULTITHREADING STRATEGY 3: Fire-and-Forget Cache Write
+        // Don't wait for cache write to complete - improves response time
+        // The cache operation runs in background without blocking the return
+        unawaited(cacheDao.cacheUserReports(userId, firestoreModels!));
         
         return (reports: reports, fromCache: false);
-      } catch (e) {
-        // Firestore failed, try cache fallback
-        final List<ReportModel>? cachedModels = await cacheDao.getCachedUserReports(userId);
-        if (cachedModels != null && cachedModels.isNotEmpty) {
-          final List<Report> reports = cachedModels.map((ReportModel m) => m.toEntity()).toList();
+      } else {
+        // Firestore failed - use cache (already fetched in parallel above)
+        if (cachedModels != null && cachedModels!.isNotEmpty) {
+          // ISOLATE: Transform cached models in separate thread
+          final List<Report> reports = await compute(
+            _transformModelsToEntitiesIsolate,
+            cachedModels!,
+          );
           return (reports: reports, fromCache: true);
         }
-        // No cache available, rethrow
-        rethrow;
+        // No cache available, rethrow Firestore error
+        throw firestoreError ?? Exception('Failed to load reports');
       }
     } else {
-      // Offline: try to use cache
+      // Offline: try to use cache only
       final List<ReportModel>? cachedModels = await cacheDao.getCachedUserReports(userId);
       if (cachedModels != null && cachedModels.isNotEmpty) {
-        final List<Report> reports = cachedModels.map((ReportModel m) => m.toEntity()).toList();
+        // ISOLATE: Transform cached models in separate thread
+        final List<Report> reports = await compute(
+          _transformModelsToEntitiesIsolate,
+          cachedModels,
+        );
         return (reports: reports, fromCache: true);
       }
       
