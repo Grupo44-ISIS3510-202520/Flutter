@@ -42,6 +42,7 @@ import '../data/services_external/tts_service.dart';
 import '../domain/use_cases/adjust_brightness_from_ambient.dart';
 import '../domain/use_cases/create_emergency_report.dart';
 import '../domain/use_cases/get_user_reports.dart';
+import '../domain/use_cases/get_user_reports_with_cache.dart';
 //dashboard
 import '../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
 import '../domain/use_cases/fill_location.dart';
@@ -74,6 +75,7 @@ import '../presentation/viewmodels/training_viewmodel.dart';
 import '../data/cache/notification_cache_manager.dart';
 import '../data/database/notification_database.dart';
 import '../data/datasources/notification_dao.dart';
+import '../data/datasources/report_cache_dao.dart';
 import '../data/services_local/notification_preferences_service.dart';
 import '../presentation/viewmodels/simple_notification_view_model.dart';
 
@@ -99,6 +101,9 @@ Future<void> setupDi() async {
     () => ConnectivityServiceImpl(),
   );
 
+  // Cache DAOs
+  sl.registerLazySingleton(() => ReportCacheDao()..init());
+  
   // DAOs
   sl.registerLazySingleton(() => ReportFirestoreDao(sl()));
   sl.registerLazySingleton(() => ProtocolsFirestoreDao());
@@ -108,7 +113,12 @@ Future<void> setupDi() async {
 
   // Repositories
   sl.registerLazySingleton<ReportRepository>(
-    () => ReportRepositoryImpl(remoteDao: sl(), localDao: sl()),
+    () => ReportRepositoryImpl(
+      remoteDao: sl(),
+      localDao: sl(),
+      cacheDao: sl(),
+      connectivity: sl(),
+    ),
   );
   sl.registerLazySingleton<LocationRepository>(
     () => LocationRepositoryImpl(sl()),
@@ -141,6 +151,7 @@ Future<void> setupDi() async {
   sl.registerFactory(() => FillLocation(sl()));
   sl.registerFactory(() => CreateEmergencyReport(sl(), sl()));
   sl.registerFactory(() => GetUserReports(sl()));
+  sl.registerFactory(() => GetUserReportsWithCache(sl()));
 
   // Use cases - auth
   sl.registerFactory(() => RegisterWithEmail(sl(), sl()));
@@ -232,6 +243,7 @@ Future<void> setupDi() async {
   sl.registerFactory<ReportsListViewModel>(
     () => ReportsListViewModel(
       getUserReports: sl<GetUserReports>(),
+      getUserReportsWithCache: sl<GetUserReportsWithCache>(),
       getCurrentUser: sl<GetCurrentUser>(),
     ),
   );

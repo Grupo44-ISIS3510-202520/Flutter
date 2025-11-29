@@ -1,13 +1,22 @@
+import '../datasources/report_cache_dao.dart';
 import '../datasources/report_firestore_dao.dart';
 import '../datasources/report_local_dao.dart';
 import '../entities/report.dart';
 import '../models/report_model.dart';
 import '../repositories/report_repository.dart';
+import '../services_external/connectivity_service.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
-  ReportRepositoryImpl({required this.remoteDao, required this.localDao});
+  ReportRepositoryImpl({
+    required this.remoteDao,
+    required this.localDao,
+    required this.cacheDao,
+    required this.connectivity,
+  });
   final ReportFirestoreDao remoteDao;
   final ReportLocalDao localDao;
+  final ReportCacheDao cacheDao;
+  final ConnectivityService connectivity;
 
   @override
   Future<void> create(Report report) async {
@@ -101,5 +110,48 @@ class ReportRepositoryImpl implements ReportRepository {
   Future<List<Report>> getUserReports(String userId) async {
     final List<ReportModel> models = await remoteDao.queryByUserId(userId);
     return models.map((ReportModel m) => m.toEntity()).toList();
+  }
+  
+  @override
+  Future<({List<Report> reports, bool fromCache})> getUserReportsWithCache(String userId) async {
+    // Check connectivity first
+    final bool isOnline = await connectivity.isOnline();
+    
+    if (isOnline) {
+      try {
+        // Try to fetch from Firestore
+        final List<ReportModel> models = await remoteDao.queryByUserId(userId);
+        final List<Report> reports = models.map((ReportModel m) => m.toEntity()).toList();
+        
+        // Cache the successful fetch
+        await cacheDao.cacheUserReports(userId, models);
+        
+        return (reports: reports, fromCache: false);
+      } catch (e) {
+        // Firestore failed, try cache fallback
+        final List<ReportModel>? cachedModels = await cacheDao.getCachedUserReports(userId);
+        if (cachedModels != null && cachedModels.isNotEmpty) {
+          final List<Report> reports = cachedModels.map((ReportModel m) => m.toEntity()).toList();
+          return (reports: reports, fromCache: true);
+        }
+        // No cache available, rethrow
+        rethrow;
+      }
+    } else {
+      // Offline: try to use cache
+      final List<ReportModel>? cachedModels = await cacheDao.getCachedUserReports(userId);
+      if (cachedModels != null && cachedModels.isNotEmpty) {
+        final List<Report> reports = cachedModels.map((ReportModel m) => m.toEntity()).toList();
+        return (reports: reports, fromCache: true);
+      }
+      
+      // No cache and offline
+      throw Exception('No internet connection and no cached reports available');
+    }
+  }
+  
+  @override
+  Future<DateTime?> getLastCacheSyncTime() async {
+    return cacheDao.getLastSyncTime();
   }
 }

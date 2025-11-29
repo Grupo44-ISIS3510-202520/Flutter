@@ -31,6 +31,47 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
     _searchController.dispose();
     super.dispose();
   }
+  
+  Widget _buildCacheBanner(ReportsListViewModel vm) {
+    final DateFormat dateFormat = DateFormat('MMM dd, yyyy HH:mm');
+    final String lastSync = vm.lastSyncTime != null
+        ? dateFormat.format(vm.lastSyncTime!)
+        : 'Unknown';
+    
+    return Container(
+      width: double.infinity,
+      color: Colors.orange.shade100,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.cloud_off, size: 20, color: Colors.orange.shade800),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Viewing cached reports',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.orange.shade900,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  'Last synced: $lastSync',
+                  style: TextStyle(
+                    color: Colors.orange.shade800,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +93,9 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
           bottomNavigationBar: const AppBottomNav(current: 0),
           body: Column(
             children: <Widget>[
+              // Offline banner
+              if (vm.fromCache) _buildCacheBanner(vm),
+              
               // Search bar
               Padding(
                 padding: const EdgeInsets.all(16.0),

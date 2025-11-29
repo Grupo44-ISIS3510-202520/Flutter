@@ -33,4 +33,10 @@ abstract class ReportRepository {
   
   // Get reports by user ID
   Future<List<Report>> getUserReports(String userId);
+  
+  // Get reports with cache fallback strategy
+  Future<({List<Report> reports, bool fromCache})> getUserReportsWithCache(String userId);
+  
+  // Get last cache sync time
+  Future<DateTime?> getLastCacheSyncTime();
 }
