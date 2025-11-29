@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -163,15 +164,20 @@ class _TrainingScreenState extends State<TrainingScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              // Performance optimization: Use CachedNetworkImage to cache images
               SizedBox(
                 width: 70,
                 height: 70,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    card.imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: card.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                    placeholder: (BuildContext context, String url) => Container(
+                      color: Colors.grey[200],
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (BuildContext context, String url, dynamic error) {
                       return Container(
                         color: Colors.grey[200],
                         child: const Icon(Icons.error),
