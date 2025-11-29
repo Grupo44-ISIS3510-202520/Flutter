@@ -17,14 +17,18 @@ import 'firebase_options.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/viewmodels/dashboard_viewmodel.dart';
 import 'presentation/viewmodels/emergency_report_viewmodel.dart';
-import 'presentation/viewmodels/notification_screen_viewmodel.dart'; //este es para el screen de notificaciones
+import 'presentation/viewmodels/notification_screen_viewmodel.dart';
 import 'presentation/viewmodels/training_viewmodel.dart';
+// ✨ NUEVO: Importar RagViewModel
+import 'presentation/viewmodels/rag_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[DeviceOrientation.portraitUp]);
 
+  // ✨ IMPORTANTE: Cargar .env antes de setupDi
   await dotenv.load();
+
   await Hive.initFlutter();
   await Hive.openBox('trainingsBox');
   await Hive.openBox<String>('ai_cache');
@@ -40,7 +44,6 @@ Future<void> main() async {
 
   final navigatorKey = GlobalKey<NavigatorState>();
 
-
   runApp(
     MultiProvider(
       providers: <SingleChildWidget>[
@@ -54,9 +57,12 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (_) => NotificationScreenViewModel(NotificationRepository()),
         ),
-
         ChangeNotifierProvider<DashboardViewModel>.value(
           value: sl<DashboardViewModel>(),
+        ),
+        // ✨ NUEVO: Agregar RagViewModel provider
+        ChangeNotifierProvider<RagViewModel>(
+          create: (_) => sl<RagViewModel>(),
         ),
       ],
       child: MyApp(navigatorKey: navigatorKey),
@@ -69,91 +75,87 @@ Future<void> main() async {
       final conn = await Connectivity().checkConnectivity();
       final navigatorCtx = navigatorKey.currentContext;
       if (conn == ConnectivityResult.none && navigatorCtx != null) {
-
         showDialog<void>(
           context: navigatorCtx,
           barrierDismissible: true,
           builder: (dCtx) => AlertDialog(
-              title: const Text('No internet'),
-              content: const Text(
-                'You appear to be offline. Notifications cannot be enabled while offline. You can continue without notifications or try again when online.',
+            title: const Text('No internet'),
+            content: const Text(
+              'You appear to be offline. Notifications cannot be enabled while offline. You can continue without notifications or try again when online.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dCtx).pop();
+                  final ctx = navigatorKey.currentContext;
+                  if (ctx == null) return;
+                  ScaffoldMessenger.of(ctx).showMaterialBanner(
+                    MaterialBanner(
+                      content: const Text('Notifications disabled — you can retry from here.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () async {
+                            ScaffoldMessenger.of(ctx).clearMaterialBanners();
+                            final ok = await sl<NotificationService>().init();
+                            if (ok) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                const SnackBar(content: Text('Notifications enabled')),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                const SnackBar(content: Text('Failed to enable notifications')),
+                              );
+                            }
+                          },
+                          child: const Text('Retry'),
+                        ),
+                        TextButton(
+                          onPressed: () => ScaffoldMessenger.of(ctx).clearMaterialBanners(),
+                          child: const Text('Dismiss'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('Continue'),
               ),
-              // persistent modal
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // replace dialog with a non-blocking MaterialBanner so user can continue
+              TextButton(
+                onPressed: () async {
+                  final retryCtx = navigatorKey.currentContext;
+                  if (retryCtx == null) return;
+
+                  showDialog<void>(
+                    context: retryCtx,
+                    barrierDismissible: false,
+                    builder: (pCtx) => const Center(child: CircularProgressIndicator()),
+                  );
+                  final ok = await sl<NotificationService>().init();
+                  Navigator.of(retryCtx).pop();
+                  if (ok) {
+                    ScaffoldMessenger.of(retryCtx).showSnackBar(
+                      const SnackBar(content: Text('Notifications enabled')),
+                    );
                     Navigator.of(dCtx).pop();
-                    final ctx = navigatorKey.currentContext;
-                    if (ctx == null) return;
-                    ScaffoldMessenger.of(ctx).showMaterialBanner(
-                      MaterialBanner(
-                        content: const Text('Notifications disabled — you can retry from here.'),
+                  } else {
+                    showDialog<void>(
+                      context: dCtx,
+                      barrierDismissible: true,
+                      builder: (fCtx) => AlertDialog(
+                        title: const Text('Still not available'),
+                        content: const Text('Notifications could not be enabled. Try again later.'),
                         actions: [
-                          TextButton(
-                            onPressed: () async {
-                              ScaffoldMessenger.of(ctx).clearMaterialBanners();
-                              final ok = await sl<NotificationService>().init();
-                              if (ok) {
-                                ScaffoldMessenger.of(ctx).showSnackBar(
-                                  const SnackBar(content: Text('Notifications enabled')),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(ctx).showSnackBar(
-                                  const SnackBar(content: Text('Failed to enable notifications')),
-                                );
-                              }
-                            },
-                            child: const Text('Retry'),
-                          ),
-                          TextButton(
-                            onPressed: () => ScaffoldMessenger.of(ctx).clearMaterialBanners(),
-                            child: const Text('Dismiss'),
-                          ),
+                          TextButton(onPressed: () => Navigator.of(fCtx).pop(), child: const Text('OK')),
                         ],
                       ),
                     );
-                  },
-                  child: const Text('Continue'),
-                ),
-                TextButton(
-                  onPressed: () async {
-
-                    final retryCtx = navigatorKey.currentContext;
-                    if (retryCtx == null) return;
-
-                    showDialog<void>(
-                      context: retryCtx,
-                      barrierDismissible: false,
-                      builder: (pCtx) => const Center(child: CircularProgressIndicator()),
-                    );
-                    final ok = await sl<NotificationService>().init();
-                    Navigator.of(retryCtx).pop(); // remove progress
-                    if (ok) {
-                      ScaffoldMessenger.of(retryCtx).showSnackBar(
-                        const SnackBar(content: Text('Notifications enabled')),
-                      );
-                      Navigator.of(dCtx).pop();
-                    } else {
-                      showDialog<void>(
-                        context: dCtx,
-                        barrierDismissible: true,
-                        builder: (fCtx) => AlertDialog(
-                          title: const Text('Still not available'),
-                          content: const Text('Notifications could not be enabled. Try again later.'),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.of(fCtx).pop(), child: const Text('OK')),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+                  }
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         );
-        return; // don't attempt init now
+        return;
       }
 
       try {
