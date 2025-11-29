@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../cache/rag_cache.dart';
-import '../models/rag_models.dart';
+import '../models/rag_model.dart';
 import '../repositories/rag_repository.dart';
 
 class RagRepositoryImpl implements RagRepository {
