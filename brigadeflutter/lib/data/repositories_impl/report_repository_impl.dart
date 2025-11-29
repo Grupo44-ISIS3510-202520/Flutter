@@ -151,7 +151,7 @@ class ReportRepositoryImpl implements ReportRepository {
       
       if (firestoreModels != null) {
         // MULTITHREADING STRATEGY 2: Isolate for CPU-intensive transformation
-        // Use compute() to run transformation in separate isolate for true parallelism
+        // Use compute() to run transformation in separate isolate
         // This prevents blocking the main thread for large datasets
         final List<Report> reports = await compute(
           _transformModelsToEntitiesIsolate,
