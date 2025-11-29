@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,7 +10,8 @@ class NotificationViewModel extends ChangeNotifier {
   NotificationViewModel(this._service);
   final NotificationService _service;
   String? _lastMessage;
-
+  StreamSubscription<RemoteMessage>? _foregroundSub;
+  
   String? get lastMessage => _lastMessage;
 
   Future<void> init() async {
@@ -19,5 +22,11 @@ class NotificationViewModel extends ChangeNotifier {
       _lastMessage = message.notification?.title ?? 'Mensaje sin título';
       notifyListeners();
     });
+  }
+
+    @override
+  void dispose() {
+    _foregroundSub?.cancel();
+    super.dispose();
   }
 }
