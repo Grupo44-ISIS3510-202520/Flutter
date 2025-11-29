@@ -60,3 +60,5 @@ exports.sendAlertNotification = onDocumentCreated(
         }
     },
 );
+
+exports.generateWeeklyLeaderboard = require("./leaderboard").generateWeeklyLeaderboard;
