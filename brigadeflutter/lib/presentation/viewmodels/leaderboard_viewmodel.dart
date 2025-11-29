@@ -3,11 +3,16 @@ import 'package:flutter/foundation.dart';
 
 String _getWeekId() {
   final now = DateTime.now();
-  final firstDayOfYear = DateTime(now.year, 1, 1);
-  final diff = now.difference(firstDayOfYear);
-  final week = ((diff.inDays + firstDayOfYear.weekday) / 7).ceil();
+  final oneJan = DateTime(now.year, 1, 1);
+
+  final days = now.difference(oneJan).inMilliseconds / 86400000;
+  final week = ((days + oneJan.weekday + 1) / 7).ceil();
+
   return "${now.year}-W$week";
 }
+
+
+
 class LeaderboardEntry {
   LeaderboardEntry({
     required this.uid,
@@ -15,6 +20,7 @@ class LeaderboardEntry {
     required this.completedCount,
     this.lastCompletedAt,
   });
+
   final String uid;
   final String email;
   final int completedCount;
@@ -32,44 +38,44 @@ class LeaderboardViewModel extends ChangeNotifier {
   List<LeaderboardEntry> get entries => _entries;
 
   Future<void> loadLeaderboard() async {
-  _loading = true;
-  notifyListeners();
-
-  try {
-    
-    final String weekId = _getWeekId();
-
-    final doc = await _firestore
-      .collection('weekly_leaderboard')
-      .doc(weekId)
-      .get();
-
-
-    if (!doc.exists) {
-      debugPrint("No leaderboard found");
-      _entries = [];
-      return;
-    }
-
-    final data = doc.data()!;
-    final List<dynamic> rawEntries = data['entries'] ?? [];
-
-    final List<LeaderboardEntry> parsed = rawEntries.map((dynamic e) {
-      return LeaderboardEntry(
-        uid: e['uid'] as String,
-        email: e['emailPrefix'] as String,
-        completedCount: e['completedCount'] as int,
-        lastCompletedAt: e['lastCompletedAt'] == null
-            ? null
-            : (e['lastCompletedAt'] as Timestamp).toDate(),
-      );
-    }).toList();
-
-    _entries = parsed;
-  } finally {
-    _loading = false;
+    _loading = true;
     notifyListeners();
-  }
-}
 
+    try {
+      final String weekId = _getWeekId();
+
+      debugPrint(" WEEK ID en Flutter → $weekId");
+
+      final doc = await _firestore
+          .collection('weekly_leaderboard')
+          .doc(weekId)
+          .get();
+
+      if (!doc.exists) {
+        debugPrint("No leaderboard found");
+        _entries = [];
+        return;
+      }
+
+      final data = doc.data()!;
+      final List<dynamic> rawEntries = data['entries'] ?? [];
+
+      final List<LeaderboardEntry> parsed = rawEntries.map((dynamic e) {
+        return LeaderboardEntry(
+          uid: e['uid'] as String,
+          email: e['emailPrefix'] as String,
+          completedCount: e['completedCount'] as int,
+          lastCompletedAt: e['lastCompletedAt'] == null
+              ? null
+              : (e['lastCompletedAt'] as Timestamp).toDate(),
+        );
+      }).toList();
+
+      _entries = parsed;
+      _lastUpdated = DateTime.now();
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
 }
