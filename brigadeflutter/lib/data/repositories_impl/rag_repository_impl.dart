@@ -16,17 +16,15 @@ class RagRepositoryImpl implements RagRepository {
   late final String _apiKey;
 
   static const String _chatEndpoint = '/chat';
-  static const Duration _timeout = Duration(seconds: 15); // Reduced from 30s
+  static const Duration _timeout = Duration(seconds: 20);
   static const int _maxRetries = 3;
   static const Duration _initialRetryDelay = Duration(seconds: 1);
 
-  // Circuit breaker state
   int _failureCount = 0;
   DateTime? _circuitOpenedAt;
   static const int _failureThreshold = 3;
   static const Duration _circuitResetDuration = Duration(minutes: 1);
 
-  // In-flight request tracking (prevent duplicates)
   final Map<String, Future<(RagResponse, bool)>> _inFlightRequests = {};
 
   RagRepositoryImpl({
@@ -46,7 +44,7 @@ class RagRepositoryImpl implements RagRepository {
     if (_baseUrl.isEmpty || _apiKey.isEmpty) {
       throw Exception(
         'RAG configuration missing in .env file. '
-        'Please add RAG_BASE_URL and RAG_API_KEY',
+            'Please add RAG_BASE_URL and RAG_API_KEY',
       );
     }
   }
@@ -57,10 +55,9 @@ class RagRepositoryImpl implements RagRepository {
     print('✅ RAG Cache initialized with ${_cache.size} entries');
   }
 
-  /// Check if circuit breaker is open
   bool _isCircuitOpen() {
     if (_circuitOpenedAt == null) return false;
-    
+
     final elapsed = DateTime.now().difference(_circuitOpenedAt!);
     if (elapsed > _circuitResetDuration) {
       // Reset circuit breaker
@@ -69,22 +66,20 @@ class RagRepositoryImpl implements RagRepository {
       _circuitOpenedAt = null;
       return false;
     }
-    
+
     return true;
   }
 
-  /// Record failure and potentially open circuit
   void _recordFailure() {
     _failureCount++;
     print('Failure count: $_failureCount/$_failureThreshold');
-    
+
     if (_failureCount >= _failureThreshold) {
       _circuitOpenedAt = DateTime.now();
       print('Circuit breaker OPENED - blocking requests for ${_circuitResetDuration.inSeconds}s');
     }
   }
 
-  /// Record success and reset failure count
   void _recordSuccess() {
     if (_failureCount > 0) {
       print('Request succeeded - resetting failure count');
@@ -96,21 +91,19 @@ class RagRepositoryImpl implements RagRepository {
   @override
   Future<(RagResponse, bool)> getAnswer(String query) async {
     final normalizedQuery = query.trim().toLowerCase();
-    
-    // Prevent duplicate in-flight requests
+
     if (_inFlightRequests.containsKey(normalizedQuery)) {
       print('Request already in flight for: "$query" - reusing');
       return _inFlightRequests[normalizedQuery]!;
     }
 
-    // Create and track the request
     final requestFuture = _executeGetAnswer(normalizedQuery);
     _inFlightRequests[normalizedQuery] = requestFuture;
 
     try {
       return await requestFuture;
     } finally {
-      // Remove from tracking once completed
+
       _inFlightRequests.remove(normalizedQuery);
     }
   }
@@ -118,7 +111,6 @@ class RagRepositoryImpl implements RagRepository {
   Future<(RagResponse, bool)> _executeGetAnswer(String query) async {
     print('RAG Query: "$query"');
 
-    // Check cache first
     final cachedEntry = _cache.get(query);
     if (cachedEntry != null) {
       print('Found in cache!');
@@ -129,17 +121,15 @@ class RagRepositoryImpl implements RagRepository {
       return (response, true);
     }
 
-    // Check circuit breaker
     if (_isCircuitOpen()) {
-      final timeUntilReset = _circuitResetDuration.inSeconds - 
+      final timeUntilReset = _circuitResetDuration.inSeconds -
           DateTime.now().difference(_circuitOpenedAt!).inSeconds;
       print('Circuit breaker is OPEN - using cache or failing (reset in ${timeUntilReset}s)');
       throw Exception(
-        'Service temporarily unavailable. Please try again in $timeUntilReset seconds.'
+          'Service temporarily unavailable. Please try again in $timeUntilReset seconds.'
       );
     }
 
-    // Attempt request with retries
     return await _makeRequestWithRetry(query);
   }
 
@@ -149,70 +139,63 @@ class RagRepositoryImpl implements RagRepository {
     for (int attempt = 1; attempt <= _maxRetries; attempt++) {
       try {
         print('API Request (attempt $attempt/$_maxRetries)...');
-        
+
         final response = await _makeSingleRequest(query);
-        
-        // Success - record and return
+
         _recordSuccess();
         return (response, false);
-        
+
       } on TimeoutException catch (e) {
         lastException = Exception('Request timeout after ${_timeout.inSeconds}s');
         print('Timeout on attempt $attempt: $e');
         _recordFailure();
-        
+
       } on http.ClientException catch (e) {
         lastException = Exception('Network error: ${e.message}');
         print('Network error on attempt $attempt: $e');
         _recordFailure();
-        
+
       } catch (e) {
         final errorMsg = e.toString();
-        
-        // Don't retry on 4xx client errors (bad request, auth, etc)
-        if (errorMsg.contains('400') || 
-            errorMsg.contains('401') || 
-            errorMsg.contains('403') || 
+
+        if (errorMsg.contains('400') ||
+            errorMsg.contains('401') ||
+            errorMsg.contains('403') ||
             errorMsg.contains('404')) {
           print('Client error (no retry): $e');
           _recordFailure();
           rethrow;
         }
-        
-        // Retry on 5xx server errors
+
         lastException = e is Exception ? e : Exception(e.toString());
         print('Server error on attempt $attempt: $e');
         _recordFailure();
       }
 
-      // Wait before retry (exponential backoff)
       if (attempt < _maxRetries) {
-        final delay = _initialRetryDelay * (1 << (attempt - 1)); // 1s, 2s, 4s
+        final delay = _initialRetryDelay * (1 << (attempt - 1));
         print('Waiting ${delay.inSeconds}s before retry...');
         await Future.delayed(delay);
       }
     }
 
-    // All retries failed - provide emergency fallback
     print('All $_maxRetries attempts failed');
     print('Backend server is down - this is a BACKEND issue, not frontend');
     print('Contact backend team to fix server errors');
-    
-    // Provide emergency guidance for common queries
+
     final emergencyResponse = _getEmergencyResponse(query);
     if (emergencyResponse != null) {
-      print('🆘 Using emergency fallback response');
+      print('Using emergency fallback response');
       await _cache.put(query, emergencyResponse.answer, emergencyResponse.sources);
       return (emergencyResponse, false);
     }
-    
+
     throw lastException ?? Exception('Failed after $_maxRetries attempts');
   }
 
-  /// Emergency fallback responses when server is completely down
   RagResponse? _getEmergencyResponse(String query) {
     final queryLower = query.toLowerCase();
-    
+
     if (queryLower.contains('sismo') || queryLower.contains('terremoto')) {
       return RagResponse(
         answer: 'IMPORTANTE: El servidor está temporalmente fuera de servicio.\n\n'
@@ -227,7 +210,7 @@ class RagRepositoryImpl implements RagRepository {
         sources: ['Respuesta de emergencia - Sistema offline'],
       );
     }
-    
+
     if (queryLower.contains('fuego') || queryLower.contains('incendio')) {
       return RagResponse(
         answer: 'IMPORTANTE: El servidor está temporalmente fuera de servicio.\n\n'
@@ -243,8 +226,8 @@ class RagRepositoryImpl implements RagRepository {
         sources: ['Respuesta de emergencia - Sistema offline'],
       );
     }
-    
-    return null; // No emergency response available
+
+    return null;
   }
 
   Future<RagResponse> _makeSingleRequest(String query) async {
@@ -252,20 +235,20 @@ class RagRepositoryImpl implements RagRepository {
     final request = RagRequest(query: query);
     final requestBody = json.encode(request.toJson());
 
-    print('🌐 POST $url');
+    print('POST $url');
 
     final response = await _httpClient
         .post(
-          url,
-          headers: {
-            'Content-Type': 'application/json',
-            _apiKeyHeader: _apiKey,
-          },
-          body: requestBody,
-        )
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        _apiKeyHeader: _apiKey,
+      },
+      body: requestBody,
+    )
         .timeout(_timeout);
 
-    print('📥 Response: ${response.statusCode}');
+    print('Response: ${response.statusCode}');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -274,12 +257,11 @@ class RagRepositoryImpl implements RagRepository {
       print('Success! Answer: ${ragResponse.answer.length} chars');
       print('Sources: ${ragResponse.sources.length} items');
 
-      // Cache the response
       await _cache.put(query, ragResponse.answer, ragResponse.sources);
 
       return ragResponse;
     } else {
-      // Log detailed error information for debugging
+
       print(' Error ${response.statusCode}: ${response.body}');
       print(' This is a BACKEND SERVER ERROR');
       print(' Backend needs to be fixed - check:');
@@ -288,12 +270,43 @@ class RagRepositoryImpl implements RagRepository {
       print('   3. Vector store connection');
       print('   4. API authentication/permissions');
       print('   5. Server resource limits (CPU/Memory)');
-      
+
       throw Exception(
         'API Error ${response.statusCode}: ${response.reasonPhrase ?? "Internal Server Error"}',
       );
     }
   }
+
+  @override
+  Future<void> warmUp() async {
+    print('Iniciando Wake-Up silencioso del servidor RAG...');
+
+    try {
+      final url = Uri.parse('$_baseUrl$_chatEndpoint');
+
+      final requestBody = json.encode({
+        "query": "ping_wakeup",
+        "history": []
+      });
+
+      _httpClient.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          _apiKeyHeader: _apiKey,
+        },
+        body: requestBody,
+      ).timeout(const Duration(seconds: 5)).then((_) {
+        print('☕ Servidor RAG despierto (respuesta recibida en background)');
+      }).catchError((e) {
+        print('☕ Signal de wake-up enviado (resultado ignorado): $e');
+      });
+
+    } catch (e) {
+      print('⚠️ Error al intentar wake-up (no crítico): $e');
+    }
+  }
+
 
   @override
   Future<void> clearCache() async {
@@ -311,14 +324,12 @@ class RagRepositoryImpl implements RagRepository {
     return _cache.getAllEntries();
   }
 
-  /// Reset circuit breaker manually (for testing or admin)
   void resetCircuitBreaker() {
     _failureCount = 0;
     _circuitOpenedAt = null;
     print('Circuit breaker manually reset');
   }
 
-  /// Get current circuit breaker state
   Map<String, dynamic> getCircuitBreakerState() {
     return {
       'isOpen': _isCircuitOpen(),

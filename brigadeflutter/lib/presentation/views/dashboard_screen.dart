@@ -7,6 +7,7 @@ import '../components/connectivity_status_icon.dart';
 import '../components/dashboard_action_tile.dart';
 import '../navigation/dashboard_commands.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
+import '../../data/repositories/rag_repository.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,6 +20,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _initialized = false;
 
+  static bool _ragServerWarmedUp = false;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +30,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final DashboardViewModel vm = context.read<DashboardViewModel>();
         vm.updateNearestMeetingPoint();
         _initialized = true;
+      }
+
+      if (!_ragServerWarmedUp) {
+        try {
+          context.read<RagRepository>().warmUp();
+          _ragServerWarmedUp = true;
+        } catch (e) {
+
+          print('Error al intentar ejecutar RAG WarmUp: $e');
+        }
       }
     });
   }
