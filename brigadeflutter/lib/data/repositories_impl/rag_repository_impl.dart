@@ -52,7 +52,7 @@ class RagRepositoryImpl implements RagRepository {
   @override
   Future<void> initializeCache() async {
     await _cache.init();
-    print('✅ RAG Cache initialized with ${_cache.size} entries');
+    print('RAG Cache initialized with ${_cache.size} entries');
   }
 
   bool _isCircuitOpen() {
@@ -60,7 +60,7 @@ class RagRepositoryImpl implements RagRepository {
 
     final elapsed = DateTime.now().difference(_circuitOpenedAt!);
     if (elapsed > _circuitResetDuration) {
-      // Reset circuit breaker
+     
       print('Circuit breaker reset after ${elapsed.inSeconds}s');
       _failureCount = 0;
       _circuitOpenedAt = null;
@@ -297,13 +297,13 @@ class RagRepositoryImpl implements RagRepository {
         },
         body: requestBody,
       ).timeout(const Duration(seconds: 5)).then((_) {
-        print('☕ Servidor RAG despierto (respuesta recibida en background)');
+        print('Servidor RAG despierto (respuesta recibida en background)');
       }).catchError((e) {
-        print('☕ Signal de wake-up enviado (resultado ignorado): $e');
+        print('Signal de wake-up enviado (resultado ignorado): $e');
       });
 
     } catch (e) {
-      print('⚠️ Error al intentar wake-up (no crítico): $e');
+      print('Error al intentar wake-up (no crítico): $e');
     }
   }
 
