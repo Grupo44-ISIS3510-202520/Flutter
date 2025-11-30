@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../data/entities/training_card.dart';
 import '../../data/entities/training_progress.dart';
@@ -22,6 +24,30 @@ class _TrainingScreenState extends State<TrainingScreen> {
     super.initState();
     Future.microtask(() => context.read<TrainingViewModel>().load());
   }
+
+  String _getWeekId() {
+  final now = DateTime.now();
+  final firstDay = DateTime(now.year, 1, 1);
+  final diff = now.difference(firstDay).inDays;
+  final week = ((diff + firstDay.weekday) / 7).ceil();
+  return "${now.year}-W$week";
+}
+
+Future<void> _openLeaderboard(BuildContext context) async {
+  try {
+    await FirebaseFirestore.instance.collection('leaderboard_events').add({
+      'uid': FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
+      'timestamp': FieldValue.serverTimestamp(),
+      'weekId': _getWeekId(),
+    });
+
+    debugPrint("leaderboard_events logged");
+  } catch (e) {
+    debugPrint("Error logging leaderboard event: $e");
+  }
+
+  Navigator.pushNamed(context, '/leaderboard');
+}
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +97,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                       ),
-                      onPressed: () => Navigator.pushNamed(context, '/leaderboard'),
+                      onPressed: () => _openLeaderboard(context),
                     ),
                   ),
                   _buildSection(
