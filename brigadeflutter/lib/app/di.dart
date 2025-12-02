@@ -245,6 +245,7 @@ Future<void> setupDi() async {
       openai: sl<OpenAIService>(),
       tts: sl<TtsService>(),
       connectivity: sl<ConnectivityService>(),
+      notificationService: sl<NotificationService>(),
     ),
   );
 

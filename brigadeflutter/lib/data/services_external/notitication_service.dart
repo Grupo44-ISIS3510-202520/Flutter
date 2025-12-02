@@ -59,12 +59,25 @@ class NotificationService {
         print('Failed to subscribe to topic: $e');
       }
 
-      // crear canal de Android
+      // crear canal de Android para alertas
       await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >()
           ?.createNotificationChannel(_channel);
+      
+      // crear canal para sincronización de reportes
+      const AndroidNotificationChannel syncChannel = AndroidNotificationChannel(
+        'report_sync_channel',
+        'Report Sync',
+        description: 'Notifications for successfully synced offline reports',
+        importance: Importance.high,
+      );
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(syncChannel);
 
       // configuración inicial de plugin
       const InitializationSettings initializationSettings = InitializationSettings(
@@ -117,6 +130,45 @@ class NotificationService {
         notification.body,
         notificationDetails,
       );
+    }
+  }
+  
+  /// Show a local notification for a synced report
+  Future<void> showReportSyncedNotification({
+    required String reportId,
+    required DateTime timestamp,
+  }) async {
+    try {
+      // ignore: avoid_print
+      print('NotificationService: Showing sync notification for report $reportId');
+      
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'report_sync_channel',
+        'Report Sync',
+        channelDescription: 'Notifications for successfully synced offline reports',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+      );
+
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+      );
+      
+      final String formattedTime = '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+      
+      await _flutterLocalNotificationsPlugin.show(
+        reportId.hashCode,
+        'Report Synced Successfully',
+        'Report sent at $formattedTime has been synced with ID: $reportId',
+        notificationDetails,
+      );
+      
+      // ignore: avoid_print
+      print('NotificationService: Notification displayed successfully');
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error showing sync notification: $e');
     }
   }
 }

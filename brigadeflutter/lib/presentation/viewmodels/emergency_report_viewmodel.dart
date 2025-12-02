@@ -11,6 +11,7 @@ import '../../helpers/workers/openai_isolate.dart';
 import '../../data/entities/report.dart';
 import '../../data/services_external/ambient_light_service.dart';
 import '../../data/services_external/connectivity_service.dart';
+import '../../data/services_external/notitication_service.dart';
 import '../../data/services_external/openai_service.dart';
 import '../../data/services_external/screen_brightness_service.dart';
 import '../../data/services_external/tts_service.dart';
@@ -32,6 +33,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     required this.openai,
     required this.tts,
     required this.connectivity,
+    required this.notificationService,
   });
   final CreateEmergencyReport createReport;
   final FillLocation fillLocation;
@@ -42,6 +44,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   final OpenAIService openai;
   final TtsService tts;
   final ConnectivityService connectivity;
+  final NotificationService notificationService;
 
   // state
   bool autoBrightnessSupported = false;
@@ -201,6 +204,18 @@ class EmergencyReportViewModel extends ChangeNotifier {
           }
           
           syncedCount++;
+          
+          // Show local notification
+          if (kDebugMode) {
+            print('EmergencyReport: Attempting to show notification for report ${report.reportId}');
+          }
+          await notificationService.showReportSyncedNotification(
+            reportId: report.reportId,
+            timestamp: report.timestamp,
+          );
+          if (kDebugMode) {
+            print('EmergencyReport: Notification shown for report ${report.reportId}');
+          }
           
           // Notify about successful sync
           if (onReportSynced != null) {
