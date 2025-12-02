@@ -23,6 +23,7 @@ class CreateEmergencyReport {
     required int uiid,
     required String userId,
     required bool isOnline,
+    DateTime? timestamp,
   }) async {
     final Iterable<String> errors = <String?>[
       validateType(type),
@@ -43,7 +44,7 @@ class CreateEmergencyReport {
       type: type.trim(),
       description: description.trim(),
       isFollowUp: isFollowUp,
-      timestamp: DateTime.now(),
+      timestamp: timestamp ?? DateTime.now(),
       elapsedTime: elapsedTime,
       place: place.trim(),
       latitude: latitude,

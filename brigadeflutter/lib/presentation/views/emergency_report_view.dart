@@ -6,7 +6,7 @@ import '../../helpers/utils/input_formatters.dart';
 import '../../helpers/utils/validators.dart';
 import '../components/app_bar_actions.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/banner_report_offline.dart';
+import '../components/banner_offline.dart';
 import '../components/connectivity_status_icon.dart';
 import '../viewmodels/emergency_report_viewmodel.dart';
 
@@ -24,6 +24,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
   late final TextEditingController _typeCtrl;
   late final TextEditingController _placeCtrl;
   late final TextEditingController _descCtrl;
+  DateTime? selectedTime;
 
   @override
   void initState() {
@@ -58,7 +59,11 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
           _placeCtrl.text = vm.place;
         }
 
-        final bool isOnline = vm.isOnline ?? !vm.offline;
+        final bool isOffline = vm.offline;
+        final bool isOnline = !isOffline;
+
+        // Debug: print connectivity state
+        debugPrint('EmergencyReportView build: vm.offline=$isOffline, vm.isOnline=${vm.isOnline}');
 
         return Scaffold(
           appBar: AppBar(
@@ -77,7 +82,12 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
           body: Column(
             children: <Widget>[
-              if (vm.offline) const OfflineMaterialBanner(),
+              if (isOffline) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: OfflineBanner(),
+                ),
+              ],
               Expanded(
                 child: SafeArea(
                   minimum: const EdgeInsets.symmetric(
@@ -89,36 +99,6 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     child: ListView(
                       children: <Widget>[
                         const SizedBox(height: 12),
-
-                        if (vm.autoBrightnessSupported) ...<Widget>[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8F9FB),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFE5E7EB),
-                              ),
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                const Icon(Icons.brightness_auto, size: 20),
-                                const SizedBox(width: 8),
-                                const Text('Auto brightness'),
-                                const Spacer(),
-                                Switch(
-                                  value: vm.autoBrightnessOn,
-                                  onChanged:
-                                      vm.toggleAutoBrightness, // delega al vm
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
 
                         TextFormField(
                           controller: _typeCtrl,
@@ -207,6 +187,44 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
                         const SizedBox(height: 12),
 
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.access_time),
+                          label: Text(
+                            selectedTime == null
+                              ? 'Select report date & time (optional)'
+                              : 'Date: ${selectedTime!.day.toString().padLeft(2, '0')}/${selectedTime!.month.toString().padLeft(2, '0')}/${selectedTime!.year} ${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}',
+                          ),
+                          onPressed: () async {
+                            final DateTime initialDate = selectedTime ?? DateTime.now();
+                            final DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: initialDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                            );
+                            if (pickedDate != null) {
+                              if (!mounted) return;
+                              final TimeOfDay? pickedTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.fromDateTime(initialDate),
+                              );
+                              if (pickedTime != null) {
+                                setState(() {
+                                  selectedTime = DateTime(
+                                    pickedDate.year,
+                                    pickedDate.month,
+                                    pickedDate.day,
+                                    pickedTime.hour,
+                                    pickedTime.minute,
+                                  );
+                                });
+                              }
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
                         TextFormField(
                           controller: _descCtrl,
                           onChanged: vm.onDescriptionChanged,
@@ -258,6 +276,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                         ),
 
                         ElevatedButton(
+                          // onPressed: (vm.submittingReport || isOffline)
                           onPressed: vm.submittingReport
                               ? null
                               : () async {
@@ -266,6 +285,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                   }
                                   final String? reportId = await vm.submit(
                                     isOnline: isOnline,
+                                    timestamp: selectedTime,
                                   );
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -282,6 +302,9 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                     _typeCtrl.clear();
                                     _placeCtrl.clear();
                                     _descCtrl.clear();
+                                    setState(() {
+                                      selectedTime = null;
+                                    });
                                   }
                                 },
                           child: vm.submittingReport

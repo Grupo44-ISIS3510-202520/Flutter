@@ -83,16 +83,33 @@ class EmergencyReportViewModel extends ChangeNotifier {
 
   Future<void> initConnectivityWatcher() async {
     // initialize state at startup
-    offline = !(await connectivity.isOnline());
-    _notify();
+    try {
+      offline = !(await connectivity.isOnline());
+      isOnline = !offline;
+      if (kDebugMode) {
+        print('EmergencyReport connectivity initialized: offline=$offline, isOnline=$isOnline');
+      }
+      _notify();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing connectivity: $e');
+      }
+    }
 
     // start listening for changes
     _connSub = Connectivity().onConnectivityChanged.listen((
       List<ConnectivityResult> status,
     ) {
-      final bool newOffline = (status == ConnectivityResult.none);
+      final bool newOffline = status.contains(ConnectivityResult.none);
+      if (kDebugMode) {
+        print('EmergencyReport connectivity changed: status=$status, newOffline=$newOffline');
+      }
       if (newOffline != offline) {
         offline = newOffline;
+        isOnline = !offline;
+        if (kDebugMode) {
+          print('EmergencyReport state updated: offline=$offline, isOnline=$isOnline');
+        }
         _notify();
       }
     });
@@ -239,7 +256,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   }
 
   // submits emergency report
-  Future<String?> submit({required bool isOnline}) async {
+  Future<String?> submit({required bool isOnline, DateTime? timestamp}) async {
     if (type.trim().isEmpty ||
         place.trim().isEmpty ||
         description.trim().isEmpty) {
@@ -275,6 +292,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
             uiid: uiid,
             userId: getCurrentUser()?.uid ?? '',
             isOnline: true,
+            timestamp: timestamp,
           ).timeout(timeoutDuration);
           _resetForm();
           return reportId;
@@ -293,6 +311,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
             uiid: uiid,
             userId: getCurrentUser()?.uid ?? '',
             isOnline: false,
+            timestamp: timestamp,
           );
           return null;
         } catch (e) {
@@ -310,6 +329,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
             uiid: uiid,
             userId: getCurrentUser()?.uid ?? '',
             isOnline: false,
+            timestamp: timestamp,
           );
           return null;
         }
@@ -328,6 +348,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
           uiid: uiid,
           userId: getCurrentUser()?.uid ?? '',
           isOnline: false,
+          timestamp: timestamp,
         );
         _resetForm();
         return null;
