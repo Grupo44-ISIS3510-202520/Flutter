@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../data/entities/report.dart';
+import '../../data/repositories/report_repository.dart';
 import '../../domain/use_cases/get_current_user.dart';
 import '../../domain/use_cases/get_user_reports.dart';
 import '../../domain/use_cases/get_user_reports_with_cache.dart';
@@ -29,26 +30,34 @@ class ReportsListViewModel extends ChangeNotifier {
     required this.getUserReports,
     required this.getUserReportsWithCache,
     required this.getCurrentUser,
+    required this.repository,
   });
   
   final GetUserReports getUserReports;
   final GetUserReportsWithCache getUserReportsWithCache;
   final GetCurrentUser getCurrentUser;
+  final ReportRepository repository;
   
   List<Report> _allReports = <Report>[];
   List<Report> _filteredReports = <Report>[];
+  List<Report> _pendingReports = <Report>[];
   bool _loading = false;
   String? _error;
   String _searchQuery = '';
   bool _fromCache = false;
   DateTime? _lastSyncTime;
+  String _dataSource = 'Unknown'; // 'Firestore', 'Cache Manager', 'Hive', 'Unknown'
+  int _dataAgeMinutes = 0;
   
   List<Report> get reports => _filteredReports;
+  List<Report> get pendingReports => _pendingReports;
   bool get loading => _loading;
   String? get error => _error;
   String get searchQuery => _searchQuery;
   bool get fromCache => _fromCache;
   DateTime? get lastSyncTime => _lastSyncTime;
+  String get dataSource => _dataSource;
+  int get dataAgeMinutes => _dataAgeMinutes;
   
   Future<void> loadReports() async {
     final String? userId = getCurrentUser()?.uid;
@@ -78,15 +87,26 @@ class ReportsListViewModel extends ChangeNotifier {
         _allReports = result.reports;
         _filteredReports = futures[0] as List<Report>;
         _lastSyncTime = futures[1] as DateTime?;
+        _dataSource = 'Cache/Hive'; // Hybrid storage (could be from either layer)
+        
+        // Calculate data age
+        if (_lastSyncTime != null) {
+          _dataAgeMinutes = DateTime.now().difference(_lastSyncTime!).inMinutes;
+        }
       } else {
-        // Fresh data - no need for parallel operations
+        // Fresh data from Firestore
         _allReports = result.reports;
         _filteredReports = List<Report>.from(_allReports);
         _lastSyncTime = DateTime.now();
+        _dataSource = 'Firestore';
+        _dataAgeMinutes = 0;
       }
       
       _fromCache = result.fromCache;
       _error = null;
+      
+      // Load pending reports
+      await _loadPendingReports();
     } catch (e) {
       final String errorMsg = e.toString();
       if (errorMsg.contains('No internet connection and no cached reports')) {
@@ -99,9 +119,20 @@ class ReportsListViewModel extends ChangeNotifier {
       _allReports = <Report>[];
       _filteredReports = <Report>[];
       _fromCache = false;
+      
+      // Still try to load pending reports even if main load failed
+      await _loadPendingReports();
     } finally {
       _loading = false;
       notifyListeners();
+    }
+  }
+  
+  Future<void> _loadPendingReports() async {
+    try {
+      _pendingReports = await repository.pending();
+    } catch (e) {
+      _pendingReports = <Report>[];
     }
   }
   

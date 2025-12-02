@@ -10,6 +10,6 @@ class ConnectivityServiceImpl implements ConnectivityService {
   @override
   Future<bool> isOnline() async {
     final List<ConnectivityResult> result = await _conn.checkConnectivity();
-    return result != ConnectivityResult.none;
+    return !result.contains(ConnectivityResult.none);
   }
 }

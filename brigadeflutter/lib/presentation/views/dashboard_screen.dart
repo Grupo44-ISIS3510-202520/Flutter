@@ -7,6 +7,7 @@ import '../components/connectivity_status_icon.dart';
 import '../components/dashboard_action_tile.dart';
 import '../navigation/dashboard_commands.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
+import '../../data/repositories/rag_repository.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,14 +20,30 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _initialized = false;
 
+  static bool _ragServerWarmedUp = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_initialized) {
         final DashboardViewModel vm = context.read<DashboardViewModel>();
         vm.updateNearestMeetingPoint();
+        
+        // Sync pending reports when dashboard loads
+        await vm.syncPendingReports();
+        
         _initialized = true;
+      }
+
+      if (!_ragServerWarmedUp) {
+        try {
+          context.read<RagRepository>().warmUp();
+          _ragServerWarmedUp = true;
+        } catch (e) {
+
+          print('Error al intentar ejecutar RAG WarmUp: $e');
+        }
       }
     });
   }

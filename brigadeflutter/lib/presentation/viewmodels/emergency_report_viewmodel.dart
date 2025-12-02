@@ -4,12 +4,15 @@ import 'dart:isolate';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../helpers/workers/openai_isolate.dart';
+import '../../data/entities/report.dart';
 import '../../data/services_external/ambient_light_service.dart';
 import '../../data/services_external/connectivity_service.dart';
+import '../../data/services_external/notitication_service.dart';
 import '../../data/services_external/openai_service.dart';
 import '../../data/services_external/screen_brightness_service.dart';
 import '../../data/services_external/tts_service.dart';
@@ -17,6 +20,8 @@ import '../../domain/use_cases/adjust_brightness_from_ambient.dart';
 import '../../domain/use_cases/create_emergency_report.dart';
 import '../../domain/use_cases/fill_location.dart';
 import '../../domain/use_cases/get_current_user.dart';
+
+
 
 class EmergencyReportViewModel extends ChangeNotifier {
   EmergencyReportViewModel({
@@ -29,6 +34,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
     required this.openai,
     required this.tts,
     required this.connectivity,
+    required this.notificationService,
   });
   final CreateEmergencyReport createReport;
   final FillLocation fillLocation;
@@ -39,6 +45,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   final OpenAIService openai;
   final TtsService tts;
   final ConnectivityService connectivity;
+  final NotificationService notificationService;
 
   // state
   bool autoBrightnessSupported = false;
@@ -51,6 +58,9 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool generatingVoice = false;
   bool offline = false;
   bool isOnline = true;
+
+  // Callback for successful report sync notifications
+  Function(String reportId, DateTime timestamp)? onReportSynced;
 
   // state forms
   String type = '';
@@ -83,19 +93,188 @@ class EmergencyReportViewModel extends ChangeNotifier {
 
   Future<void> initConnectivityWatcher() async {
     // initialize state at startup
-    offline = !(await connectivity.isOnline());
-    _notify();
+    try {
+      offline = !(await connectivity.isOnline());
+      isOnline = !offline;
+      if (kDebugMode) {
+        print('EmergencyReport connectivity initialized: offline=$offline, isOnline=$isOnline');
+      }
+      _notify();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing connectivity: $e');
+      }
+    }
 
     // start listening for changes
     _connSub = Connectivity().onConnectivityChanged.listen((
       List<ConnectivityResult> status,
-    ) {
-      final bool newOffline = (status == ConnectivityResult.none);
+    ) async {
+      final bool newOffline = status.contains(ConnectivityResult.none);
+      if (kDebugMode) {
+        print('EmergencyReport connectivity changed: status=$status, newOffline=$newOffline, currentOffline=$offline');
+      }
+      
       if (newOffline != offline) {
+        final bool wasOffline = offline;
         offline = newOffline;
+        isOnline = !offline;
+        if (kDebugMode) {
+          print('EmergencyReport state updated: wasOffline=$wasOffline, offline=$offline, isOnline=$isOnline');
+        }
         _notify();
+        
+        // If we just came back online, sync pending reports
+        if (wasOffline && !offline) {
+          if (kDebugMode) {
+            print('EmergencyReport: *** INTERNET RESTORED *** Detected transition from offline to online, starting sync...');
+          }
+          // Add small delay to ensure connection is stable
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          if (kDebugMode) {
+            print('EmergencyReport: Starting sync after delay...');
+          }
+          await _syncPendingReports();
+          if (kDebugMode) {
+            print('EmergencyReport: Sync completed after internet restoration');
+          }
+        } else if (!wasOffline && offline) {
+          if (kDebugMode) {
+            print('EmergencyReport: *** INTERNET LOST *** Detected transition from online to offline');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('EmergencyReport: Connectivity status unchanged (offline=$offline)');
+        }
       }
     });
+  }
+
+  // Sync pending reports and notify about successful syncs
+  Future<void> _syncPendingReports() async {
+    try {
+      if (kDebugMode) {
+        print('EmergencyReport: Starting sync of pending reports...');
+      }
+      
+      final List<Report> pendingReports = await createReport.repo.pending();
+      if (kDebugMode) {
+        print('EmergencyReport: Found ${pendingReports.length} pending reports to sync');
+        for (final report in pendingReports) {
+          print('  - Report ID: ${report.reportId}, Type: ${report.type}, Timestamp: ${report.timestamp}');
+        }
+      }
+      
+      if (pendingReports.isEmpty) {
+        if (kDebugMode) {
+          print('EmergencyReport: No pending reports to sync');
+        }
+        return;
+      }
+      
+      // Sync each report sequentially to avoid Hive concurrency issues
+      int syncedCount = 0;
+      int failedCount = 0;
+      
+      for (final Report report in pendingReports) {
+        try {
+          if (kDebugMode) {
+            print('EmergencyReport: Syncing report ${report.reportId}...');
+          }
+          
+          // Generate proper sequential Firestore ID for offline reports
+          // Offline reports have long timestamp-based IDs (e.g., F1764713658526)
+          // Online reports have short sequential IDs (e.g., F78)
+          String finalReportId = report.reportId;
+          final bool isOfflineReport = report.reportId.length > 10; // Timestamp IDs are 14+ chars
+          
+          if (isOfflineReport) {
+            // Get next sequential ID from Firestore
+            final int nextId = await createReport.idGen.nextReportId();
+            finalReportId = 'F$nextId';
+            if (kDebugMode) {
+              print('EmergencyReport: Generated sequential ID $finalReportId for offline report ${report.reportId}');
+            }
+          } else {
+            if (kDebugMode) {
+              print('EmergencyReport: Report ${report.reportId} already has sequential ID, keeping it');
+            }
+          }
+          
+          final Report updatedReport = Report(
+            reportId: finalReportId,
+            type: report.type,
+            description: report.description,
+            isFollowUp: report.isFollowUp,
+            timestamp: report.timestamp,
+            elapsedTime: report.elapsedTime,
+            place: report.place,
+            latitude: report.latitude,
+            longitude: report.longitude,
+            audioUrl: report.audioUrl,
+            imageUrl: report.imageUrl,
+            uiid: report.uiid,
+            userId: report.userId,
+          );
+          
+          await createReport.repo.create(updatedReport);
+          if (kDebugMode) {
+            print('EmergencyReport: Created report in Firestore with ID $finalReportId');
+          }
+          
+          await createReport.repo.markSent(report);
+          if (kDebugMode) {
+            print('EmergencyReport: Marked report as sent');
+          }
+          
+          syncedCount++;
+          
+          // Show local notification immediately
+          if (kDebugMode) {
+            print('EmergencyReport: Attempting to show notification for report $finalReportId');
+          }
+          
+          try {
+            await notificationService.showReportSyncedNotification(
+              reportId: finalReportId,
+              timestamp: report.timestamp,
+            );
+            if (kDebugMode) {
+              print('EmergencyReport: Notification shown successfully for report $finalReportId');
+            }
+          } catch (e, stackTrace) {
+            if (kDebugMode) {
+              print('EmergencyReport: Failed to show notification: $e');
+              print('Stack trace: $stackTrace');
+            }
+          }
+          
+          // Notify about successful sync
+          if (onReportSynced != null) {
+            onReportSynced!(finalReportId, report.timestamp);
+            if (kDebugMode) {
+              print('EmergencyReport: Notified UI about synced report $finalReportId');
+            }
+          }
+        } catch (e, stackTrace) {
+          failedCount++;
+          if (kDebugMode) {
+            print('EmergencyReport: Failed to sync report ${report.reportId}: $e');
+            print('Stack trace: $stackTrace');
+          }
+        }
+      }
+      
+      if (kDebugMode) {
+        print('EmergencyReport: Sync complete. Synced: $syncedCount, Failed: $failedCount');
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('EmergencyReport: Error syncing pending reports: $e');
+        print('Stack trace: $stackTrace');
+      }
+    }
   }
 
   // auto brightness toggle
@@ -239,7 +418,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
   }
 
   // submits emergency report
-  Future<String?> submit({required bool isOnline}) async {
+  Future<String?> submit({required bool isOnline, DateTime? timestamp}) async {
     if (type.trim().isEmpty ||
         place.trim().isEmpty ||
         description.trim().isEmpty) {
@@ -275,6 +454,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
             uiid: uiid,
             userId: getCurrentUser()?.uid ?? '',
             isOnline: true,
+            timestamp: timestamp,
           ).timeout(timeoutDuration);
           _resetForm();
           return reportId;
@@ -293,6 +473,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
             uiid: uiid,
             userId: getCurrentUser()?.uid ?? '',
             isOnline: false,
+            timestamp: timestamp,
           );
           return null;
         } catch (e) {
@@ -310,6 +491,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
             uiid: uiid,
             userId: getCurrentUser()?.uid ?? '',
             isOnline: false,
+            timestamp: timestamp,
           );
           return null;
         }
@@ -328,6 +510,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
           uiid: uiid,
           userId: getCurrentUser()?.uid ?? '',
           isOnline: false,
+          timestamp: timestamp,
         );
         _resetForm();
         return null;
