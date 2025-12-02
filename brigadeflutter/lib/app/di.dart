@@ -253,6 +253,7 @@ Future<void> setupDi() async {
       getUserReports: sl<GetUserReports>(),
       getUserReportsWithCache: sl<GetUserReportsWithCache>(),
       getCurrentUser: sl<GetCurrentUser>(),
+      repository: sl<ReportRepository>(),
     ),
   );
 

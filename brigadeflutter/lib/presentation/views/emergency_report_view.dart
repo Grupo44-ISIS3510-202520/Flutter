@@ -37,6 +37,22 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final EmergencyReportViewModel vm = context
           .read<EmergencyReportViewModel>();
+      
+      // Set up callback for sync notifications
+      vm.onReportSynced = (String reportId, DateTime timestamp) {
+        if (!mounted) return;
+        final String formattedTime = '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Report sent at $formattedTime has been successfully submitted with ID: $reportId',
+            ),
+            duration: const Duration(seconds: 5),
+            backgroundColor: Colors.green,
+          ),
+        );
+      };
+      
       vm.initBrightness();
       vm.initConnectivityWatcher(); // no hace lógica en la vista
     });
@@ -61,9 +77,6 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
         final bool isOffline = vm.offline;
         final bool isOnline = !isOffline;
-
-        // Debug: print connectivity state
-        debugPrint('EmergencyReportView build: vm.offline=$isOffline, vm.isOnline=${vm.isOnline}');
 
         return Scaffold(
           appBar: AppBar(
@@ -288,16 +301,15 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                     timestamp: selectedTime,
                                   );
                                   if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        reportId != null
-                                            ? 'Report submitted (id: $reportId)'
-                                            : 'Error submitting report :( We will save it locally and try again later',
-                                      ),
-                                    ),
-                                  );
+                                  
                                   if (reportId != null) {
+                                    // Success - show snackbar
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Report submitted (id: $reportId)'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
                                     // limpia UI tras éxito
                                     _typeCtrl.clear();
                                     _placeCtrl.clear();
@@ -305,6 +317,34 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                     setState(() {
                                       selectedTime = null;
                                     });
+                                  } else {
+                                    // Failed - show dialog
+                                    await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) => AlertDialog(
+                                        title: Row(
+                                          children: const <Widget>[
+                                            Icon(Icons.cloud_off, color: Colors.orange),
+                                            SizedBox(width: 8),
+                                            Text('Report Saved Locally'),
+                                          ],
+                                        ),
+                                        content: const Text(
+                                          'We couldn\'t submit your report right now, but don\'t worry! '
+                                          'It has been saved locally and will be automatically submitted '
+                                          'when your connection is restored.',
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            child: const Text('OK'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    // Navigate back to dashboard
+                                    if (!mounted) return;
+                                    Navigator.of(context).pop();
                                   }
                                 },
                           child: vm.submittingReport

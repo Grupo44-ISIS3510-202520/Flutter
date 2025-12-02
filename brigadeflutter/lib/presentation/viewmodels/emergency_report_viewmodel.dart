@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../helpers/workers/openai_isolate.dart';
+import '../../data/entities/report.dart';
 import '../../data/services_external/ambient_light_service.dart';
 import '../../data/services_external/connectivity_service.dart';
 import '../../data/services_external/openai_service.dart';
@@ -51,6 +52,9 @@ class EmergencyReportViewModel extends ChangeNotifier {
   bool generatingVoice = false;
   bool offline = false;
   bool isOnline = true;
+
+  // Callback for successful report sync notifications
+  Function(String reportId, DateTime timestamp)? onReportSynced;
 
   // state forms
   String type = '';
@@ -99,20 +103,114 @@ class EmergencyReportViewModel extends ChangeNotifier {
     // start listening for changes
     _connSub = Connectivity().onConnectivityChanged.listen((
       List<ConnectivityResult> status,
-    ) {
+    ) async {
       final bool newOffline = status.contains(ConnectivityResult.none);
       if (kDebugMode) {
-        print('EmergencyReport connectivity changed: status=$status, newOffline=$newOffline');
+        print('EmergencyReport connectivity changed: status=$status, newOffline=$newOffline, currentOffline=$offline');
       }
+      
       if (newOffline != offline) {
+        final bool wasOffline = offline;
         offline = newOffline;
         isOnline = !offline;
         if (kDebugMode) {
-          print('EmergencyReport state updated: offline=$offline, isOnline=$isOnline');
+          print('EmergencyReport state updated: wasOffline=$wasOffline, offline=$offline, isOnline=$isOnline');
         }
         _notify();
+        
+        // If we just came back online, sync pending reports
+        if (wasOffline && !offline) {
+          if (kDebugMode) {
+            print('EmergencyReport: Detected transition from offline to online, starting sync...');
+          }
+          // Add small delay to ensure connection is stable
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+          await _syncPendingReports();
+        } else if (!wasOffline && offline) {
+          if (kDebugMode) {
+            print('EmergencyReport: Detected transition from online to offline');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('EmergencyReport: Connectivity status unchanged (offline=$offline)');
+        }
       }
     });
+  }
+
+  // Sync pending reports and notify about successful syncs
+  Future<void> _syncPendingReports() async {
+    try {
+      if (kDebugMode) {
+        print('EmergencyReport: Starting sync of pending reports...');
+      }
+      
+      final List<Report> pendingReports = await createReport.repo.pending();
+      if (kDebugMode) {
+        print('EmergencyReport: Found ${pendingReports.length} pending reports to sync');
+        for (final report in pendingReports) {
+          print('  - Report ID: ${report.reportId}, Type: ${report.type}, Timestamp: ${report.timestamp}');
+        }
+      }
+      
+      if (pendingReports.isEmpty) {
+        if (kDebugMode) {
+          print('EmergencyReport: No pending reports to sync');
+        }
+        return;
+      }
+      
+      int syncedCount = 0;
+      int failedCount = 0;
+      
+      for (final Report report in pendingReports) {
+        try {
+          if (kDebugMode) {
+            print('EmergencyReport: Syncing report ${report.reportId}...');
+          }
+          
+          await createReport.repo.create(report);
+          if (kDebugMode) {
+            print('EmergencyReport: Created report ${report.reportId} in Firestore');
+          }
+          
+          await createReport.repo.markSent(report);
+          if (kDebugMode) {
+            print('EmergencyReport: Marked report ${report.reportId} as sent');
+          }
+          
+          syncedCount++;
+          
+          // Notify about successful sync
+          if (onReportSynced != null) {
+            onReportSynced!(report.reportId, report.timestamp);
+            if (kDebugMode) {
+              print('EmergencyReport: Notified UI about synced report ${report.reportId}');
+            }
+          }
+          
+          if (kDebugMode) {
+            print('EmergencyReport: Successfully synced report ${report.reportId}');
+          }
+        } catch (e, stackTrace) {
+          failedCount++;
+          if (kDebugMode) {
+            print('EmergencyReport: Failed to sync report ${report.reportId}: $e');
+            print('Stack trace: $stackTrace');
+          }
+        }
+      }
+      
+      if (kDebugMode) {
+        print('EmergencyReport: Sync complete. Synced: $syncedCount, Failed: $failedCount');
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('EmergencyReport: Error syncing pending reports: $e');
+        print('Stack trace: $stackTrace');
+      }
+    }
   }
 
   // auto brightness toggle

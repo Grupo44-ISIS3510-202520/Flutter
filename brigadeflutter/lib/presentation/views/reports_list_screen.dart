@@ -304,7 +304,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
       );
     }
 
-    if (vm.reports.isEmpty) {
+    if (vm.reports.isEmpty && vm.pendingReports.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -331,11 +331,115 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
       onRefresh: vm.loadReports,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: vm.reports.length,
+        itemCount: vm.pendingReports.length + vm.reports.length + (vm.pendingReports.isNotEmpty ? 1 : 0),
         itemBuilder: (BuildContext context, int index) {
-          final Report report = vm.reports[index];
+          // Show pending reports section header
+          if (vm.pendingReports.isNotEmpty && index == 0) {
+            return _buildPendingHeader();
+          }
+          
+          // Show pending reports
+          final int headerOffset = vm.pendingReports.isNotEmpty ? 1 : 0;
+          if (index < vm.pendingReports.length + headerOffset) {
+            final Report report = vm.pendingReports[index - headerOffset];
+            return _buildPendingReportCard(report);
+          }
+          
+          // Show regular reports
+          final int regularIndex = index - vm.pendingReports.length - headerOffset;
+          final Report report = vm.reports[regularIndex];
           return _buildReportCard(report);
         },
+      ),
+    );
+  }
+  
+  Widget _buildPendingHeader() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.cloud_upload, color: Colors.orange.shade700, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Pending Reports (will sync when online)',
+              style: TextStyle(
+                color: Colors.orange.shade900,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildPendingReportCard(Report report) {
+    final DateFormat dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
+    final String formattedDate = dateFormat.format(report.timestamp);
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      color: Colors.orange.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.orange.shade200),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          _showReportDetails(report);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.schedule, color: Colors.orange.shade700, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      report.type,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      report.place,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      formattedDate,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.orange.shade700),
+            ],
+          ),
+        ),
       ),
     );
   }
