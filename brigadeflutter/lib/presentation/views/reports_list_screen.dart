@@ -17,6 +17,7 @@ class ReportsListScreen extends StatefulWidget {
 
 class _ReportsListScreenState extends State<ReportsListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String? _selectedType;
 
   @override
   void initState() {
@@ -30,6 +31,26 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+  
+  List<String> _getUniqueTypes(ReportsListViewModel vm) {
+    final Set<String> types = {};
+    for (final report in vm.reports) {
+      types.add(report.type);
+    }
+    for (final report in vm.pendingReports) {
+      types.add(report.type);
+    }
+    final List<String> sortedTypes = types.toList()..sort();
+    return sortedTypes;
+  }
+  
+  void _filterReportsByType(ReportsListViewModel vm) {
+    if (_selectedType == null) {
+      vm.search(_searchController.text);
+    } else {
+      vm.search(_selectedType!);
+    }
   }
   
   Widget _buildFirestoreBanner(ReportsListViewModel vm) {
@@ -226,37 +247,84 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
               else if (vm.dataSource == 'Firestore' && vm.reports.isNotEmpty)
                 _buildFirestoreBanner(vm),
               
-              // Search bar
+              // Search bar and filter
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: vm.search,
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              vm.clearSearch();
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: _searchController,
+                      onChanged: vm.search,
+                      decoration: InputDecoration(
+                        hintText: 'Search by ID, type, place, or description',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  vm.clearSearch();
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.blue, width: 2),
+                        ),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    const SizedBox(height: 12),
+                    // Filter by type dropdown
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedType,
+                          hint: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(Icons.filter_list, size: 20),
+                                SizedBox(width: 8),
+                                Text('Filter by Type'),
+                              ],
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          items: <DropdownMenuItem<String>>[
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('All Types'),
+                            ),
+                            ..._getUniqueTypes(vm).map((String type) {
+                              return DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type),
+                              );
+                            }).toList(),
+                          ],
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedType = newValue;
+                              _filterReportsByType(vm);
+                            });
+                          },
+                        ),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.blue, width: 2),
-                    ),
-                  ),
+                  ],
                 ),
               ),
               
@@ -410,7 +478,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      report.type,
+                      '${report.reportId} - ${report.type}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -468,7 +536,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      report.type,
+                      '${report.reportId} - ${report.type}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
