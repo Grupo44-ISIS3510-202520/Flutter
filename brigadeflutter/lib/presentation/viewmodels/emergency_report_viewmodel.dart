@@ -127,14 +127,20 @@ class EmergencyReportViewModel extends ChangeNotifier {
         // If we just came back online, sync pending reports
         if (wasOffline && !offline) {
           if (kDebugMode) {
-            print('EmergencyReport: Detected transition from offline to online, starting sync...');
+            print('EmergencyReport: *** INTERNET RESTORED *** Detected transition from offline to online, starting sync...');
           }
           // Add small delay to ensure connection is stable
           await Future<void>.delayed(const Duration(milliseconds: 500));
+          if (kDebugMode) {
+            print('EmergencyReport: Starting sync after delay...');
+          }
           await _syncPendingReports();
+          if (kDebugMode) {
+            print('EmergencyReport: Sync completed after internet restoration');
+          }
         } else if (!wasOffline && offline) {
           if (kDebugMode) {
-            print('EmergencyReport: Detected transition from online to offline');
+            print('EmergencyReport: *** INTERNET LOST *** Detected transition from online to offline');
           }
         }
       } else {
@@ -177,9 +183,27 @@ class EmergencyReportViewModel extends ChangeNotifier {
             print('EmergencyReport: Syncing report ${report.reportId}...');
           }
           
-          // All reports use F## nomenclature, just use the existing ID
+          // Generate proper sequential Firestore ID for offline reports
+          // Offline reports have long timestamp-based IDs (e.g., F1764713658526)
+          // Online reports have short sequential IDs (e.g., F78)
+          String finalReportId = report.reportId;
+          final bool isOfflineReport = report.reportId.length > 10; // Timestamp IDs are 14+ chars
+          
+          if (isOfflineReport) {
+            // Get next sequential ID from Firestore
+            final int nextId = await createReport.idGen.nextReportId();
+            finalReportId = 'F$nextId';
+            if (kDebugMode) {
+              print('EmergencyReport: Generated sequential ID $finalReportId for offline report ${report.reportId}');
+            }
+          } else {
+            if (kDebugMode) {
+              print('EmergencyReport: Report ${report.reportId} already has sequential ID, keeping it');
+            }
+          }
+          
           final Report updatedReport = Report(
-            reportId: report.reportId,
+            reportId: finalReportId,
             type: report.type,
             description: report.description,
             isFollowUp: report.isFollowUp,
@@ -196,7 +220,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
           
           await createReport.repo.create(updatedReport);
           if (kDebugMode) {
-            print('EmergencyReport: Created report in Firestore with ID ${report.reportId}');
+            print('EmergencyReport: Created report in Firestore with ID $finalReportId');
           }
           
           await createReport.repo.markSent(report);
@@ -206,33 +230,31 @@ class EmergencyReportViewModel extends ChangeNotifier {
           
           syncedCount++;
           
-          // Show local notification on main thread
+          // Show local notification immediately
           if (kDebugMode) {
-            print('EmergencyReport: Attempting to show notification for report ${report.reportId}');
+            print('EmergencyReport: Attempting to show notification for report $finalReportId');
           }
           
-          // Schedule notification on next frame to ensure it runs on main thread
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            try {
-              await notificationService.showReportSyncedNotification(
-                reportId: report.reportId,
-                timestamp: report.timestamp,
-              );
-              if (kDebugMode) {
-                print('EmergencyReport: Notification shown for report ${report.reportId}');
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                print('EmergencyReport: Failed to show notification: $e');
-              }
+          try {
+            await notificationService.showReportSyncedNotification(
+              reportId: finalReportId,
+              timestamp: report.timestamp,
+            );
+            if (kDebugMode) {
+              print('EmergencyReport: Notification shown successfully for report $finalReportId');
             }
-          });
+          } catch (e, stackTrace) {
+            if (kDebugMode) {
+              print('EmergencyReport: Failed to show notification: $e');
+              print('Stack trace: $stackTrace');
+            }
+          }
           
           // Notify about successful sync
           if (onReportSynced != null) {
-            onReportSynced!(report.reportId, report.timestamp);
+            onReportSynced!(finalReportId, report.timestamp);
             if (kDebugMode) {
-              print('EmergencyReport: Notified UI about synced report ${report.reportId}');
+              print('EmergencyReport: Notified UI about synced report $finalReportId');
             }
           }
         } catch (e, stackTrace) {
