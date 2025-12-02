@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
@@ -84,6 +85,13 @@ class NotificationService {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       );
       await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+      
+      // Request notification permissions for Android 13+
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestNotificationsPermission();
 
       // registrar manejador de background
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -146,9 +154,18 @@ class NotificationService {
         'report_sync_channel',
         'Report Sync',
         channelDescription: 'Notifications for successfully synced offline reports',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
         icon: '@mipmap/ic_launcher',
+        playSound: true,
+        enableVibration: true,
+        enableLights: true,
+        color: Color(0xFF4CAF50), // Green color for success
+        showWhen: true,
+        styleInformation: BigTextStyleInformation(
+          '',
+          contentTitle: '✓ Report Synced Successfully',
+        ),
       );
 
       const NotificationDetails notificationDetails = NotificationDetails(
@@ -159,16 +176,17 @@ class NotificationService {
       
       await _flutterLocalNotificationsPlugin.show(
         reportId.hashCode,
-        'Report Synced Successfully',
-        'Report sent at $formattedTime has been synced with ID: $reportId',
+        '✓ Report Synced Successfully',
+        'Report $reportId sent at $formattedTime has been uploaded to Firestore',
         notificationDetails,
       );
       
       // ignore: avoid_print
       print('NotificationService: Notification displayed successfully');
-    } catch (e) {
+    } catch (e, stackTrace) {
       // ignore: avoid_print
       print('Error showing sync notification: $e');
+      print('Stack trace: $stackTrace');
     }
   }
 }

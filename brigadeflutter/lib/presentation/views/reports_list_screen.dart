@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -18,17 +21,47 @@ class ReportsListScreen extends StatefulWidget {
 class _ReportsListScreenState extends State<ReportsListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedType;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _wasOffline = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReportsListViewModel>().loadReports();
+      final vm = context.read<ReportsListViewModel>();
+      vm.loadReports();
+      
+      // Listen for connectivity changes to refresh the list
+      vm.addListener(_onViewModelChanged);
+      
+      // Listen for connectivity changes
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) {
+        final bool isOffline = result.contains(ConnectivityResult.none);
+        
+        // If we just came back online, reload reports
+        if (_wasOffline && !isOffline) {
+          print('ReportsList: Connection restored, reloading reports...');
+          vm.loadReports();
+        }
+        
+        _wasOffline = isOffline;
+      });
     });
+  }
+  
+  void _onViewModelChanged() {
+    // Refresh UI when viewmodel changes (e.g., when reports are synced)
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
+    try {
+      context.read<ReportsListViewModel>().removeListener(_onViewModelChanged);
+    } catch (_) {}
     _searchController.dispose();
     super.dispose();
   }

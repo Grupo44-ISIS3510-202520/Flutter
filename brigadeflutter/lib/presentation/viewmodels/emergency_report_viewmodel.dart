@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -205,17 +206,27 @@ class EmergencyReportViewModel extends ChangeNotifier {
           
           syncedCount++;
           
-          // Show local notification
+          // Show local notification on main thread
           if (kDebugMode) {
             print('EmergencyReport: Attempting to show notification for report ${report.reportId}');
           }
-          await notificationService.showReportSyncedNotification(
-            reportId: report.reportId,
-            timestamp: report.timestamp,
-          );
-          if (kDebugMode) {
-            print('EmergencyReport: Notification shown for report ${report.reportId}');
-          }
+          
+          // Schedule notification on next frame to ensure it runs on main thread
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            try {
+              await notificationService.showReportSyncedNotification(
+                reportId: report.reportId,
+                timestamp: report.timestamp,
+              );
+              if (kDebugMode) {
+                print('EmergencyReport: Notification shown for report ${report.reportId}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('EmergencyReport: Failed to show notification: $e');
+              }
+            }
+          });
           
           // Notify about successful sync
           if (onReportSynced != null) {
