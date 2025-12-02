@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../data/entities/report.dart';
 import '../../data/models/meeting_point_model.dart';
+import '../../data/repositories/report_repository.dart';
 import '../../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
 import '../navigation/dashboard_actions_factory.dart';
 import '../navigation/dashboard_commands.dart';
@@ -9,6 +11,7 @@ class DashboardViewModel extends ChangeNotifier {
   DashboardViewModel({
     required this.factory,
     required this.findNearestUseCase,
+    required this.reportRepository,
   }) {
 
     actions = factory.mainGrid();
@@ -18,6 +21,7 @@ class DashboardViewModel extends ChangeNotifier {
 
   final DashboardActionsFactory factory;
   final FindNearestMeetingPoint findNearestUseCase;
+  final ReportRepository reportRepository;
 
   bool isOnline = true;
   List<DashboardActionCommand> actions = const [];
@@ -121,6 +125,45 @@ class DashboardViewModel extends ChangeNotifier {
   Future<void> forceRecalculate() async {
     _hasCalculated = false;
     await updateNearestMeetingPoint();
+  }
+
+  // Sync pending reports on dashboard init
+  Future<void> syncPendingReports() async {
+    try {
+      if (kDebugMode) {
+        print('Dashboard: Starting sync of pending reports...');
+      }
+      
+      final List<Report> pendingReports = await reportRepository.pending();
+      if (kDebugMode) {
+        print('Dashboard: Found ${pendingReports.length} pending reports to sync');
+      }
+      
+      if (pendingReports.isEmpty) {
+        return;
+      }
+      
+      for (final Report report in pendingReports) {
+        try {
+          if (kDebugMode) {
+            print('Dashboard: Syncing report ${report.reportId}...');
+          }
+          await reportRepository.create(report);
+          await reportRepository.markSent(report);
+          if (kDebugMode) {
+            print('Dashboard: Successfully synced report ${report.reportId}');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Dashboard: Failed to sync report ${report.reportId}: $e');
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Dashboard: Error syncing pending reports: $e');
+      }
+    }
   }
 
   @override

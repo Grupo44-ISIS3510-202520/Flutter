@@ -227,7 +227,11 @@ Future<void> setupDi() async {
 
   sl.registerLazySingleton(() => DashboardActionsFactory());
   sl.registerLazySingleton(
-        () => DashboardViewModel(factory: sl(), findNearestUseCase: sl()),
+        () => DashboardViewModel(
+          factory: sl(),
+          findNearestUseCase: sl(),
+          reportRepository: sl<ReportRepository>(),
+        ),
   );
 
   sl.registerFactory<EmergencyReportViewModel>(
