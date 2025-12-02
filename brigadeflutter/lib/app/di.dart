@@ -227,7 +227,11 @@ Future<void> setupDi() async {
 
   sl.registerLazySingleton(() => DashboardActionsFactory());
   sl.registerLazySingleton(
-        () => DashboardViewModel(factory: sl(), findNearestUseCase: sl()),
+        () => DashboardViewModel(
+          factory: sl(),
+          findNearestUseCase: sl(),
+          reportRepository: sl<ReportRepository>(),
+        ),
   );
 
   sl.registerFactory<EmergencyReportViewModel>(
@@ -241,6 +245,7 @@ Future<void> setupDi() async {
       openai: sl<OpenAIService>(),
       tts: sl<TtsService>(),
       connectivity: sl<ConnectivityService>(),
+      notificationService: sl<NotificationService>(),
     ),
   );
 
@@ -253,6 +258,7 @@ Future<void> setupDi() async {
       getUserReports: sl<GetUserReports>(),
       getUserReportsWithCache: sl<GetUserReportsWithCache>(),
       getCurrentUser: sl<GetCurrentUser>(),
+      repository: sl<ReportRepository>(),
     ),
   );
 

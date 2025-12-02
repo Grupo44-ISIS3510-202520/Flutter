@@ -25,10 +25,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_initialized) {
         final DashboardViewModel vm = context.read<DashboardViewModel>();
         vm.updateNearestMeetingPoint();
+        
+        // Sync pending reports when dashboard loads
+        await vm.syncPendingReports();
+        
         _initialized = true;
       }
 

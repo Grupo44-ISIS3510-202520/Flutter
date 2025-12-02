@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -17,19 +20,70 @@ class ReportsListScreen extends StatefulWidget {
 
 class _ReportsListScreenState extends State<ReportsListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String? _selectedType;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _wasOffline = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReportsListViewModel>().loadReports();
+      final vm = context.read<ReportsListViewModel>();
+      vm.loadReports();
+      
+      // Listen for connectivity changes to refresh the list
+      vm.addListener(_onViewModelChanged);
+      
+      // Listen for connectivity changes
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) {
+        final bool isOffline = result.contains(ConnectivityResult.none);
+        
+        // If we just came back online, reload reports
+        if (_wasOffline && !isOffline) {
+          print('ReportsList: Connection restored, reloading reports...');
+          vm.loadReports();
+        }
+        
+        _wasOffline = isOffline;
+      });
     });
+  }
+  
+  void _onViewModelChanged() {
+    // Refresh UI when viewmodel changes (e.g., when reports are synced)
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
+    try {
+      context.read<ReportsListViewModel>().removeListener(_onViewModelChanged);
+    } catch (_) {}
     _searchController.dispose();
     super.dispose();
+  }
+  
+  List<String> _getUniqueTypes(ReportsListViewModel vm) {
+    final Set<String> types = {};
+    for (final report in vm.reports) {
+      types.add(report.type);
+    }
+    for (final report in vm.pendingReports) {
+      types.add(report.type);
+    }
+    final List<String> sortedTypes = types.toList()..sort();
+    return sortedTypes;
+  }
+  
+  void _filterReportsByType(ReportsListViewModel vm) {
+    if (_selectedType == null) {
+      vm.search(_searchController.text);
+    } else {
+      vm.search(_selectedType!);
+    }
   }
   
   Widget _buildFirestoreBanner(ReportsListViewModel vm) {
@@ -188,7 +242,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '💡 Pull down to refresh and sync with latest data',
+            'Pull down to refresh and sync with latest data',
             style: TextStyle(
               color: Colors.orange.shade700,
               fontSize: 11,
@@ -226,37 +280,84 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
               else if (vm.dataSource == 'Firestore' && vm.reports.isNotEmpty)
                 _buildFirestoreBanner(vm),
               
-              // Search bar
+              // Search bar and filter
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: vm.search,
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              vm.clearSearch();
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: _searchController,
+                      onChanged: vm.search,
+                      decoration: InputDecoration(
+                        hintText: 'Search by ID, type, place, or description',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  vm.clearSearch();
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.blue, width: 2),
+                        ),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    const SizedBox(height: 12),
+                    // Filter by type dropdown
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedType,
+                          hint: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(Icons.filter_list, size: 20),
+                                SizedBox(width: 8),
+                                Text('Filter by Type'),
+                              ],
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          items: <DropdownMenuItem<String>>[
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('All Types'),
+                            ),
+                            ..._getUniqueTypes(vm).map((String type) {
+                              return DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type),
+                              );
+                            }).toList(),
+                          ],
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedType = newValue;
+                              _filterReportsByType(vm);
+                            });
+                          },
+                        ),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.blue, width: 2),
-                    ),
-                  ),
+                  ],
                 ),
               ),
               
@@ -304,7 +405,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
       );
     }
 
-    if (vm.reports.isEmpty) {
+    if (vm.reports.isEmpty && vm.pendingReports.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -331,11 +432,115 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
       onRefresh: vm.loadReports,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: vm.reports.length,
+        itemCount: vm.pendingReports.length + vm.reports.length + (vm.pendingReports.isNotEmpty ? 1 : 0),
         itemBuilder: (BuildContext context, int index) {
-          final Report report = vm.reports[index];
+          // Show pending reports section header
+          if (vm.pendingReports.isNotEmpty && index == 0) {
+            return _buildPendingHeader();
+          }
+          
+          // Show pending reports
+          final int headerOffset = vm.pendingReports.isNotEmpty ? 1 : 0;
+          if (index < vm.pendingReports.length + headerOffset) {
+            final Report report = vm.pendingReports[index - headerOffset];
+            return _buildPendingReportCard(report);
+          }
+          
+          // Show regular reports
+          final int regularIndex = index - vm.pendingReports.length - headerOffset;
+          final Report report = vm.reports[regularIndex];
           return _buildReportCard(report);
         },
+      ),
+    );
+  }
+  
+  Widget _buildPendingHeader() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.cloud_upload, color: Colors.orange.shade700, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Pending Reports (will sync when online)',
+              style: TextStyle(
+                color: Colors.orange.shade900,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildPendingReportCard(Report report) {
+    final DateFormat dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
+    final String formattedDate = dateFormat.format(report.timestamp);
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      color: Colors.orange.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.orange.shade200),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          _showReportDetails(report);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: <Widget>[
+              Icon(Icons.schedule, color: Colors.orange.shade700, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      '${report.reportId} - ${report.type}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      report.place,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      formattedDate,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.orange.shade700),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -364,7 +569,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      report.type,
+                      '${report.reportId} - ${report.type}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

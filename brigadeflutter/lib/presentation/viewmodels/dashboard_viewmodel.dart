@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../data/models/meeting_point_model.dart';
+import '../../data/repositories/report_repository.dart';
 import '../../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
 import '../navigation/dashboard_actions_factory.dart';
 import '../navigation/dashboard_commands.dart';
@@ -9,6 +10,7 @@ class DashboardViewModel extends ChangeNotifier {
   DashboardViewModel({
     required this.factory,
     required this.findNearestUseCase,
+    required this.reportRepository,
   }) {
 
     actions = factory.mainGrid();
@@ -18,6 +20,7 @@ class DashboardViewModel extends ChangeNotifier {
 
   final DashboardActionsFactory factory;
   final FindNearestMeetingPoint findNearestUseCase;
+  final ReportRepository reportRepository;
 
   bool isOnline = true;
   List<DashboardActionCommand> actions = const [];
@@ -121,6 +124,31 @@ class DashboardViewModel extends ChangeNotifier {
   Future<void> forceRecalculate() async {
     _hasCalculated = false;
     await updateNearestMeetingPoint();
+  }
+
+  // Sync pending reports on dashboard init
+  Future<void> syncPendingReports() async {
+    try {
+      if (kDebugMode) {
+        print('Dashboard: Starting sync of pending reports...');
+      }
+      
+      // Add small delay to ensure Hive is fully initialized
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      
+      // Use repository's syncPending which handles Hive properly
+      await reportRepository.syncPending();
+      
+      if (kDebugMode) {
+        print('Dashboard: Sync complete');
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('Dashboard: Error syncing pending reports: $e');
+        print('Stack trace: $stackTrace');
+      }
+      // Don't throw - sync will happen via connectivity watcher instead
+    }
   }
 
   @override

@@ -6,7 +6,7 @@ import '../../helpers/utils/input_formatters.dart';
 import '../../helpers/utils/validators.dart';
 import '../components/app_bar_actions.dart';
 import '../components/app_bottom_nav.dart';
-import '../components/banner_report_offline.dart';
+import '../components/banner_offline.dart';
 import '../components/connectivity_status_icon.dart';
 import '../viewmodels/emergency_report_viewmodel.dart';
 
@@ -24,6 +24,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
   late final TextEditingController _typeCtrl;
   late final TextEditingController _placeCtrl;
   late final TextEditingController _descCtrl;
+  DateTime? selectedTime;
 
   @override
   void initState() {
@@ -36,6 +37,22 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final EmergencyReportViewModel vm = context
           .read<EmergencyReportViewModel>();
+      
+      // Set up callback for sync notifications
+      vm.onReportSynced = (String reportId, DateTime timestamp) {
+        if (!mounted) return;
+        final String formattedTime = '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Report sent at $formattedTime has been successfully submitted with ID: $reportId',
+            ),
+            duration: const Duration(seconds: 5),
+            backgroundColor: Colors.green,
+          ),
+        );
+      };
+      
       vm.initBrightness();
       vm.initConnectivityWatcher(); // no hace lógica en la vista
     });
@@ -58,7 +75,8 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
           _placeCtrl.text = vm.place;
         }
 
-        final bool isOnline = vm.isOnline ?? !vm.offline;
+        final bool isOffline = vm.offline;
+        final bool isOnline = !isOffline;
 
         return Scaffold(
           appBar: AppBar(
@@ -77,7 +95,12 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
           body: Column(
             children: <Widget>[
-              if (vm.offline) const OfflineMaterialBanner(),
+              if (isOffline) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: OfflineBanner(),
+                ),
+              ],
               Expanded(
                 child: SafeArea(
                   minimum: const EdgeInsets.symmetric(
@@ -89,36 +112,6 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                     child: ListView(
                       children: <Widget>[
                         const SizedBox(height: 12),
-
-                        if (vm.autoBrightnessSupported) ...<Widget>[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8F9FB),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFE5E7EB),
-                              ),
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                const Icon(Icons.brightness_auto, size: 20),
-                                const SizedBox(width: 8),
-                                const Text('Auto brightness'),
-                                const Spacer(),
-                                Switch(
-                                  value: vm.autoBrightnessOn,
-                                  onChanged:
-                                      vm.toggleAutoBrightness, // delega al vm
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
 
                         TextFormField(
                           controller: _typeCtrl,
@@ -207,6 +200,44 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
 
                         const SizedBox(height: 12),
 
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.access_time),
+                          label: Text(
+                            selectedTime == null
+                              ? 'Select report date & time (optional)'
+                              : 'Date: ${selectedTime!.day.toString().padLeft(2, '0')}/${selectedTime!.month.toString().padLeft(2, '0')}/${selectedTime!.year} ${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}',
+                          ),
+                          onPressed: () async {
+                            final DateTime initialDate = selectedTime ?? DateTime.now();
+                            final DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: initialDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                            );
+                            if (pickedDate != null) {
+                              if (!mounted) return;
+                              final TimeOfDay? pickedTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.fromDateTime(initialDate),
+                              );
+                              if (pickedTime != null) {
+                                setState(() {
+                                  selectedTime = DateTime(
+                                    pickedDate.year,
+                                    pickedDate.month,
+                                    pickedDate.day,
+                                    pickedTime.hour,
+                                    pickedTime.minute,
+                                  );
+                                });
+                              }
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
                         TextFormField(
                           controller: _descCtrl,
                           onChanged: vm.onDescriptionChanged,
@@ -258,6 +289,7 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                         ),
 
                         ElevatedButton(
+                          // onPressed: (vm.submittingReport || isOffline)
                           onPressed: vm.submittingReport
                               ? null
                               : () async {
@@ -266,22 +298,53 @@ class _EmergencyReportScreenState extends State<EmergencyReportScreen> {
                                   }
                                   final String? reportId = await vm.submit(
                                     isOnline: isOnline,
+                                    timestamp: selectedTime,
                                   );
                                   if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        reportId != null
-                                            ? 'Report submitted (id: $reportId)'
-                                            : 'Error submitting report :( We will save it locally and try again later',
-                                      ),
-                                    ),
-                                  );
+                                  
                                   if (reportId != null) {
+                                    // Success - show snackbar
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Report submitted (id: $reportId)'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
                                     // limpia UI tras éxito
                                     _typeCtrl.clear();
                                     _placeCtrl.clear();
                                     _descCtrl.clear();
+                                    setState(() {
+                                      selectedTime = null;
+                                    });
+                                  } else {
+                                    // Failed - show dialog
+                                    await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) => AlertDialog(
+                                        title: Row(
+                                          children: const <Widget>[
+                                            Icon(Icons.cloud_off, color: Colors.orange),
+                                            SizedBox(width: 8),
+                                            Text('Report Saved Locally'),
+                                          ],
+                                        ),
+                                        content: const Text(
+                                          'We couldn\'t submit your report right now, but don\'t worry! '
+                                          'It has been saved locally and will be automatically submitted '
+                                          'when your connection is restored.',
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            child: const Text('OK'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    // Navigate back to dashboard
+                                    if (!mounted) return;
+                                    Navigator.of(context).pop();
                                   }
                                 },
                           child: vm.submittingReport

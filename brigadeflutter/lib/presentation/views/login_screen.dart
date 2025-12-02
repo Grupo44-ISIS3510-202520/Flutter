@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   // Sign in button
                   FilledButton(
-                    onPressed: vm.signingIn
+                    onPressed: (vm.signingIn || !vm.isOnline)
                         ? null
                         : () async {
                             if (!_form.currentState!.validate()) return;
@@ -244,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: vm.resetting
+                      onPressed: (vm.resetting || !vm.isOnline)
                           ? null
                           : () async {
                               final TextEditingController ctrl =
@@ -386,7 +386,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       TextButton(
-                        onPressed: vm.signingIn
+                        onPressed: (vm.signingIn || !vm.isOnline)
                             ? null
                             : () =>
                                   Navigator.of(context).pushNamed('/register'),

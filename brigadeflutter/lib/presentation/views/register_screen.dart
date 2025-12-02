@@ -359,7 +359,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 24),
                   // Submit button
                   FilledButton(
-                    onPressed: vm.submitting
+                    onPressed: (vm.submitting || !vm.isOnline)
                         ? null
                         : () async {
                             if (!_form.currentState!.validate()) return;
