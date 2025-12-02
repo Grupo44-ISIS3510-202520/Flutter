@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../../data/entities/report.dart';
 import '../../data/models/meeting_point_model.dart';
 import '../../data/repositories/report_repository.dart';
 import '../../domain/use_cases/dashboard/find_nearest_meeting_point.dart';
@@ -134,35 +133,21 @@ class DashboardViewModel extends ChangeNotifier {
         print('Dashboard: Starting sync of pending reports...');
       }
       
-      final List<Report> pendingReports = await reportRepository.pending();
+      // Add small delay to ensure Hive is fully initialized
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      
+      // Use repository's syncPending which handles Hive properly
+      await reportRepository.syncPending();
+      
       if (kDebugMode) {
-        print('Dashboard: Found ${pendingReports.length} pending reports to sync');
+        print('Dashboard: Sync complete');
       }
-      
-      if (pendingReports.isEmpty) {
-        return;
-      }
-      
-      for (final Report report in pendingReports) {
-        try {
-          if (kDebugMode) {
-            print('Dashboard: Syncing report ${report.reportId}...');
-          }
-          await reportRepository.create(report);
-          await reportRepository.markSent(report);
-          if (kDebugMode) {
-            print('Dashboard: Successfully synced report ${report.reportId}');
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Dashboard: Failed to sync report ${report.reportId}: $e');
-          }
-        }
-      }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (kDebugMode) {
         print('Dashboard: Error syncing pending reports: $e');
+        print('Stack trace: $stackTrace');
       }
+      // Don't throw - sync will happen via connectivity watcher instead
     }
   }
 

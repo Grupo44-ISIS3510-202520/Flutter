@@ -39,10 +39,15 @@ class CreateEmergencyReport {
             ? 'F${await idGen.nextReportId()}'
             : 'F${DateTime.now().millisecondsSinceEpoch}');
     
+    // Add OFFLINE marker to description for offline reports
+    final String finalDescription = isOnline 
+        ? description.trim() 
+        : '${description.trim()} [OFFLINE]';
+    
     final Report report = Report(
       reportId: newReportId,
       type: type.trim(),
-      description: description.trim(),
+      description: finalDescription,
       isFollowUp: isFollowUp,
       timestamp: timestamp ?? DateTime.now(),
       elapsedTime: elapsedTime,

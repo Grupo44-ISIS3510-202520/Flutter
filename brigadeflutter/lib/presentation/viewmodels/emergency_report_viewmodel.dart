@@ -19,6 +19,8 @@ import '../../domain/use_cases/create_emergency_report.dart';
 import '../../domain/use_cases/fill_location.dart';
 import '../../domain/use_cases/get_current_user.dart';
 
+
+
 class EmergencyReportViewModel extends ChangeNotifier {
   EmergencyReportViewModel({
     required this.createReport,
@@ -161,6 +163,7 @@ class EmergencyReportViewModel extends ChangeNotifier {
         return;
       }
       
+      // Sync each report sequentially to avoid Hive concurrency issues
       int syncedCount = 0;
       int failedCount = 0;
       
@@ -170,14 +173,31 @@ class EmergencyReportViewModel extends ChangeNotifier {
             print('EmergencyReport: Syncing report ${report.reportId}...');
           }
           
-          await createReport.repo.create(report);
+          // All reports use F## nomenclature, just use the existing ID
+          final Report updatedReport = Report(
+            reportId: report.reportId,
+            type: report.type,
+            description: report.description,
+            isFollowUp: report.isFollowUp,
+            timestamp: report.timestamp,
+            elapsedTime: report.elapsedTime,
+            place: report.place,
+            latitude: report.latitude,
+            longitude: report.longitude,
+            audioUrl: report.audioUrl,
+            imageUrl: report.imageUrl,
+            uiid: report.uiid,
+            userId: report.userId,
+          );
+          
+          await createReport.repo.create(updatedReport);
           if (kDebugMode) {
-            print('EmergencyReport: Created report ${report.reportId} in Firestore');
+            print('EmergencyReport: Created report in Firestore with ID ${report.reportId}');
           }
           
           await createReport.repo.markSent(report);
           if (kDebugMode) {
-            print('EmergencyReport: Marked report ${report.reportId} as sent');
+            print('EmergencyReport: Marked report as sent');
           }
           
           syncedCount++;
@@ -188,10 +208,6 @@ class EmergencyReportViewModel extends ChangeNotifier {
             if (kDebugMode) {
               print('EmergencyReport: Notified UI about synced report ${report.reportId}');
             }
-          }
-          
-          if (kDebugMode) {
-            print('EmergencyReport: Successfully synced report ${report.reportId}');
           }
         } catch (e, stackTrace) {
           failedCount++;

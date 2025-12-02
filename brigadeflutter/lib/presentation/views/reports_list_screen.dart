@@ -188,7 +188,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '💡 Pull down to refresh and sync with latest data',
+            'Pull down to refresh and sync with latest data',
             style: TextStyle(
               color: Colors.orange.shade700,
               fontSize: 11,
