@@ -136,15 +136,20 @@ class DashboardViewModel extends ChangeNotifier {
       // Add small delay to ensure Hive is fully initialized
       await Future<void>.delayed(const Duration(milliseconds: 500));
       
-      // Use repository's syncPending which handles Hive properly
-      await reportRepository.syncPending();
+      // Don't use repository's syncPending - it doesn't generate proper IDs
+      // The EmergencyReportViewModel handles sync properly via connectivity watcher
+      // This is just a backup check
+      final pending = await reportRepository.pending();
+      if (kDebugMode) {
+        print('Dashboard: Found ${pending.length} pending reports (will sync via connectivity watcher)');
+      }
       
       if (kDebugMode) {
-        print('Dashboard: Sync complete');
+        print('Dashboard: Sync check complete');
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        print('Dashboard: Error syncing pending reports: $e');
+        print('Dashboard: Error checking pending reports: $e');
         print('Stack trace: $stackTrace');
       }
       // Don't throw - sync will happen via connectivity watcher instead
