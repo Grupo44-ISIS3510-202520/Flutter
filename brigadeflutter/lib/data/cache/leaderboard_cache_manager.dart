@@ -10,7 +10,7 @@ class LeaderboardCacheManager {
   LeaderboardCacheManager({CacheManager? cacheManager})
       : _cacheManager = cacheManager ?? DefaultCacheManager();
 
-  /// Save leaderboard to cache
+  /// guardar leaderboard a cache
   Future<void> saveLeaderboard(List<LeaderboardEntry> entries, String weekId) async {
     final jsonData = {
       "weekId": weekId,
@@ -29,7 +29,7 @@ class LeaderboardCacheManager {
     await _cacheManager.putFile(
       _cacheKey,
       utf8.encode(jsonString),
-      maxAge: const Duration(days: 7), // leaderboard refresh every week
+      maxAge: const Duration(days: 7), // recargar cada 7 dias
     );
   }
 

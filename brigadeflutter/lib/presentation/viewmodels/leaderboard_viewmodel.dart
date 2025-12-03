@@ -44,7 +44,7 @@ class LeaderboardViewModel extends ChangeNotifier {
     _loadedFromCache = false;
     notifyListeners();
 
-    // 1. Intentar cargar desde cache
+    // intentar cargar desde cache
     final cached = await _cacheManager.getCachedLeaderboard();
     if (cached != null) {
       _entries = (cached["entries"] as List<dynamic>).map((e) {
@@ -63,7 +63,7 @@ class LeaderboardViewModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    // 2. Intentar Firestore
+    // intentar Firestore
     try {
       final String weekId = _getWeekId();
 
@@ -97,7 +97,7 @@ class LeaderboardViewModel extends ChangeNotifier {
       _cachedWeekId = weekId;
       _loadedFromCache = false;
 
-      // Guardar en cache
+      // guardar en cache
       await _cacheManager.saveLeaderboard(parsed, weekId);
 
     } catch (_) {

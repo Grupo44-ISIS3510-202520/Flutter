@@ -25,11 +25,9 @@ class LeaderboardScreen extends StatelessWidget {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // banner offline
                 Consumer<AuthViewModel>(
                   builder: (_, authVM, __) {
                     if (!authVM.isOnline) {
-                      // week ID real o cache
                       final weekText = vm.cachedWeekId ?? "this week";
 
                       return Container(
@@ -55,7 +53,6 @@ class LeaderboardScreen extends StatelessWidget {
                   },
                 ),
 
-                // MAIN LIST
                 Expanded(
                   child: ListView.builder(
                     itemCount: vm.entries.length,
