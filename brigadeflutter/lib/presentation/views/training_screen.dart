@@ -26,28 +26,33 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 
   String _getWeekId() {
-  final now = DateTime.now();
-  final firstDay = DateTime(now.year, 1, 1);
-  final diff = now.difference(firstDay).inDays;
-  final week = ((diff + firstDay.weekday) / 7).ceil();
-  return "${now.year}-W$week";
-}
-
-Future<void> _openLeaderboard(BuildContext context) async {
-  try {
-    await FirebaseFirestore.instance.collection('leaderboard_events').add({
-      'uid': FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
-      'timestamp': FieldValue.serverTimestamp(),
-      'weekId': _getWeekId(),
-    });
-
-    debugPrint("leaderboard_events logged");
-  } catch (e) {
-    debugPrint("Error logging leaderboard event: $e");
+    final now = DateTime.now();
+    final firstDay = DateTime(now.year, 1, 1);
+    final diff = now.difference(firstDay).inDays;
+    final week = ((diff + firstDay.weekday) / 7).ceil();
+    return "${now.year}-W$week";
   }
 
-  Navigator.pushNamed(context, '/leaderboard');
-}
+  Future<void> _openLeaderboard(BuildContext context) async {
+    Navigator.pushNamed(context, '/leaderboard');
+    try {
+      FirebaseFirestore.instance
+          .collection('leaderboard_events')
+          .add({
+            'uid': FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
+            'timestamp': FieldValue.serverTimestamp(),
+            'weekId': _getWeekId(),
+          })
+          .then((_) {
+            debugPrint("leaderboard_events logged");
+          })
+          .catchError((e) {
+            debugPrint("Error logging leaderboard event: $e");
+          });
+    } catch (e) {
+      debugPrint("Unexpected leaderboard event error: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +63,12 @@ Future<void> _openLeaderboard(BuildContext context) async {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Training', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Training',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         //leading: backToDashboardButton(context),
-        actions: const <Widget>[
-          ConnectivityStatusIcon(),
-        ],
+        actions: const <Widget>[ConnectivityStatusIcon()],
       ),
       body: Builder(
         builder: (_) {
@@ -75,7 +81,7 @@ Future<void> _openLeaderboard(BuildContext context) async {
               return ListView(
                 padding: const EdgeInsets.only(bottom: 24),
                 children: <Widget>[
-                   Padding(
+                  Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: OutlinedButton.icon(
                       icon: const Icon(
@@ -90,33 +96,47 @@ Future<void> _openLeaderboard(BuildContext context) async {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white, 
-                        side: const BorderSide(color: Color(0xFF2F6AF6), width: 1.5), 
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(
+                          color: Color(0xFF2F6AF6),
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        ),
                       ),
                       onPressed: () => _openLeaderboard(context),
                     ),
                   ),
+
                   _buildSection(
                     'Cursos en progreso',
                     vm.progress
-                        .where((TrainingProgress p) => p.percent > 0 && p.percent < 100)
+                        .where(
+                          (TrainingProgress p) =>
+                              p.percent > 0 && p.percent < 100,
+                        )
                         .toList(),
                     vm,
                     vm.cards,
                   ),
                   _buildSection(
                     'Cursos completados',
-                    vm.progress.where((TrainingProgress p) => p.percent == 100).toList(),
+                    vm.progress
+                        .where((TrainingProgress p) => p.percent == 100)
+                        .toList(),
                     vm,
                     vm.cards,
                   ),
                   _buildSection(
                     'Cursos disponibles',
-                    vm.progress.where((TrainingProgress p) => p.percent == 0).toList(),
+                    vm.progress
+                        .where((TrainingProgress p) => p.percent == 0)
+                        .toList(),
                     vm,
                     vm.cards,
                   ),
@@ -146,27 +166,23 @@ Future<void> _openLeaderboard(BuildContext context) async {
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ),
         ...progressList.map((TrainingProgress progress) {
           final TrainingCard card = cards.firstWhere(
-            (TrainingCard c) => c.id == progress.id, 
+            (TrainingCard c) => c.id == progress.id,
             orElse: () => cards.first,
           );
 
           return KeyedSubtree(
-            key: ValueKey(card.id), 
+            key: ValueKey(card.id),
             child: _buildTrainingTile(card, progress, vm),
           );
         }),
       ],
     );
   }
-
 
   Widget _buildTrainingTile(
     TrainingCard card,
@@ -183,7 +199,9 @@ Future<void> _openLeaderboard(BuildContext context) async {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const <BoxShadow>[BoxShadow(blurRadius: 6, color: Colors.black12)],
+          boxShadow: const <BoxShadow>[
+            BoxShadow(blurRadius: 6, color: Colors.black12),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -199,16 +217,20 @@ Future<void> _openLeaderboard(BuildContext context) async {
                   child: CachedNetworkImage(
                     imageUrl: card.imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (BuildContext context, String url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                    ),
-                    errorWidget: (BuildContext context, String url, dynamic error) {
-                      return Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.error),
-                      );
-                    },
+                    placeholder: (BuildContext context, String url) =>
+                        Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                    errorWidget:
+                        (BuildContext context, String url, dynamic error) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.error),
+                          );
+                        },
                   ),
                 ),
               ),
@@ -270,7 +292,9 @@ Future<void> _openLeaderboard(BuildContext context) async {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 animationDuration: Duration.zero,
                               ),
                               child: Text(
@@ -317,4 +341,5 @@ Future<void> _openLeaderboard(BuildContext context) async {
         ),
       ),
     );
-  }}
+  }
+}
