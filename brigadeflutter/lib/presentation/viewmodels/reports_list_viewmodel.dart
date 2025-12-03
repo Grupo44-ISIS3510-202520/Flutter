@@ -139,10 +139,8 @@ class ReportsListViewModel extends ChangeNotifier {
   void search(String query) async {
     _searchQuery = query.trim();
     
-    // ISOLATE STRATEGY: For large datasets (>50 items), use isolate for filtering
-    // This prevents UI freezing during search on large lists
+    // ISOLATE STRATEGY:
     if (_allReports.length > 50) {
-      // Run filtering in separate isolate to keep UI responsive
       _filteredReports = await compute(
         _filterReportsIsolate,
         <String, dynamic>{
